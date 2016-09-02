@@ -31,13 +31,6 @@ kps.get.questiontext <- function(x = kps.loaddatafile()) {
 
 
 
-# Create sample plot for sex of participants
-kps.sample.histplot <- function() {
-  kps.data <- kps.loaddatafile()
-  ggplot(data=kps.data, aes(kps.data$sex)) + geom_bar() + labs(x="Sex of Participant", y="Count")  
-}
-
-
 # Format factor loadings into a user friendly format
 #
 # Original loadings usually kept in an object similar to fa.object$fa$loadings
@@ -45,7 +38,7 @@ kps.format.loadings <- function(original.loadings = NULL) {
   var.names <- kps.loadvarfile()
   
   # Create initial data frame from loadings. Create additional columns
-  loadings <- data.frame(unclass())
+  loadings <- data.frame(unclass(original.loadings))
   loadings <- data.frame("code"= rownames(loadings), "text" = rownames(loadings), loadings, stringsAsFactors=FALSE)
   rownames(loadings) = NULL
   
