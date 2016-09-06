@@ -6,7 +6,7 @@
 
 # Load utility script
 
-source("R/kps.R")
+source("R/kps-utility.R")
 
 # ETL
 kps.data <- kps.loaddatafile()
@@ -21,6 +21,25 @@ kps.vars <- kps.loadvarfile()
 #        1) Mystical only
 #        2) Spiritual only
 
+#1)----------------------------------------------------------------------------
+# Select only mystical questions
+q <- kps.data[,grepl("mystical", names(kps.data))]
+q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
+
+# Visualize likert questions
+library(likert)
+q.questiontext <- kps.get.questiontext(q)
+plot(likert(q.questiontext), centered = FALSE)
+
+#2)----------------------------------------------------------------------------
+# Select only spiritual questions
+q <- kps.data[,grepl("spiritual", names(kps.data))]
+q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
+
+# Visualize likert questions
+library(likert)
+q.questiontext <- kps.get.questiontext(q)
+plot(likert(q.questiontext), centered = FALSE)
 
 #TODO: Factor analysis on "mystical" (only)
 
