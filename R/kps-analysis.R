@@ -17,12 +17,13 @@ kps.vars <- kps.loadvarfile()
 # COMPARATIVE FACTOR ANALYSIS
 #
 
-#TODO: Basic likert visualizations
+# Basic likert visualizations
 #        1) Mystical only
 #        2) Spiritual only
 
-#1)----------------------------------------------------------------------------
-# Select only mystical questions
+#
+# 1) Mystical only
+#
 q <- kps.data[,grepl("mystical", names(kps.data))]
 q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
 
@@ -31,8 +32,9 @@ library(likert)
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
-#2)----------------------------------------------------------------------------
-# Select only spiritual questions
+#
+# 2) Spiritual only
+#
 q <- kps.data[,grepl("spiritual", names(kps.data))]
 q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
 
@@ -40,6 +42,8 @@ q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
 library(likert)
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
+
+
 
 #TODO: Factor analysis on "mystical" (only)
 
