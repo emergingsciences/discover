@@ -12,6 +12,15 @@ source("R/kps-utility.R")
 kps.data <- kps.loaddatafile()
 kps.vars <- kps.loadvarfile()
 
+#
+# Basic Summary charts
+#
+
+barplot(nrow (kps.data), width = 1, main="Kundalini Profile Survey", ylim=c(0,400), ylab="Number of Participants", col="darkgreen")
+library("ggplot2")
+ggplot(data=kps.data, aes(kps.data$sex)) + geom_bar() + labs(x="Sex of Participant", y="Count")
+ggplot(data=kps.data, aes(kps.data$age)) + geom_bar() + labs(x="Age of Participant", y="Count")
+
 
 #
 # COMPARATIVE FACTOR ANALYSIS
@@ -46,6 +55,21 @@ plot(likert(q.questiontext), centered = FALSE)
 
 
 #TODO: Factor analysis on "mystical" (only)
+
+kps.data <- kps.loaddatafile()
+
+q <- kps.data[,grepl("mystical", names(kps.data))]
+q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
+
+# Generate the scree with parallel analysis
+q.par <- fa.parallel(x = q, cor = "poly", fa = "fa") # Also generates plot
+print(q.par) # Will suggest number of factors
+
+# Parallel analysis suggests that the number of factors = 3  and the number of components =  NA 
+
+# Generate factors
+q.poly.fa.pro <- fa.poly(x = q.num, nfactors = 3, fm = "pa", rotate = "promax")
+
 
 #TODO: Factor analysis on "spiritual" (only)
 
