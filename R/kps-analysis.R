@@ -8,18 +8,37 @@
 
 source("R/kps-utility.R")
 
+#
 # ETL
+#
 kps.data <- kps.loaddatafile()
 kps.vars <- kps.loadvarfile()
 
+
+
 #
-# Basic Summary charts
+# DATA SUMMARY VISUALIZATIONS
 #
 
+library(ggplot2)
+
+# Total number of participants
 barplot(nrow (kps.data), width = 1, main="Kundalini Profile Survey", ylim=c(0,400), ylab="Number of Participants", col="darkgreen")
-library("ggplot2")
-ggplot(data=kps.data, aes(kps.data$sex)) + geom_bar() + labs(x="Sex of Participant", y="Count")
-ggplot(data=kps.data, aes(kps.data$age)) + geom_bar() + labs(x="Age of Participant", y="Count")
+
+# Number of participants by sex
+ggplot(data=kps.data, aes(x = kps.data$sex, fill = kps.data$sex)) +
+  guides(fill = FALSE) +
+  geom_bar() +
+  geom_text(stat = 'count', aes(label = ..count..), vjust=-1) +
+  labs(x="Sex of Participant", y="Number of participants", fill="Sex")
+
+# Age histogram
+# Credit: https://www.datacamp.com/community/tutorials/make-histogram-ggplot2#gs.ko0NeIE
+ggplot(data=kps.data, aes(x = kps.data$age, width = .4)) +
+  geom_histogram(binwidth = 5, col = "white", aes(fill =..count..), alpha = .8) +
+  labs(x="Age of Participant", y="Count") +
+  scale_x_continuous(breaks = seq(0, 100, by = 5))
+
 
 
 #
