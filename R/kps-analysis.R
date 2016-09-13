@@ -45,10 +45,10 @@ ggplot(data=kps.data, aes(x = kps.data$age, width = .4)) +
 # COMPARATIVE FACTOR ANALYSIS
 #
 
-
 ## Basic likert visualizations ##
 
 library(likert)
+library(psych)
 
 # Mystical
 q <- kps.data[,grepl("mystical", names(kps.data))]
@@ -62,40 +62,70 @@ plot(likert(q.questiontext), centered = FALSE)
 
 
 
-#TODO: Factor analysis on "mystical" (only)
-
-kps.data <- kps.loaddatafile()
+# Factor analysis on "mystical" (only)
 
 q <- kps.data[,grepl("mystical", names(kps.data))]
 q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
 
 # Generate the scree with parallel analysis
-q.par <- fa.parallel(x = q, cor = "poly", fa = "fa") # Also generates plot
+q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
 print(q.par) # Will suggest number of factors
 
-# Parallel analysis suggests that the number of factors = 3  and the number of components =  NA 
+# 9/13 - n = 338 - Parallel analysis suggests that the number of factors = 3
 
-# Generate factors
+# Generate factors with rotation
 q.poly.fa.pro <- fa.poly(x = q.num, nfactors = 3, fm = "pa", rotate = "promax")
+print(q.poly.fa.pro)
+loadings <- kps.format.loadings(q.poly.fa.pro$fa$loadings)
+
+# Export to CSV to analyze/filter in a spreadsheet app
+write.csv(loadings, file = "output/mystical-loadings.csv")
+write.csv(q.poly.fa.pro$rho, file = "output/mystical-poly-correlations.csv")
 
 
-#TODO: Factor analysis on "spiritual" (only)
 
-#TODO: Factor analysis on both "mystical" and "spiritual" (combined)
+# Factor analysis on "spiritual" (only)
 
-kps.data <- kps.loaddatafile()
+q <- kps.data[,grepl("spiritual", names(kps.data))]
+q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
+
+# Generate the scree with parallel analysis
+q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
+print(q.par) # Will suggest number of factors
+
+# 9/13 - n = 338 - Parallel analysis suggests that the number of factors = 5
+
+# Generate factors with rotation
+q.poly.fa.pro <- fa.poly(x = q.num, nfactors = 5, fm = "pa", rotate = "promax")
+print(q.poly.fa.pro)
+loadings <- kps.format.loadings(q.poly.fa.pro$fa$loadings)
+
+# Export to CSV to analyze/filter in a spreadsheet app
+write.csv(loadings, file = "output/spiritual-loadings.csv")
+write.csv(q.poly.fa.pro$rho, file = "output/spiritual-poly-correlations.csv")
+
+
+
+# Factor analysis on both "mystical" and "spiritual" (combined)
 
 q <- kps.data[,grepl("mystical|spiritual", names(kps.data))]
 q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
 
 # Generate the scree with parallel analysis
-q.par <- fa.parallel(x = q, cor = "poly", fa = "fa") # Also generates plot
+q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
 print(q.par) # Will suggest number of factors
 
-# Parallel analysis suggests that the number of factors = 6  and the number of components =  NA 
+# 9/13 - n = 338 - Parallel analysis suggests that the number of factors = 6
 
-# Generate factors
+# Generate factors with rotation
 q.poly.fa.pro <- fa.poly(x = q.num, nfactors = 6, fm = "pa", rotate = "promax")
+print(q.poly.fa.pro)
+loadings <- kps.format.loadings(q.poly.fa.pro$fa$loadings)
+
+# Export to CSV to analyze/filter in a spreadsheet app
+write.csv(loadings, file = "output/mysticalspiritual-loadings.csv")
+write.csv(q.poly.fa.pro$rho, file = "output/mysticalspiritual-poly-correlations.csv")
+
 
 
 #
