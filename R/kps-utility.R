@@ -1,5 +1,10 @@
 # 
-# Kundalini Profile Survey analysis script
+# Kundalini Profile Survey Utility Script
+#
+# This script contains:
+#   - Basic data loading functions
+#   - Mapping functions to use whenever we would like to use full question text
+#     instead of just the question codes
 #
 
 
@@ -41,9 +46,11 @@ kps.get.questiontext <- function(x = kps.loaddatafile()) {
 
 
 
-# Format factor loadings into a user friendly format
+# Format factor loadings from the psych fa() family of functions
+# into a user friendly format.
 #
 # Original loadings usually kept in an object similar to fa.object$fa$loadings
+#
 kps.format.loadings <- function(original.loadings = NULL) {
   var.names <- kps.loadvarfile()
   
