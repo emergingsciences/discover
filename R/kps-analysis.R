@@ -73,6 +73,9 @@ plot(likert(q.questiontext), centered = FALSE)
 # parallel: TRUE if you only want to run parallel analysis to determine the number of factors
 #           Defaults to FALSE.
 #
+
+library(psych)
+
 kps.fa <- function(grepmatch = NULL, prefix = "default", nfactors = 1, parallel = FALSE) {
   q <- kps.data[,grepl(grepmatch, names(kps.data))]
   q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
