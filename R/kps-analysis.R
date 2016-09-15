@@ -73,11 +73,14 @@ plot(likert(q.questiontext), centered = FALSE)
 # parallel: TRUE if you only want to run parallel analysis to determine the number of factors
 #           Defaults to FALSE.
 #
-kps.fa <- function(grepmatch = NULL, prefix = "default", nfactors = 1, parallel = FALSE) {
-  q <- kps.data[,grepl(grepmatch, names(kps.data))]
-  q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
-  
-  # Generate the scree with parallel analysis
+library(psych)
+kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, parallel = FALSE) {
+ 
+  print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
+  q <- data[,grepl(grepmatch, names(data))]
+  q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric  
+   
+  # Run parallel analysis
   if(parallel == TRUE) {
     q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
     print(q.par) # Will suggest number of factors
@@ -87,6 +90,7 @@ kps.fa <- function(grepmatch = NULL, prefix = "default", nfactors = 1, parallel 
   # Generate factors with rotation
   
   q.poly.fa.pro <- fa.poly(x = q.num, nfactors = nfactors, fm = "pa", rotate = "promax")
+  print(q.poly.fa.pro)
   loadings <- kps.format.loadings(q.poly.fa.pro$fa$loadings)
   
   # FA diagram and ICLUST output (runs fa.poly twice)
@@ -105,11 +109,10 @@ kps.fa <- function(grepmatch = NULL, prefix = "default", nfactors = 1, parallel 
   write.csv(q.poly.fa.pro$rho, file = paste("output/", prefix, "-poly-correlations.csv", sep = ''))  
 }
 
-
 # These can take (very) long depending on the number of variables
-kps.fa(grepmatch = "mystical", prefix = "mystical", nfactors = 3) # 9/13 - n = 338 - Parallel analysis factors = 3
-kps.fa(grepmatch = "spiritual", prefix = "spiritual", nfactors = 5 ) # 9/13 - n = 338 - Parallel analysis factors = 5
-kps.fa(grepmatch = "mystical|spiritual", prefix = "mystical-spiritual", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
+kps.fa(kps.data, grepmatch = "mystical", prefix = "mystical", nfactors = 3) # 9/13 - n = 338 - Parallel analysis factors = 3
+kps.fa(kps.data, grepmatch = "spiritual", prefix = "spiritual", nfactors = 5 ) # 9/13 - n = 338 - Parallel analysis factors = 5
+kps.fa(kps.data, grepmatch = "mystical|spiritual", prefix = "mystical-spiritual", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
 
 
 
@@ -118,6 +121,48 @@ kps.fa(grepmatch = "mystical|spiritual", prefix = "mystical-spiritual", nfactors
 #        - Crate composite variables based on factors
 #        - Simple average of individual factor variables
 #
+
+# kps.compvar() - Create a KPS composite variable
+# 
+# Parameters
+#
+# data: Original dataset to process
+# names: Vector of names to use to create the composite variable.
+#        These will be automatically removed from the original dataset
+# newname: The name of the new composite variable
+kps.compvar <- function(data, newname, names) {
+  
+  data[newname] <- rowMeans(data[,c(names)]) # Calc row means and create comp var
+  data <- data[,-which(names(data) %in% names)] # Remove original vars
+  return(data)
+  
+  # Move new name to front (optional)
+  # col_idx <- grep(newname, names(data))
+  # compvar <- compvar[, c(col_idx, (1:ncol(data))[-col_idx])]
+}
+
+## Create Composite Variables ##
+
+# Make a copy of the original dataset
+# compvar <- kps.data
+compvar <- kps.data[,grepl("mystical", names(kps.data))]
+
+# Get all likert question names
+likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
+                      names(compvar))
+
+# Convert all likert questions to numbers so we can calculate the row means
+compvar[,likert.names] <- as.data.frame(lapply(compvar[,likert.names], as.numeric)) # Convert all values to numeric
+
+
+# Create all composite variables
+
+compvar <- kps.compvar(compvar, "CONSCIOUSNESS", c("mystical24","mystical25","mystical27"))
+
+
+# Drop a composite variable  
+# q.num <- q.num[ , !(names(q.num) %in% c("CONSCIOUSNESS"))]
+
 
 
 #
