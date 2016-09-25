@@ -48,7 +48,20 @@ q <- kps.data[,grepl("spiritual", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
+# PsychoPhysical likert visualization
+q <- kps.data[,grepl("psyphys", names(kps.data))]
+q.questiontext <- kps.get.questiontext(q)
+plot(likert(q.questiontext), centered = FALSE)
 
+# Psychic likert visualization
+q <- kps.data[,grepl("psychic", names(kps.data))]
+q.questiontext <- kps.get.questiontext(q)
+plot(likert(q.questiontext), centered = FALSE)
+
+# Talents likert visualization
+q <- kps.data[,grepl("talents", names(kps.data))]
+q.questiontext <- kps.get.questiontext(q)
+plot(likert(q.questiontext), centered = FALSE)
 
 #
 # COMPARATIVE FACTOR ANALYSIS
