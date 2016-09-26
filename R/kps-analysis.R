@@ -88,6 +88,7 @@ plot(likert(q.questiontext), centered = FALSE)
 #
 
 library(psych)
+
 kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, parallel = FALSE) {
  
   print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
