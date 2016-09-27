@@ -130,7 +130,8 @@ kps.fa(kps.data, grepmatch = "mystical", prefix = "mystical", nfactors = 3) # 9/
 kps.fa(kps.data, grepmatch = "spiritual", prefix = "spiritual", nfactors = 5 ) # 9/13 - n = 338 - Parallel analysis factors = 5
 kps.fa(kps.data, grepmatch = "mystical|spiritual", prefix = "mystical-spiritual", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
 
-
+# TODO: Implement IRT FA information
+# q.irt.fa <- irt.fa(x = q.num, nfactors = 3, fm = "pa", rotate = "promax")
 
 #
 # TODO: COMPOSITE SCORE CREATION
@@ -191,6 +192,80 @@ compvar <- kps.compvar(compvar, "CONSCIOUSNESS", c("mystical24","mystical25","my
 #TODO: CLUSTER ANALYSIS
 #        - Conduct cluster analysis based on primary composite variables
 #        - Goal is to identify unique types of spiritual experiences
+
+
+## Conduct Latent Class Analysis to determine different response patterns ##
+
+# Source: http://statistics.ohlsen-web.de/latent-class-analysis-polca/
+
+library("poLCA")
+library("reshape2")
+library("ggplot2")
+
+q <- kps.data[,grepl("mystical", names(kps.data))]
+q.names <- paste(names(q), collapse = ", ")
+
+
+# Define the model function
+f<-with(q, cbind(mystical1, mystical2, mystical3, mystical4, mystical5, mystical6, mystical7, mystical8, mystical9, mystical10, mystical11, mystical12, mystical13, mystical14, mystical15, mystical16, mystical17, mystical18, mystical19, mystical20, mystical21, mystical22, mystical23, mystical24, mystical25, mystical26, mystical27)~1)
+
+
+# Source: http://stanfordphd.com/BIC.html
+# BIC attempts to mitigate the risk of over-fitting by introducing the
+# penalty term d * log(N), which grows with the number of parameters.
+# This allows to filter out unnecessarily complicated models, which have
+# too many parameters to be estimated accurately on a given data set.
+# BIC has preference for simpler models.
+
+min_bic <- 100000 # some ridiculous max to start
+for(i in 2:10){
+  lc <- poLCA(f, q, nclass=i, maxiter=3000, 
+              tol=1e-5, na.rm=FALSE,  
+              nrep=10, verbose=TRUE, calc.se=TRUE)
+  if(lc$bic < min_bic){
+    min_bic <- lc$bic
+    LCA_best_model<-lc
+  }
+}    	
+LCA_best_model # 9/27 For all mystical questions, BIC(4): 25771.84 (lowest)
+#LCA_best_model <- poLCA(f, q, nclass=4, maxiter=3000, tol=1e-5, na.rm=FALSE,   nrep=10, verbose=TRUE, calc.se=TRUE)
+
+## LCA Plots ##
+
+# Default 3D plot
+plot(LCA_best_model)
+
+# Get data in a nicer format
+lcModelProbs <- melt(LCA_best_model$probs)
+
+
+# Graph displaying classes by question
+
+zp1 <- ggplot(lcModelProbs,aes(x = L1, y = value, fill = Var2))
+zp1 <- zp1 + geom_bar(stat = "identity", position = "stack")
+zp1 <- zp1 + facet_grid(Var1 ~ .) 
+zp1 <- zp1 + scale_fill_brewer(type="seq", palette="Greys") +theme_bw()
+zp1 <- zp1 + labs(x = "Questions",y="Class Respones Distribution", fill ="Likert Responses")
+zp1 <- zp1 + theme( axis.text.y=element_blank(),
+                    axis.ticks.y=element_blank(),                    
+                    panel.grid.major.y=element_blank(),
+                    axis.text.x=element_text(angle = 45, hjust = 1)
+                    )
+zp1 <- zp1 + guides(fill = guide_legend(reverse=TRUE))
+print(zp1)
+
+
+# Graph displaying questions by class
+
+zp2 <- ggplot(lcModelProbs,
+              aes(x = Var1, y = value, fill = Var2))
+zp2 <- zp2 + geom_bar(stat = "identity", position = "stack")
+zp2 <- zp2 + facet_wrap(~ L1)
+zp2 <- zp2 + scale_x_discrete("Class", expand = c(0, 0))
+zp2 <- zp2 + scale_y_continuous("Proportion", expand = c(0, 0))
+zp2 <- zp2 + scale_fill_brewer(type="seq", palette="Greys") +theme_bw()
+zp2 <- zp2 + theme_bw()
+print(zp2)
 
 
 #
