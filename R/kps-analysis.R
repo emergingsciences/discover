@@ -121,7 +121,8 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
   
   # Export to CSV to analyze/filter in a spreadsheet app
   write.csv(loadings, file = paste("output/", prefix, "-loadings.csv", sep = ''))
-  write.csv(q.poly.fa.pro$rho, file = paste("output/", prefix, "-poly-correlations.csv", sep = ''))  
+  write.csv(q.poly.fa.pro$rho, file = paste("output/", prefix, "-poly-correlations.csv", sep = ''))
+  return(q.poly.fa.pro)
 }
 
 
@@ -202,12 +203,23 @@ library("poLCA")
 library("reshape2")
 library("ggplot2")
 
-q <- kps.data[,grepl("mystical", names(kps.data))]
-q.names <- paste(names(q), collapse = ", ")
+q <- kps.data[,grepl("mystical|spiritual|psyphys|psygrowth|psygrowth.gate", names(kps.data))]
+paste(names(q), collapse = ", ")
 
 
 # Define the model function
-f<-with(q, cbind(mystical1, mystical2, mystical3, mystical4, mystical5, mystical6, mystical7, mystical8, mystical9, mystical10, mystical11, mystical12, mystical13, mystical14, mystical15, mystical16, mystical17, mystical18, mystical19, mystical20, mystical21, mystical22, mystical23, mystical24, mystical25, mystical26, mystical27)~1)
+#
+# The following model uses important higher consciousness variables as covariates
+
+# Higher Consciousness (predictors) - mystical24, mystical22
+# Peace and love - mystical4, mystical5
+# Spiritual rebirth - spiritual2, spiritual1
+# Instruction - spiritual20, spiritual17
+# OOB - spiritual14, spiritual15
+# Energy - psyphys5, psyphys3
+# Light - psyphys11, psyphys12
+f<-with(q, cbind(mystical4, mystical5, spiritual2, spiritual1, spiritual20, spiritual17, spiritual14, spiritual15, psyphys5, psyphys3, psyphys11, psyphys12)~mystical24, mystical22)
+
 
 
 # Source: http://stanfordphd.com/BIC.html
@@ -218,7 +230,7 @@ f<-with(q, cbind(mystical1, mystical2, mystical3, mystical4, mystical5, mystical
 # BIC has preference for simpler models.
 
 min_bic <- 100000 # some ridiculous max to start
-for(i in 2:10){
+for(i in 2:3){
   lc <- poLCA(f, q, nclass=i, maxiter=3000, 
               tol=1e-5, na.rm=FALSE,  
               nrep=10, verbose=TRUE, calc.se=TRUE)
@@ -228,19 +240,17 @@ for(i in 2:10){
   }
 }    	
 LCA_best_model # 9/27 For all mystical questions, BIC(4): 25771.84 (lowest)
-#LCA_best_model <- poLCA(f, q, nclass=4, maxiter=3000, tol=1e-5, na.rm=FALSE,   nrep=10, verbose=TRUE, calc.se=TRUE)
+LCA_best_model <- poLCA(f, q, nclass=3, maxiter=3000, tol=1e-5, na.rm=FALSE, nrep=5, verbose=TRUE, calc.se=TRUE)
+# poLCA.reorder()
 
 ## LCA Plots ##
 
 # Default 3D plot
 plot(LCA_best_model)
 
-# Get data in a nicer format
-lcModelProbs <- melt(LCA_best_model$probs)
-
-
 # Graph displaying classes by question
 
+lcModelProbs <- melt(LCA_best_model$probs)
 zp1 <- ggplot(lcModelProbs,aes(x = L1, y = value, fill = Var2))
 zp1 <- zp1 + geom_bar(stat = "identity", position = "stack")
 zp1 <- zp1 + facet_grid(Var1 ~ .) 
@@ -257,6 +267,7 @@ print(zp1)
 
 # Graph displaying questions by class
 
+lcModelProbs <- melt(LCA_best_model$probs)
 zp2 <- ggplot(lcModelProbs,
               aes(x = Var1, y = value, fill = Var2))
 zp2 <- zp2 + geom_bar(stat = "identity", position = "stack")
@@ -266,6 +277,46 @@ zp2 <- zp2 + scale_y_continuous("Proportion", expand = c(0, 0))
 zp2 <- zp2 + scale_fill_brewer(type="seq", palette="Greys") +theme_bw()
 zp2 <- zp2 + theme_bw()
 print(zp2)
+
+
+
+#
+# TODO: PROFILE ANALYSIS BASED ON MCLASS 
+#        - 
+#
+
+library(likert)
+
+q$MCLASS <- factor(LCA_best_model$predclass, levels = c("1", "3", "2"), labels = c("1", "2", "3"))
+
+q.sub <- subset(q, psygrowth.gate == "Y")
+q.sub <- q.sub[,grepl("gate|psygrowth|MCLASS", names(q.sub))]
+q.sub <- kps.get.questiontext(q.sub)
+
+plot(likert(q.sub[,2:10], grouping = q.sub$MCLASS), centered = FALSE)
+plot(likert(q.sub[,11:20], grouping = q.sub$MCLASS), centered = FALSE)
+plot(likert(q.sub[,21:30], grouping = q.sub$MCLASS), centered = FALSE)
+plot(likert(q.sub[,31:40], grouping = q.sub$MCLASS), centered = FALSE)
+plot(likert(q.sub[,41:48], grouping = q.sub$MCLASS), centered = FALSE)
+
+
+
+## TODO: Run decision trees ##
+
+# Source: http://www.edureka.co/blog/implementation-of-decision-tree/
+
+library(rpart)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+paste0(names(q.sub), collapse = " + ")
+tree <- rpart(MCLASS ~ psygrowth1 + psygrowth2 + psygrowth3 + psygrowth4 + psygrowth5 + psygrowth6 + psygrowth7 + psygrowth8 + psygrowth9 + psygrowth10 + psygrowth11 + psygrowth12 + psygrowth13 + psygrowth14 + psygrowth15 + psygrowth16 + psygrowth17 + psygrowth18 + psygrowth19 + psygrowth20 + psygrowth21 + psygrowth22 + psygrowth23 + psygrowth24 + psygrowth25 + psygrowth26 + psygrowth27 + psygrowth28 + psygrowth29 + psygrowth30 + psygrowth31 + psygrowth32 + psygrowth33 + psygrowth34 + psygrowth35 + psygrowth36 + psygrowth37 + psygrowth38 + psygrowth39 + psygrowth40 + psygrowth41 + psygrowth42 + psygrowth43 + psygrowth44 + psygrowth45 + psygrowth46 + psygrowth47
+              , data = q.sub
+              , method = "class")
+plot(tree)
+text(tree, use.n = TRUE)
+fancyRpartPlot(tree)
 
 
 #
