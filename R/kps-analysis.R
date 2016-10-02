@@ -237,7 +237,7 @@ for(i in 2:3){
   }
 }    	
 LCA_best_model
-# LCA_best_model <- poLCA(f, q, nclass=2, maxiter=3000, tol=1e-5, na.rm=FALSE, nrep=5, verbose=TRUE, calc.se=TRUE)
+LCA_best_model <- poLCA(f, q, nclass=2, maxiter=3000, tol=1e-5, na.rm=FALSE, nrep=10, verbose=TRUE, calc.se=TRUE)
 # TODO: Reorder classes based on some consistent criteria using poLCA.reorder()
 
 
@@ -315,16 +315,17 @@ q[,likert.names] <- lapply(q[,likert.names], function(x) {
 # In case you need to cut and paste
 # paste0(names(q.sub), collapse = " + ")
 
-# mclass decision trees
 
-qsub <- subset(q.sub, psybliss.gate == "Y")
+# MCLASS psychological decision trees
+
+q.sub <- subset(q, psybliss.gate == "Y")
 tree <- rpart(
   MCLASS ~ .
   , data = q.sub[,grepl('psybliss\\d+|MCLASS', names(q.sub))]
 )
 rpart.plot(tree, tweak = 1.1)
 
-q.sub <- subset(q.sub, psygrowth.gate == "Y")
+q.sub <- subset(q, psygrowth.gate == "Y")
 tree <- rpart(
   MCLASS ~ .
   , data = q.sub[,grepl('psygrowth\\d+|MCLASS', names(q.sub))]
@@ -334,14 +335,14 @@ rpart.plot(tree, tweak = 1.1)
 
 # Negative physical symtoms decision trees
 
-q.sub <- subset(q.sub, psygrowth.gate == "Y")
+q.sub <- subset(q, psygrowth.gate == "Y")
 tree <- rpart(
   pe.negphysical.gate ~ .
   , data = q.sub[,grepl('pe.negphysical.gate|psygrowth\\d+|MCLASS', names(q.sub))]
 )
 rpart.plot(tree, tweak = 1.25)
 
-qsub <- subset(q.sub, psybliss.gate == "Y")
+q.sub <- subset(q, psybliss.gate == "Y")
 tree <- rpart(
   pe.negphysical.gate ~ .
   , data = q.sub[,grepl('pe.negphysical.gate|psybliss\\d+|MCLASS', names(q.sub))]
@@ -351,14 +352,14 @@ rpart.plot(tree, tweak = 1.1)
 
 # Negative psychological decision tree
 
-qsub <- subset(q.sub, psybliss.gate == "Y")
+q.sub <- subset(q, psybliss.gate == "Y")
 tree <- rpart(
   negpsych.gate ~ .
   , data = q.sub[,grepl('negpsych.gate|psybliss\\d+|MCLASS', names(q.sub))]
 )
 rpart.plot(tree, tweak = 1.1)
 
-qsub <- subset(q.sub, psygrowth.gate == "Y")
+q.sub <- subset(q, psygrowth.gate == "Y")
 tree <- rpart(
   negpsych.gate ~ .
   , data = q.sub[,grepl('negpsych.gate|psygrowth\\d+|MCLASS', names(q.sub))]
