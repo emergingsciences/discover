@@ -11,19 +11,6 @@
 # Load the default data file
 kps.loaddatafile <- function(file = "data/kps1-results.txt") {
   df <- dget(file)
-  
-  likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
-    names(df))
-  
-  df[,likert.names] <- data.frame(lapply(df[,likert.names], function(x) {
-      if(length(levels(x)) == 6) {
-        x <- ordered(x, labels = c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
-      } else if( length(levels(x)) == 7 ) {
-        x <- ordered(x, labels = c(NA, 'Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
-      }
-      return(x)
-    } ), check.names = FALSE)
-  
   return(df)
 }
 
@@ -64,3 +51,77 @@ kps.format.loadings <- function(original.loadings = NULL) {
   loadings$text[!is.na(matches)] <- as.character(var.names$question.text[na.omit(matches)])
   return(loadings)
 }
+
+
+# Pass in a kps dataset and replace likert labels to numerical
+#
+# Parameters:
+#
+# df - A KPS data frame with question codes
+kps.numerical.levels <- function(df = NULL) {
+  
+  if(is.null(df)) {
+    warning("Need to specify data parameter in the form of a KPS data frame")
+    return()
+  }
+  
+  likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
+                        names(data))
+  
+  df <- data.frame(lapply(df[,likert.names], function(x) {
+    if(length(levels(x)) == 6) {
+      x <- ordered(x, labels = c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
+    } else if( length(levels(x)) == 7 ) {
+      x <- ordered(x, labels = c(NA, 'Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
+    }
+    return(x)
+  } ), check.names = FALSE)
+}
+
+
+#
+# TODO: COMPOSITE SCORE CREATION
+#        - Crate composite variables based on factors
+#        - Simple average of individual factor variables
+#
+
+# kps.compvar() - Create a KPS composite variable
+# 
+# Parameters
+#
+# data: Original dataset to process
+# names: Vector of names to use to create the composite variable.
+#        These will be automatically removed from the original dataset
+# newname: The name of the new composite variable
+kps.compvar <- function(data, newname, names) {
+  
+  data[newname] <- rowMeans(data[,c(names)]) # Calc row means and create comp var
+  data <- data[,-which(names(data) %in% names)] # Remove original vars
+  return(data)
+  
+  # Move new name to front (optional)
+  # col_idx <- grep(newname, names(data))
+  # compvar <- compvar[, c(col_idx, (1:ncol(data))[-col_idx])]
+}
+
+## Create Composite Variables ##
+
+# Make a copy of the original dataset
+# compvar <- kps.data
+# compvar <- kps.data[,grepl("mystical", names(kps.data))]
+
+# Get all likert question names
+# likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
+#                      names(compvar))
+
+# Convert all likert questions to numbers so we can calculate the row means
+# compvar[,likert.names] <- as.data.frame(lapply(compvar[,likert.names], as.numeric)) # Convert all values to numeric
+
+
+# Create all composite variables
+
+# compvar <- kps.compvar(compvar, "CONSCIOUSNESS", c("mystical24","mystical25","mystical27"))
+
+
+# Drop a composite variable  
+# q.num <- q.num[ , !(names(q.num) %in% c("CONSCIOUSNESS"))]

@@ -12,6 +12,20 @@ source("R/kps-utility.R")
 kps.data <- kps.loaddatafile()
 kps.vars <- kps.loadvarfile()
 
+# File level setting
+#
+# Denotes level typand access based on security levels:
+# - Level 1 - Likert questions only
+# - Level 2 - Likert questions & open text
+fileLevel <- 2
+
+#
+# Generate mclass file with mystical, spiritual, and psychophysiological open text fields
+#
+if(fileLevel == 2) {
+  q.sub <- q[,grepl("MCLASS|text$", names(q))]
+  write.csv(x = q.sub, file = "output/mclass-mystical-spiritual-text.csv")
+}
 
 
 #
@@ -63,6 +77,8 @@ q <- kps.data[,grepl("talents", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
+
+
 #
 # COMPARATIVE FACTOR ANALYSIS
 #
@@ -92,6 +108,15 @@ library(psych)
 kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, parallel = FALSE) {
  
   print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
+  print(paste("Names: "
+    , paste(
+      names(data[,grepl(grepmatch, names(data))])
+      , collapse = ", "
+    )
+  ))
+  
+  if(sum(grepl(grepmatch, names(data))) < 1) return()
+  
   q <- data[,grepl(grepmatch, names(data))]
   q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric  
    
@@ -127,75 +152,24 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
 
 
 # These can take (very) long depending on the number of variables
-kps.fa(kps.data, grepmatch = "mystical", prefix = "mystical", nfactors = 3) # 9/13 - n = 338 - Parallel analysis factors = 3
-kps.fa(kps.data, grepmatch = "spiritual", prefix = "spiritual", nfactors = 5 ) # 9/13 - n = 338 - Parallel analysis factors = 5
-kps.fa(kps.data, grepmatch = "mystical|spiritual", prefix = "mystical-spiritual", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
+fa.results <- kps.fa(kps.data, grepmatch = "mystical\\d+", prefix = "mystical", nfactors = 3) # 9/13 - n = 338 - Parallel analysis factors = 3
+fa.results <- kps.fa(kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual", nfactors = 5 ) # 9/13 - n = 338 - Parallel analysis factors = 5
+fa.results <- kps.fa(kps.data, grepmatch = "psyphys\\d+", prefix = "spiritual", nfactors = 2 ) # 9/13 - n = 338 - Parallel analysis factors = 5
+fa.results <- kps.fa(kps.data, grepmatch = "mystical|spiritual\\d+", prefix = "mystical-spiritual", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
+# TODO: mystical|spiritual|psyphys
 
 # TODO: Implement IRT FA information
 # q.irt.fa <- irt.fa(x = q.num, nfactors = 3, fm = "pa", rotate = "promax")
 
-#
-# TODO: COMPOSITE SCORE CREATION
-#        - Crate composite variables based on factors
-#        - Simple average of individual factor variables
-#
-
-# kps.compvar() - Create a KPS composite variable
-# 
-# Parameters
-#
-# data: Original dataset to process
-# names: Vector of names to use to create the composite variable.
-#        These will be automatically removed from the original dataset
-# newname: The name of the new composite variable
-kps.compvar <- function(data, newname, names) {
-  
-  data[newname] <- rowMeans(data[,c(names)]) # Calc row means and create comp var
-  data <- data[,-which(names(data) %in% names)] # Remove original vars
-  return(data)
-  
-  # Move new name to front (optional)
-  # col_idx <- grep(newname, names(data))
-  # compvar <- compvar[, c(col_idx, (1:ncol(data))[-col_idx])]
-}
-
-## Create Composite Variables ##
-
-# Make a copy of the original dataset
-# compvar <- kps.data
-compvar <- kps.data[,grepl("mystical", names(kps.data))]
-
-# Get all likert question names
-likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
-                      names(compvar))
-
-# Convert all likert questions to numbers so we can calculate the row means
-compvar[,likert.names] <- as.data.frame(lapply(compvar[,likert.names], as.numeric)) # Convert all values to numeric
-
-
-# Create all composite variables
-
-compvar <- kps.compvar(compvar, "CONSCIOUSNESS", c("mystical24","mystical25","mystical27"))
-
-
-# Drop a composite variable  
-# q.num <- q.num[ , !(names(q.num) %in% c("CONSCIOUSNESS"))]
-
 
 
 #
-#TODO: COMPOSITE SCORE CORRELATIONS ANALYSIS
-#        - Create correlations analysis based composite variables
-#        - Polychoric and Pearsons
-
-
-#
-#TODO: CLUSTER ANALYSIS
+# CLUSTER ANALYSIS
 #        - Conduct cluster analysis based on primary composite variables
 #        - Goal is to identify unique types of spiritual experiences
 
 
-## Conduct Latent Class Analysis to determine different response patterns ##
+## Conduct Latent Class Analysis to analyze response patterns ##
 
 # Source: http://statistics.ohlsen-web.de/latent-class-analysis-polca/
 
@@ -203,14 +177,17 @@ library("poLCA")
 library("reshape2")
 library("ggplot2")
 
-q <- kps.data[,grepl("mystical|spiritual|psyphys|psygrowth|psygrowth.gate", names(kps.data))]
-paste(names(q), collapse = ", ")
+q <- kps.data[,grepl("mystical|spiritual|psyphys|psygrowth|psygrowth.gate|mystical.text|spiritual.text|psyphys.text", names(kps.data))]
 
+likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
+                           names(q))
+q[,likert.names] <- lapply(q[,likert.names], function(x){
+  return(ordered(x))
+})
 
 # Define the model function
 #
-# The following model uses important higher consciousness variables as covariates
-
+# The following model uses important higher consciousness variables as covariates:
 # Higher Consciousness (predictors) - mystical24, mystical22
 # Peace and love - mystical4, mystical5
 # Spiritual rebirth - spiritual2, spiritual1
@@ -218,9 +195,19 @@ paste(names(q), collapse = ", ")
 # OOB - spiritual14, spiritual15
 # Energy - psyphys5, psyphys3
 # Light - psyphys11, psyphys12
-f<-with(q, cbind(mystical4, mystical5, spiritual2, spiritual1, spiritual20, spiritual17, spiritual14, spiritual15, psyphys5, psyphys3, psyphys11, psyphys12)~mystical24, mystical22)
 
+paste(names(q), collapse = ", ")
 
+# No covariates
+# f<-with(q, cbind(mystical24, mystical22,mystical4, mystical5, spiritual2, spiritual1, spiritual20, spiritual17, spiritual14, spiritual15, psyphys5, psyphys3, psyphys11, psyphys12)~1)
+
+# With covariates
+f<-with(q, cbind(
+    mystical4, mystical5,
+    spiritual2, spiritual1, spiritual20, spiritual17, spiritual14, spiritual15,
+    psyphys5, psyphys3, psyphys11, psyphys12
+  ) ~mystical24, mystical22, mystical26, mystical13
+)
 
 # Source: http://stanfordphd.com/BIC.html
 # BIC attempts to mitigate the risk of over-fitting by introducing the
@@ -239,9 +226,10 @@ for(i in 2:3){
     LCA_best_model<-lc
   }
 }    	
-LCA_best_model # 9/27 For all mystical questions, BIC(4): 25771.84 (lowest)
-LCA_best_model <- poLCA(f, q, nclass=3, maxiter=3000, tol=1e-5, na.rm=FALSE, nrep=5, verbose=TRUE, calc.se=TRUE)
-# poLCA.reorder()
+LCA_best_model
+# LCA_best_model <- poLCA(f, q, nclass=2, maxiter=3000, tol=1e-5, na.rm=FALSE, nrep=5, verbose=TRUE, calc.se=TRUE)
+# TODO: Reorder classes based on some consistent criteria using poLCA.reorder()
+
 
 ## LCA Plots ##
 
@@ -281,45 +269,98 @@ print(zp2)
 
 
 #
-# TODO: PROFILE ANALYSIS BASED ON MCLASS 
-#        - 
+# DECISION TREES (WITH MCLASS AVAILABLE)
 #
-
-library(likert)
-
-q$MCLASS <- factor(LCA_best_model$predclass, levels = c("1", "3", "2"), labels = c("1", "2", "3"))
-
-q.sub <- subset(q, psygrowth.gate == "Y")
-q.sub <- q.sub[,grepl("gate|psygrowth|MCLASS", names(q.sub))]
-q.sub <- kps.get.questiontext(q.sub)
-
-plot(likert(q.sub[,2:10], grouping = q.sub$MCLASS), centered = FALSE)
-plot(likert(q.sub[,11:20], grouping = q.sub$MCLASS), centered = FALSE)
-plot(likert(q.sub[,21:30], grouping = q.sub$MCLASS), centered = FALSE)
-plot(likert(q.sub[,31:40], grouping = q.sub$MCLASS), centered = FALSE)
-plot(likert(q.sub[,41:48], grouping = q.sub$MCLASS), centered = FALSE)
-
-
-
-## TODO: Run decision trees ##
 
 # Source: http://www.edureka.co/blog/implementation-of-decision-tree/
 
 library(rpart)
-library(rattle)
-library(rpart.plot)
-library(RColorBrewer)
+library(rpart.plot) # See: http://www.milbo.org/rpart-plot/prp.pdf
+library(plyr)
 
-paste0(names(q.sub), collapse = " + ")
-tree <- rpart(MCLASS ~ psygrowth1 + psygrowth2 + psygrowth3 + psygrowth4 + psygrowth5 + psygrowth6 + psygrowth7 + psygrowth8 + psygrowth9 + psygrowth10 + psygrowth11 + psygrowth12 + psygrowth13 + psygrowth14 + psygrowth15 + psygrowth16 + psygrowth17 + psygrowth18 + psygrowth19 + psygrowth20 + psygrowth21 + psygrowth22 + psygrowth23 + psygrowth24 + psygrowth25 + psygrowth26 + psygrowth27 + psygrowth28 + psygrowth29 + psygrowth30 + psygrowth31 + psygrowth32 + psygrowth33 + psygrowth34 + psygrowth35 + psygrowth36 + psygrowth37 + psygrowth38 + psygrowth39 + psygrowth40 + psygrowth41 + psygrowth42 + psygrowth43 + psygrowth44 + psygrowth45 + psygrowth46 + psygrowth47
-              , data = q.sub
-              , method = "class")
-plot(tree)
-text(tree, use.n = TRUE)
-fancyRpartPlot(tree)
+plot(LCA_best_model) # IMPORANT: Verify mclass order here
+
+q <- kps.data # Initial load
+
+# IMPORTANT! Perform any necessary remapping (need to set this up manually for now)
+q$MCLASS <- as.ordered(mapvalues(LCA_best_model$predclass, 
+  from=c('1', '2'), 
+  to=c('2', '1'))
+)
+
+# Select columns
+q <- q[,grepl("gate|psygrowth|psybliss|MCLASS", names(q))]
+
+# Convert likert text to numbers for readability
+likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
+                      names(q.sub))
+q[,likert.names] <- lapply(q[,likert.names], function(x) {
+  x <- mapvalues(x, 
+            from=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'), 
+            to=c("1", "2","3", "4", "5", "6"))
+  x <- ordered(x)
+   return(x)
+})
+
+# In case you need to cut and paste
+# paste0(names(q.sub), collapse = " + ")
+
+# mclass decision trees
+
+qsub <- subset(q.sub, psybliss.gate == "Y")
+tree <- rpart(
+  MCLASS ~ .
+  , data = q.sub[,grepl('psybliss\\d+|MCLASS', names(q.sub))]
+)
+rpart.plot(tree, tweak = 1.1)
+
+q.sub <- subset(q.sub, psygrowth.gate == "Y")
+tree <- rpart(
+  MCLASS ~ .
+  , data = q.sub[,grepl('psygrowth\\d+|MCLASS', names(q.sub))]
+)
+rpart.plot(tree, tweak = 1.1)
+
+
+# Negative physical symtoms decision trees
+
+q.sub <- subset(q.sub, psygrowth.gate == "Y")
+tree <- rpart(
+  pe.negphysical.gate ~ .
+  , data = q.sub[,grepl('pe.negphysical.gate|psygrowth\\d+|MCLASS', names(q.sub))]
+)
+rpart.plot(tree, tweak = 1.25)
+
+qsub <- subset(q.sub, psybliss.gate == "Y")
+tree <- rpart(
+  pe.negphysical.gate ~ .
+  , data = q.sub[,grepl('pe.negphysical.gate|psybliss\\d+|MCLASS', names(q.sub))]
+)
+rpart.plot(tree, tweak = 1.1)
+
+
+# Negative psychological decision tree
+
+qsub <- subset(q.sub, psybliss.gate == "Y")
+tree <- rpart(
+  negpsych.gate ~ .
+  , data = q.sub[,grepl('negpsych.gate|psybliss\\d+|MCLASS', names(q.sub))]
+)
+rpart.plot(tree, tweak = 1.1)
+
+qsub <- subset(q.sub, psygrowth.gate == "Y")
+tree <- rpart(
+  negpsych.gate ~ .
+  , data = q.sub[,grepl('negpsych.gate|psygrowth\\d+|MCLASS', names(q.sub))]
+)
+rpart.plot(tree, tweak = 1.1)
+
 
 
 #
-# TODO: OPEN TEXT CROSS-VALIDATION
-#        - Cross-validate experience classifications using open text response fields.
+# TODO: OPEN TEXT CONFIRMATION
+#        - Confirm experience classifications using open text response fields.
 #
+
+# TODO: Score a file based on open text responses
+# TODO: Validate findings to date against confirmation results
