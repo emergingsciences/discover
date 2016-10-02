@@ -53,27 +53,27 @@ ggplot(data=kps.data, aes(x = kps.data$age, width = .4)) +
   scale_x_continuous(breaks = seq(0, 100, by = 5))
 
 # Mystical likert visualization
-q <- kps.data[,grepl("mystical", names(kps.data))]
+q <- kps.data[,grepl("mystical\\d+", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # Spiritual likert visualization
-q <- kps.data[,grepl("spiritual", names(kps.data))]
+q <- kps.data[,grepl("spiritual\\d+", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # PsychoPhysical likert visualization
-q <- kps.data[,grepl("psyphys", names(kps.data))]
+q <- kps.data[,grepl("psyphys\\d+", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # Psychic likert visualization
-q <- kps.data[,grepl("psychic", names(kps.data))]
+q <- kps.data[,grepl("psychic\\d+", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # Talents likert visualization
-q <- kps.data[,grepl("talents", names(kps.data))]
+q <- kps.data[,grepl("talents\\d+", names(kps.data))]
 q.questiontext <- kps.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
@@ -157,6 +157,16 @@ fa.results <- kps.fa(kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual"
 fa.results <- kps.fa(kps.data, grepmatch = "psyphys\\d+", prefix = "spiritual", nfactors = 2 ) # 9/13 - n = 338 - Parallel analysis factors = 5
 fa.results <- kps.fa(kps.data, grepmatch = "mystical|spiritual\\d+", prefix = "mystical-spiritual", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
 # TODO: mystical|spiritual|psyphys
+
+# Example polychoric correlations matrix to faciliate data analysis
+
+library(psych)
+raw.data <- kps.data[,grepl("mystical12|mystical24|mystical25|mystical27|mystical14", names(kps.data))]
+raw.data <- lapply(raw.data, as.ordered)
+raw.data <- lapply(raw.data, as.numeric)
+poly.results <- polychoric(as.data.frame(raw.data))
+cor.plot(poly.results$rho, numbers = TRUE)
+
 
 # TODO: Implement IRT FA information
 # q.irt.fa <- irt.fa(x = q.num, nfactors = 3, fm = "pa", rotate = "promax")
