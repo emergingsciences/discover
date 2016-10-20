@@ -53,31 +53,6 @@ kps.format.loadings <- function(original.loadings = NULL) {
 }
 
 
-# Pass in a kps dataset and replace likert labels to numerical
-#
-# Parameters:
-#
-# df - A KPS data frame with question codes
-kps.numerical.levels <- function(df = NULL) {
-  
-  if(is.null(df)) {
-    warning("Need to specify data parameter in the form of a KPS data frame")
-    return()
-  }
-  
-  likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
-                        names(data))
-  
-  df <- data.frame(lapply(df[,likert.names], function(x) {
-    if(length(levels(x)) == 6) {
-      x <- ordered(x, labels = c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
-    } else if( length(levels(x)) == 7 ) {
-      x <- ordered(x, labels = c(NA, 'Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
-    }
-    return(x)
-  } ), check.names = FALSE)
-}
-
 
 #
 # TODO: COMPOSITE SCORE CREATION
