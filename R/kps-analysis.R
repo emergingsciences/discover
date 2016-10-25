@@ -154,7 +154,7 @@ fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "mystical\\d+"
 # colnames(scores)[colnames(scores)=="PA3"] <- "BLISS"
 # kps.data.withfascores <- cbind(kps.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual", nfactors = 5 ) # 9/13 - n = 338 - Parallel analysis factors = 5
+fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual", nfactors = 5) # 10/24 - n = 362 - Parallel analysis factors = 5
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "SYNCHRONICITY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "OOB"
@@ -163,7 +163,7 @@ fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+
 # colnames(scores)[colnames(scores)=="PA5"] <- "INTUITION"
 # kps.data.withfascores <- cbind(kps.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psyphys\\d+", prefix = "psyphys", nfactors = 2 ) # 9/13 - n = 338 - Parallel analysis factors = 5
+fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psyphys\\d+", prefix = "psyphys", nfactors = 4 ) # 10/24 - n = 362 - Parallel analysis factors = 4
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "ENERGY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "LIGHT"
