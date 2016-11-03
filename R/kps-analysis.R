@@ -122,6 +122,9 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
   fa.diagram(q.poly.fa.pro)
   clust <- iclust(q.poly.fa.pro$rho)
   
+  # Export to CSV to analyze/filter in a spreadsheet app
+  write.csv(loadings, file = paste("output/", prefix, "-loadings.csv", sep = ''))
+  write.csv(q.poly.fa.pro$rho, file = paste("output/", prefix, "-poly-correlations.csv", sep = ''))
   
   #
   # Run again with question text
@@ -137,24 +140,20 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
   fa.diagram(q.poly.fa.pro)
   clust <- iclust(q.poly.fa.pro$rho)
   
-  
-  # Export to CSV to analyze/filter in a spreadsheet app
-  write.csv(loadings, file = paste("output/", prefix, "-loadings.csv", sep = ''))
-  write.csv(q.poly.fa.pro$rho, file = paste("output/", prefix, "-poly-correlations.csv", sep = ''))
   return(q.poly.fa.pro)
 }
 
 kps.data.withfascores <- kps.data
 
 # These can take (very) long depending on the number of variables
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "mystical\\d+", prefix = "mystical", nfactors = 3) # 9/13 - n = 338 - Parallel analysis factors = 3
+fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "mystical\\d+", prefix = "mystical", nfactors = 3) # 10/26 - n = 366 - Parallel analysis factors = 3
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "CONSCIOUSNESS"
 # colnames(scores)[colnames(scores)=="PA2"] <- "GRACE"
 # colnames(scores)[colnames(scores)=="PA3"] <- "BLISS"
 # kps.data.withfascores <- cbind(kps.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual", nfactors = 5) # 10/24 - n = 362 - Parallel analysis factors = 5
+fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual", nfactors = 5) # 10/26 - n = 366 - Parallel analysis factors = 5
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "SYNCHRONICITY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "OOB"
@@ -178,6 +177,13 @@ fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psyphys\\d+",
 # plot(kps.data.withfascores$ENERGY, kps.data.withfascores$LIGHT)
 
 
+# Sample scatterplot
+plot(
+  jitter(as.numeric(kps.data$mystical24), factor = 1.2)
+  , jitter(as.numeric(kps.data$mystical22), factor = 1.2)
+)
+
+
 
 # Psygrowth factor analysis
 kps.fa(data = subset(kps.data, kps.data$psygrowth.gate == "Y"),
@@ -185,54 +191,14 @@ kps.fa(data = subset(kps.data, kps.data$psygrowth.gate == "Y"),
        prefix = "psygrowth",
        nfactors = 6) # 10/18 - n = 338 - Parallel analysis factors = 6
 
-
-# Psygrowth factor analysis with Higher Consciousness indicators
-# mystical22 - CONSCIOUSNESS - Expansion of consciousness
-# mystical26 - CONSCIOUSNESS - Personal identification with all of creation
-# mystical12 - CONSCIOUSNESS - Experience of deep unity and expansive con
-# mystical23 - CONSCIOUSNESS - Union with Life Energy
-# mystical4 - BLISS - Intense feeling of peace
-# mystical5 - BLISS - Overwhelming sense of love
-# mystical7 - BLISS - Overwhelming sense of wonder and awe
-# mystical9 - BLISS - Overwhelming sense of bliss, joy and or contentment
-kps.fa(data = subset(kps.data, kps.data$psygrowth.gate == "Y"),
-       grepmatch = "psygrowth\\d+|mystical22$|mystical26$|mystical12$|mystical23$|mystical4$|mystical5$|mystical7$|mystical9$",
-       prefix = "psygrowth",
-       nfactors = 7) # 10/18 - n = 338 - Parallel analysis factors = 7
-
-
-
-
-
 # Psybliss factor analysis
 kps.fa(data = subset(kps.data, kps.data$psybliss.gate == "Y"),
        grepmatch = "psybliss\\d+",
        prefix = "psybliss",
-       nfactors = 4) # 10/18 - n = 338 - Parallel analysis factors = 4
-
-
-# Psybliss factor analysis with Higher Consciousness indicators
-# mystical22 - CONSCIOUSNESS - Expansion of consciousness
-# mystical26 - CONSCIOUSNESS - Personal identification with all of creation
-# mystical12 - CONSCIOUSNESS - Experience of deep unity and expansive con
-# mystical23 - CONSCIOUSNESS - Union with Life Energy
-# mystical4 - BLISS - Intense feeling of peace
-# mystical5 - BLISS - Overwhelming sense of love
-# mystical7 - BLISS - Overwhelming sense of wonder and awe
-# mystical9 - BLISS - Overwhelming sense of bliss, joy and or contentment
-kps.fa(data = subset(kps.data, kps.data$psybliss.gate == "Y"),
-       grepmatch = "psybliss\\d+|mystical22$|mystical26$|mystical12$|mystical23$|mystical4$|mystical5$|mystical7$|mystical9$",
-       prefix = "psybliss",
-       nfactors = 5) # 10/18 - n = 338 - Parallel analysis factors = 5
+       nfactors = 4) # 10/26 - n = 366 - Parallel analysis factors = 4
 
 
 
-# fa.results <- kps.fa(kps.data, grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+", prefix = "mystical-spiritual-psyphys", nfactors = 6) # 9/13 - n = 338 - Parallel analysis factors = 6
-# fa.results$fa$score.cor
-
-# q <- lapply(kps.data[,grepl("mystical\\d+|spiritual\\d+|psyphys\\d+", names(kps.data))], as.numeric)
-# cor.mat <- cor(x = as.data.frame(q))
-# summary(fa.results$scores)
 
 # Example polychoric correlations matrix to faciliate data analysis
 
@@ -293,91 +259,92 @@ f<-with(q, cbind(mystical22, # CONSCIOUSNESS - Expansion of consciousness
                  mystical9  # BLISS - Overwhelming sense of bliss, joy and or contentment
                  )~1)
 
-# Primary Experience Indicator Model Option (with covariates)
-f<-with(q, cbind(
-  # Indicators
-  mystical4, # Intense feeling of peace
-  mystical5, # Overwhelming sense of love
-  spiritual2, # New understanding of spiritual truths/Insight into the inner meaning of spiritual teachings
-  spiritual1, # Spiritual rebirth - spontaneous religious conversion or dramatic spiritual awakening, including a major reorientation of spiritual beliefs.
-  # spiritual20, # Feeling of connection with a spiritual guide or lineage
-  spiritual17, # Receiving inner instruction
-  # spiritual14, # Out of body experiences
-  # spiritual15, # Astral/time travel experiences
-  psyphys5, # Feelings of energy flowing or vibrating within
-  psyphys3, # Sensations of energy rushing up the spine
-  psyphys11, # Visions of light
-  psyphys12 # Floating in the light
-) ~ # Covariates
-    # mystical24, # CONSCIOUSNESS - Experience of Higher consciousness/cosmic consciousness
-  mystical22, # CONSCIOUSNESS - Expansion of consciousness  
-  mystical12, # CONSCIOUSNESS - Experience of deep unity and expansive consciousness
-  mystical26, # CONSCIOUSNESS - Personal identification with all of creation
-  mystical13  # CONSCIOUSNESS - All sense of separateness disappears
-)
 
-# Create optimize model based on BIC criteria.
-# For more info: http://stanfordphd.com/BIC.html
-min_bic <- 100000 # some ridiculous max to start
-for(i in 2:5){
-  lc <- poLCA(f, q, nclass=i, maxiter=3000, 
-              tol=1e-5, na.rm=FALSE,  
-              nrep=10, verbose=TRUE, calc.se=TRUE)
-  if(lc$bic < min_bic){
-    min_bic <- lc$bic
-    LCA_best_model<-lc
+#
+# KPS LCA clustering
+#
+# x - The data to cluster
+# f - The formula
+kps.cluster <- function(x, f, newVarName, c = NULL) {
+  
+  if(is.null(c)) {
+    min_bic <- 100000 # some ridiculous starting max
+    for(i in 2:6){
+      lc <- poLCA(f, x, nclass=i, maxiter=3000, 
+                  tol=1e-5, na.rm=TRUE,  
+                  nrep=10, verbose=FALSE, calc.se=TRUE)
+      if(lc$bic < min_bic && !lc$eflag){
+        min_bic <- lc$bic
+        LCA_best_model<-lc
+      }
+    }
+  } else {
+    LCA_best_model <- poLCA(f, x, nclass=c, maxiter=3000, 
+                            tol=1e-5, na.rm=TRUE,  
+                            nrep=10, verbose=FALSE, calc.se=TRUE)
   }
+  
+  if(exists("LCA_best_model")) {
+    num.classes <- length(unique(LCA_best_model$predclass))
+    
+    intenseVals <- lapply(LCA_best_model$probs, function(x) {
+      return(rowMeans(x[,c(ncol(x), ncol(x)-1)])) # Get the means of the "strong" responses
+    })
+    
+    avgVec <- vector()
+    for(i in 1:length(intenseVals)) {
+      avgVec <- rbind(avgVec, unlist(intenseVals[i]))
+    }
+    ord.vec <- order(colMeans(avgVec))
+    
+    LCA_best_model <- poLCA(f,x,nclass=num.classes, verbose = FALSE
+                            ,probs.start= poLCA.reorder(
+                              LCA_best_model$probs
+                              , ord.vec
+                            )
+    )
+    
+    plot(LCA_best_model)
+    title(main = newVarName)
+    print(paste(num.classes,"classes generated for",newVarName))
+    
+    x[newVarName] <- ordered(LCA_best_model$predclass)  
+    
+    # Plots
+
+    # Graph displaying classes by question
+    lcModelProbs <- melt(LCA_best_model$probs)
+    zp1 <- ggplot(lcModelProbs,aes(x = L1, y = value, fill = Var2))
+    zp1 <- zp1 + geom_bar(stat = "identity", position = "stack")
+    zp1 <- zp1 + facet_grid(Var1 ~ .) 
+    zp1 <- zp1 + theme_bw()
+    zp1 <- zp1 + labs(x = "Questions",y="Class Respones Distribution", fill ="Likert Responses")
+    zp1 <- zp1 + theme( axis.text.y=element_blank(),
+                        axis.ticks.y=element_blank(),                    
+                        panel.grid.major.y=element_blank(),
+                        axis.text.x=element_text(angle = 45, hjust = 1)
+    )
+    zp1 <- zp1 + guides(fill = guide_legend(reverse=TRUE))
+    print(zp1)
+    
+    
+    # Graph displaying questions by class
+    lcModelProbs <- melt(LCA_best_model$probs)
+    zp2 <- ggplot(lcModelProbs,
+                  aes(x = Var1, y = value, fill = Var2))
+    zp2 <- zp2 + geom_bar(stat = "identity", position = "stack")
+    zp2 <- zp2 + facet_wrap(~ L1)
+    zp2 <- zp2 + scale_x_discrete("Class", expand = c(0, 0))
+    zp2 <- zp2 + scale_y_continuous("Proportion", expand = c(0, 0))
+    zp2 <- zp2 + theme_bw()
+    print(zp2)
+  }
+  
+  return(x)
 }
-LCA_best_model
-LCA_best_model <- poLCA(f, q, nclass=2, maxiter=3000, tol=1e-5, na.rm=FALSE, nrep=10, verbose=TRUE, calc.se=TRUE)
 
-plot(LCA_best_model) # Run this to confirm poLCA class order
+q <- kps.cluster(q, f, "MCLASS", c = 2)
 
-# Re-order based on ascending population share (mclass = 2 is usually larger)
-# CONFIRM THIS VISUALLY!
-LCA_best_model <- poLCA(f,q,nclass=2 # Ensure nclass is set properly!!!
-  ,probs.start= poLCA.reorder(
-    LCA_best_model$probs
-    , c(2, 1)
-  )
-)
-
-q$MCLASS <- ordered(LCA_best_model$predclass)
-
-## LCA Plots ##
-
-# Default 3D plot
-plot(LCA_best_model)
-
-# Graph displaying classes by question
-
-lcModelProbs <- melt(LCA_best_model$probs)
-zp1 <- ggplot(lcModelProbs,aes(x = L1, y = value, fill = Var2))
-zp1 <- zp1 + geom_bar(stat = "identity", position = "stack")
-zp1 <- zp1 + facet_grid(Var1 ~ .) 
-zp1 <- zp1 + scale_fill_brewer(type="seq", palette="Greys") +theme_bw()
-zp1 <- zp1 + labs(x = "Questions",y="Class Respones Distribution", fill ="Likert Responses")
-zp1 <- zp1 + theme( axis.text.y=element_blank(),
-                    axis.ticks.y=element_blank(),                    
-                    panel.grid.major.y=element_blank(),
-                    axis.text.x=element_text(angle = 45, hjust = 1)
-                    )
-zp1 <- zp1 + guides(fill = guide_legend(reverse=TRUE))
-print(zp1)
-
-
-# Graph displaying questions by class
-
-lcModelProbs <- melt(LCA_best_model$probs)
-zp2 <- ggplot(lcModelProbs,
-              aes(x = Var1, y = value, fill = Var2))
-zp2 <- zp2 + geom_bar(stat = "identity", position = "stack")
-zp2 <- zp2 + facet_wrap(~ L1)
-zp2 <- zp2 + scale_x_discrete("Class", expand = c(0, 0))
-zp2 <- zp2 + scale_y_continuous("Proportion", expand = c(0, 0))
-zp2 <- zp2 + scale_fill_brewer(type="seq", palette="Greys") +theme_bw()
-zp2 <- zp2 + theme_bw()
-print(zp2)
 
 
 
@@ -390,32 +357,6 @@ print(zp2)
 library(rpart)
 library(rpart.plot) # See: http://www.milbo.org/rpart-plot/prp.pdf
 library(plyr)
-
-plot(LCA_best_model) # IMPORANT: Verify mclass order here
-
-q <- kps.data # Initial load
-
-# Select columns
-# q <- q[,grepl("gate|psygrowth|psybliss|MCLASS", names(q))]
-
-# Convert likert text to numbers for readability
-likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
-                      names(q))
-q[,likert.names] <- lapply(q[,likert.names], function(x) {
-  x <- mapvalues(x, 
-            from=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'), 
-            to=c("1", "2","3", "4", "5", "6"))
-  x <- ordered(x)
-   return(x)
-})
-q$MCLASS <- ordered(LCA_best_model$predclass)
-
-# End creating "q"
-
-
-# In case you need to cut and paste
-# paste0(names(q.sub), collapse = " + ")
-
 
 # MCLASS psychological decision trees
 
@@ -545,18 +486,6 @@ kps.profile <- function(data = NULL, grepstr = "", prefix = "") {
 }
 
 
-# likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
-#                       names(data))
-# data[,likert.names] <- lapply(data[,likert.names], function(x) {
-#   x <- mapvalues(x, 
-#                  from=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'), 
-#                  to=c("1", "2","3", "4", "5", "6"))
-#   x <- ordered(x)
-#   return(x)
-# })
-
-
-q$MCLASS <- ordered(LCA_best_model$predclass)
 
 # Subselect data and pass to kps.profile()
 q.sub <- subset(q, psybliss.gate == "Y")
@@ -581,8 +510,8 @@ q.sub <- q.sub[,grepl("sensation\\d+|MCLASS", names(q.sub))]
 compare <- kps.profile(data = q.sub, grepstr = "sensation\\d+", prefix = "sensation")
 
 
-# Likert plot (just in case)
-# plot(likert(items = as.data.frame(q.sub[,grepl("psybliss6$",names(q.sub))]), grouping = q.sub$MCLASS))
+# Likert plot (sample)
+plot(likert(items = as.data.frame(q.sub[,grepl("psybliss6$",names(q.sub))]), grouping = q.sub$MCLASS))
 
 
 

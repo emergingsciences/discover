@@ -18,6 +18,7 @@ library("rpart.plot") # Decision tree plotting See: http://www.milbo.org/rpart-p
 
 id = "INSERT_RECORD_ID_HERE" # Insert ID here to specifify record for analysis
 
+
 #
 # Full data load (without variable names)
 #
@@ -102,14 +103,15 @@ fire.cluster <- function(x, f, newVarName, c = NULL) {
 #
 
 # CONSCIOUSNESS BLISS Model Option (no covariates, only indicators)
-f<-with(kps.data, cbind(mystical22, # CONSCIOUSNESS - Expansion of consciousness
-                 mystical26, # CONSCIOUSNESS - Personal identification with all of creation
-                 mystical12, # CONSCIOUSNESS - Experience of deep unity and expansive consciousness
-                 mystical23, # CONSCIOUSNESS - Union with Life Energy
-                 mystical4, # BLISS - Intense feeling of peace
-                 mystical5, # BLISS - Overwhelming sense of love
-                 mystical7, # BLISS - Overwhelming sense of wonder and awe
-                 mystical9  # BLISS - Overwhelming sense of bliss, joy and or contentment
+f<-with(kps.data, cbind(
+  mystical22, # CONSCIOUSNESS - Expansion of consciousness
+  mystical26, # CONSCIOUSNESS - Personal identification with all of creation
+  mystical12, # CONSCIOUSNESS - Experience of deep unity and expansive consciousness
+  mystical23, # CONSCIOUSNESS - Union with Life Energy
+  mystical4,  # BLISS - Intense feeling of peace
+  mystical5,  # BLISS - Overwhelming sense of love
+  mystical7,  # BLISS - Overwhelming sense of wonder and awe
+  mystical9   # BLISS - Overwhelming sense of bliss, joy and or contentment
 )~1)
 kps.data <- fire.cluster(kps.data, f, "MCLASS")
 
@@ -118,7 +120,7 @@ kps.data <- fire.cluster(kps.data, f, "MCLASS")
 f<-with(kps.data, cbind(
   psyphys3, # Sensations of energy rushing up the spine
   psyphys9, # Sensations of energy along the seven major chakras (chakras are spinning vortices of energy) that run from the base of the spine to the crown of the head
-  psyphys5 # Feelings of energy flowing or vibrating within
+  psyphys5  # Feelings of energy flowing or vibrating within
 )~1)
 kps.data <- fire.cluster(kps.data, f, "ENERGY")
 
@@ -130,6 +132,32 @@ f<-with(kps.data, cbind(
   spiritual3  # An unshakable conviction about the reality of the experience
 )~1)
 kps.data <- fire.cluster(kps.data, f, "REBIRTH")
+
+# OOB
+f<-with(kps.data, cbind(
+  spiritual14,	# Out of body experiences
+  spiritual15,	# Astral/time travel experiences
+  spiritual13	  # Encounters with nonmaterial entities(the deceased, lower astral beings, aliens, spirit guides)
+)~1)
+kps.data <- fire.cluster(kps.data, f, "OOB")
+
+
+# INTUITION
+f<-with(kps.data, cbind(
+  spiritual20, # Feeling of connection with a spiritual guide or lineage
+  spiritual24, # Greater incidence of prayers being answered
+  spiritual7   # Increased desire for spiritual experiences
+)~1)
+kps.data <- fire.cluster(kps.data, f, "INTUITION")
+
+# GRACE
+f<-with(kps.data, cbind(
+  mystical19, # Tasting sacred nectar dripping from the roof of mouth or back of throat (amrita or soma)
+  mystical1,  # Experiences or visions of deities, gurus, icons, saints or mystics or other religious prophets, religious icons or universal archetypes
+  mystical17, # Receiving instructions from the divine
+  mystical20  # Feeling sacred touch (wind, presence, touch)
+)~1)
+kps.data <- fire.cluster(kps.data, f, "GRACE")
 
 
 
@@ -217,6 +245,9 @@ sub <- kps.data[match(id, kps.data$id),]
 print(paste("Subject mclass is",as.integer(sub$MCLASS)))
 print(paste("Subject is ENERGY class",as.integer(sub$ENERGY)))
 print(paste("Subject is REBIRTH class",as.integer(sub$REBIRTH)))
+print(paste("Subject is OOB class",as.integer(sub$OOB)))
+print(paste("Subject is INTUITION class",as.integer(sub$INTUITION)))
+print(paste("Subject is GRACE class",as.integer(sub$GRACE)))
 
 if(sub$psygrowth.gate == "Y") {
   print("Subject answered YES to psygrowth.gate")
@@ -240,7 +271,9 @@ if(sub$psybliss.gate == "Y") {
 
 tree <- rpart(
   MCLASS ~ .
-  , data = kps.data[,grepl('MCLASS|PG.|PB.|ENERGY|REBIRTH', names(kps.data))]
-  , minsplit = 10, cp = .01
+  , data = kps.data[,grepl('MCLASS|PG.|PB.|ENERGY|REBIRTH|OOB|INTUITION|GRACE', names(kps.data))]
+  , minsplit = 15, cp = .01, method = "class"
 )
-rpart.plot(tree, tweak = 1.1)
+
+rpart.plot(tree, tweak = 1, fallen.leaves = FALSE)
+
