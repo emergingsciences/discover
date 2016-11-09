@@ -162,7 +162,7 @@ fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+
 # colnames(scores)[colnames(scores)=="PA5"] <- "INTUITION"
 # kps.data.withfascores <- cbind(kps.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psyphys\\d+", prefix = "psyphys", nfactors = 4 ) # 10/24 - n = 362 - Parallel analysis factors = 4
+fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psyphys\\d+", prefix = "psyphys", nfactors = 2) # 11/8 - n = 366 - Parallel analysis factors = 2
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "ENERGY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "LIGHT"
@@ -189,7 +189,7 @@ plot(
 kps.fa(data = subset(kps.data, kps.data$psygrowth.gate == "Y"),
        grepmatch = "psygrowth\\d+",
        prefix = "psygrowth",
-       nfactors = 6) # 10/18 - n = 338 - Parallel analysis factors = 6
+       nfactors = 6) # 11/08 - n = 366 - Parallel analysis factors = 6
 
 # Psybliss factor analysis
 kps.fa(data = subset(kps.data, kps.data$psybliss.gate == "Y"),
@@ -203,7 +203,7 @@ kps.fa(data = subset(kps.data, kps.data$psybliss.gate == "Y"),
 # Example polychoric correlations matrix to faciliate data analysis
 
 library(psych)
-raw.data <- kps.data[,grepl("mystical5|mystical7|mystical9", names(kps.data))]
+raw.data <- kps.data[,grepl("psybliss\\d+", names(kps.data))]
 raw.data <- lapply(raw.data, as.ordered)
 raw.data <- lapply(raw.data, as.numeric)
 poly.results <- polychoric(as.data.frame(raw.data))
@@ -249,15 +249,23 @@ q[,likert.names] <- lapply(q[,likert.names], function(x) {
 #
 
 # CONSCIOUSNESS BLISS Model Option (no covariates, only indicators)
-f<-with(q, cbind(mystical22, # CONSCIOUSNESS - Expansion of consciousness
-                 mystical26, # CONSCIOUSNESS - Personal identification with all of creation
-                 mystical12, # CONSCIOUSNESS - Experience of deep unity and expansive consciousness
-                 mystical23, # CONSCIOUSNESS - Union with Life Energy
-                 mystical4, # BLISS - Intense feeling of peace
-                 mystical5, # BLISS - Overwhelming sense of love
-                 mystical7, # BLISS - Overwhelming sense of wonder and awe
-                 mystical9  # BLISS - Overwhelming sense of bliss, joy and or contentment
-                 )~1)
+# CONSCIOUSNESS
+f<-with(q, cbind(
+  mystical24, # Experience of Higher consciousness/cosmic consciousness
+  mystical22, # Expansion of consciousness
+  mystical27, # Revelation: Knowledge that comes from a divine source where the individual becomes aware of the source of that knowledge
+  mystical26, # Personal identification with all of creation
+  mystical15, # Expanded comprehension of reality
+  mystical6, # New knowledge / awareness of the unbounded intelligence behind universe
+  mystical25, # An experience of union with the Divine-God or universal consciousness
+  mystical12, # Experience of deep unity and expansive consciousness
+  mystical13, # All sense of separateness disappears
+  mystical23, # Union with Life Energy
+  mystical2, # Expansion / explosion of consciousness
+  mystical10, # Increased feelings of unity with creation
+  mystical14, # Profound feelings of connection with a spiritural source
+  mystical8 # Loss of fear of death / certainty of immortality
+)~1)
 
 
 #
@@ -425,25 +433,28 @@ rpart.plot(tree, tweak = 1.1)
 
 library(coin)
 library(plyr)
+library(polycor)
 
 # Returns a data frame containing all descriptive and statistical output
-kps.profile <- function(data = NULL, grepstr = "", prefix = "") {
+kps.profile <- function(data = NULL, target = NULL, grepstr = "", prefix = "") {
   
   # Populate "compare" data frame one row at a time
   
   compare <- data.frame( # Destination for all our statistics
                         question = character(),
-                        wilcox.u = double(), # Mann-Whitney U statistic
-                        wilcox.p = double(), # P-value
-                        wilcox.r = double(), # Effect size
-                        median.m1 = double(), # Median of mclass 1
-                        median.m2 = double(), # Median of mclass 2
-                        median.diff = double(), # m2 minus m1
-                        t.test.t = double(), # T-test t statistic
-                        t.test.p = double(), # T-test p-value
+                        polychor = double(),
+                        chisq = double(),
+                        # wilcox.u = double(), # Mann-Whitney U statistic
+                        # wilcox.p = double(), # P-value
+                        # wilcox.r = double(), # Effect size
+                        # median.m1 = double(), # Median of mclass 1
+                        # median.m2 = double(), # Median of mclass 2
+                        # median.diff = double(), # m2 minus m1
+                        # t.test.t = double(), # T-test t statistic
+                        # t.test.p = double(), # T-test p-value
                     stringsAsFactors = FALSE)
   
-  varnames <- names( data[,!grepl("MCLASS", names(data))]) # All but the MCLASS
+  varnames <- names( data[,!grepl(target, names(data))]) # All but the MCLASS
   
   for(i in 1:length(varnames)) {
     compare[i,"question"] <- varnames[i]
@@ -456,31 +467,37 @@ kps.profile <- function(data = NULL, grepstr = "", prefix = "") {
     # https://statistics.laerd.com/premium-sample/mwut/mann-whitney-test-in-spss-2.php
     # http://yatani.jp/teaching/doku.php?id=hcistats:mannwhitney
     
-    wc <- wilcox.test(as.formula(paste("as.numeric(",varnames[i],") ~ MCLASS")), data = data)
-    compare[i,"wilcox.u"] <- wc$statistic
-    compare[i,"wilcox.p"] <- wc$p.value
+    if(length(levels(data$MCLASS)) == 2) {
+      wc <- wilcox.test(as.formula(paste("as.numeric(",varnames[i],") ~ MCLASS")), data = data)
+      compare[i,"wilcox.u"] <- wc$statistic
+      compare[i,"wilcox.p"] <- wc$p.value
+
+      wc <- wilcox_test(as.formula(paste("as.numeric(",varnames[i],") ~ MCLASS")), data = data)
+      compare[i,"wilcox.r"] <- statistic(wc) / sqrt(nrow(data))
+      
+      # Conduct a standard t test
+      
+      t <- t.test(as.numeric(subset(data[,varnames[i]], data$MCLASS == 1)), as.numeric(subset(data[,varnames[i]], data$MCLASS == 2)))
+      
+      compare[i,"t.test.t"] <- t$statistic
+      compare[i,"t.test.p"] <- t$p.value
+      
+      compare[i,"median.m1"] <- median(as.numeric(data[data$MCLASS == "1",varnames[i]]))
+      compare[i,"median.m2"] <- median(as.numeric(data[data$MCLASS == "2",varnames[i]]))
+      compare[i,"median.diff"] <- compare[i,"median.m2"] - compare[i,"median.m1"]
+    }
     
+    compare[i, "polychor"] <- polychor(data[,target], data[,varnames[i]])
     
-    wc <- wilcox_test(as.formula(paste("as.numeric(",varnames[i],") ~ MCLASS")), data = data)
-    compare[i,"wilcox.r"] <- statistic(wc) / sqrt(nrow(data))
-    
-    compare[i,"median.m1"] <- median(as.numeric(data[data$MCLASS == "1",varnames[i]]))
-    compare[i,"median.m2"] <- median(as.numeric(data[data$MCLASS == "2",varnames[i]]))
-    compare[i,"median.diff"] <- compare[i,"median.m2"] - compare[i,"median.m1"]
-    
-    # Conduct a standard t test
-    
-    t <- t.test(as.numeric(subset(data[,varnames[i]], data$MCLASS == 1)), as.numeric(subset(data[,varnames[i]], data$MCLASS == 2)))
-    
-    compare[i,"t.test.t"] <- t$statistic
-    compare[i,"t.test.p"] <- t$p.value
+    chiresult <- chisq.test(data[,target], data[,varnames[i]])
+    compare[i, "chisq"] <- as.double(chiresult$statistic)
   }
   
   # Tack on the question text to the end
   compare <- merge(compare, kps.vars[c("varname", "question.text")], by.x = "question", by.y = "varname")
   
   # Write file out to the output folder with the specified prefix
-  write.csv(compare, file = paste("output/", prefix, "-m2class-profile.csv", sep = ""))
+  write.csv(compare, file = paste("output/", prefix, "-KPSANALYSIS-profile.csv", sep = ""))
   
   return(compare)
 }
@@ -488,31 +505,12 @@ kps.profile <- function(data = NULL, grepstr = "", prefix = "") {
 
 
 # Subselect data and pass to kps.profile()
-q.sub <- subset(q, psybliss.gate == "Y")
-q.sub <- q.sub[,grepl("psybliss\\d+|MCLASS", names(q.sub))]
-compare <- kps.profile(data = q.sub, grepstr = "psybliss\\d+", prefix = "psybliss")
-
-q.sub <- subset(q, psygrowth.gate == "Y")
-q.sub <- q.sub[,grepl("psygrowth\\d+|MCLASS", names(q.sub))]
-compare <- kps.profile(data = q.sub, grepstr = "psygrowth\\d+", prefix = "psygrowth")
-
-q.sub <- q
-q.sub <- q.sub[,grepl("talents\\d+|MCLASS", names(q.sub))]
-compare <- kps.profile(data = q.sub, grepstr = "talents\\d+", prefix = "talents")
-
-
-q.sub <- subset(q, pe.negphysical.gate == "Y")
-q.sub <- q.sub[,grepl("negphysical\\d+|MCLASS", names(q.sub))]
-compare <- kps.profile(data = q.sub, grepstr = "negphysical\\d+", prefix = "negphysical")
-
-q.sub <- subset(q, pe.negphysical.gate == "Y")
-q.sub <- q.sub[,grepl("sensation\\d+|MCLASS", names(q.sub))]
-compare <- kps.profile(data = q.sub, grepstr = "sensation\\d+", prefix = "sensation")
+q.sub <- q[,grepl("MCLASS|mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+", names(q))]
+kps.profile(data = q.sub, target = "MCLASS", prefix = "all")
 
 
 # Likert plot (sample)
-plot(likert(items = as.data.frame(q.sub[,grepl("psybliss6$",names(q.sub))]), grouping = q.sub$MCLASS))
-
+plot(likert(items = as.data.frame(q.sub[,grepl(likert.names, names(q.sub))]), grouping = q.sub$MCLASS))
 
 
 #
