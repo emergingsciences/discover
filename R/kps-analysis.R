@@ -92,6 +92,8 @@ library(psych)
 
 kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, parallel = FALSE, scores = NULL) {
  
+  # Provide some basic output to show how many data records and
+  # the names of the columns for validation
   print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
   print(paste("Names: "
     , paste(
@@ -100,8 +102,10 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
     )
   ))
   
+  # Exit if no columns match
   if(sum(grepl(grepmatch, names(data))) < 1) return()
   
+  # Extract columns specified
   q <- data[,grepl(grepmatch, names(data))]
   q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric  
    
@@ -113,7 +117,6 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
   }
   
   # Generate factors with rotation
-  
   q.poly.fa.pro <- fa.poly(x = q.num, nfactors = nfactors, fm = "pa", rotate = "promax")
   print(q.poly.fa.pro)
   loadings <- kps.format.loadings(q.poly.fa.pro$fa$loadings)
@@ -146,14 +149,25 @@ kps.fa <- function(data, grepmatch = NULL, prefix = "default", nfactors = 1, par
 kps.data.withfascores <- kps.data
 
 # These can take (very) long depending on the number of variables
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "mystical\\d+", prefix = "mystical", nfactors = 3) # 11/10 - n = 371 - Parallel analysis factors = 3
+
+# 4/5/2017 - n = 449 - Parallel analysis factors = 3
+fa.results <- kps.fa(scores = "regression"
+                     ,kps.data, grepmatch = "mystical\\d+"
+                     ,prefix = "mystical"
+                     ,nfactors = "4", parallel=TRUE)
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "CONSCIOUSNESS"
 # colnames(scores)[colnames(scores)=="PA2"] <- "GRACE"
 # colnames(scores)[colnames(scores)=="PA3"] <- "BLISS"
 # kps.data.withfascores <- cbind(kps.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+", prefix = "spiritual", nfactors = 5) # 11/10 - n = 371 - Parallel analysis factors = 5
+# 4/5/2017 - n = 449 - Parallel analysis factors = 6
+fa.results <- kps.fa(scores = "regression"
+                     , kps.data
+                     , grepmatch = "spiritual\\d+"
+                     , prefix = "spiritual"
+                     , nfactors = 6)
+
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "SYNCHRONICITY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "OOB"
@@ -162,7 +176,12 @@ fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "spiritual\\d+
 # colnames(scores)[colnames(scores)=="PA5"] <- "INTUITION"
 # kps.data.withfascores <- cbind(kps.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psyphys\\d+", prefix = "psyphys", nfactors = 2) # 11/10 - n = 371 - Parallel analysis factors = 2
+# 4/5/2017 - n = 449 - Parallel analysis factors = 4
+fa.results <- kps.fa(scores = "regression"
+                     , kps.data, grepmatch = "psyphys\\d+"
+                     , prefix = "psyphys"
+                     , nfactors = 4)
+
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "ENERGY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "LIGHT"
@@ -180,11 +199,23 @@ fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "negphysical\\
 
 fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "otherphysical\\d+", prefix = "otherphysical", nfactors = 9) # 11/10 - n = 371 - Parallel analysis factors = 9
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psygrowth\\d+", prefix = "psygrowth", nfactors = 6) # 11/10 - n = 371 - Parallel analysis factors = 6
+# 4/5/2017 - n = 449 - Parallel analysis factors = 8
+kps.data.pg <- subset(kps.data, psygrowth.gate == "Y")
+fa.results <- kps.fa(scores = "regression"
+                     , kps.data.pg
+                     , grepmatch = "psygrowth\\d+"
+                     , prefix = "psygrowth"
+                     , nfactors = 8)
 
 fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "negpsych\\d+", prefix = "negpsych", nfactors = 7) # 11/10 - n = 371 - Parallel analysis factors = 7
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psybliss\\d+", prefix = "psybliss", nfactors = 4) # 11/10 - n = 371 - Parallel analysis factors = 4
+# 4/5/2017 - n = 449 - Parallel analysis factors = 4
+kps.data.pb <- subset(kps.data, psybliss.gate == "Y")
+fa.results <- kps.fa(scores = "regression"
+                     , kps.data.pb
+                     , grepmatch = "psybliss\\d+"
+                     , prefix = "psybliss"
+                     , nfactors = 4)
 
 
 # # Factor correlations

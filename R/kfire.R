@@ -19,6 +19,7 @@ library("polycor")
 
 id = "INSERT_RECORD_ID_HERE" # Insert ID here to specifify record for analysis
 
+
 #
 # Full data load (without variable names)
 #
@@ -102,107 +103,94 @@ fire.cluster <- function(x, f, newVarName, c = NULL) {
 
 
 #
-# Generate M-Class and merge with data
+# MYSTICAL
 #
 
-# Consciousness/Bliss MCLASS Model
-# f<-with(kps.data, cbind(
-#   mystical22, # CONSCIOUSNESS - Expansion of consciousness
-#   mystical26, # CONSCIOUSNESS - Personal identification with all of creation
-#   mystical12, # CONSCIOUSNESS - Experience of deep unity and expansive consciousness
-#   mystical23, # CONSCIOUSNESS - Union with Life Energy
-#   mystical4,  # BLISS - Intense feeling of peace
-#   mystical5,  # BLISS - Overwhelming sense of love
-#   mystical7,  # BLISS - Overwhelming sense of wonder and awe
-#   mystical9   # BLISS - Overwhelming sense of bliss, joy and or contentment
-# )~1)
-# kps.data <- fire.cluster(kps.data, f, "MCLASS")
-
-# CONSCIOUSNESS
+# HC
 f<-with(kps.data, cbind(
-  mystical24, # Experience of Higher consciousness/cosmic consciousness
-  mystical22, # Expansion of consciousness
-  mystical27, # Revelation: Knowledge that comes from a divine source where the individual becomes aware of the source of that knowledge
-  mystical26, # Personal identification with all of creation
-  mystical15, # Expanded comprehension of reality
-  mystical6, # New knowledge / awareness of the unbounded intelligence behind universe
-  mystical25, # An experience of union with the Divine-God or universal consciousness
-  mystical12, # Experience of deep unity and expansive consciousness
-  mystical13, # All sense of separateness disappears
-  mystical23, # Union with Life Energy
-  mystical2, # Expansion / explosion of consciousness
-  mystical10, # Increased feelings of unity with creation
-  mystical14, # Profound feelings of connection with a spiritural source
-  mystical8 # Loss of fear of death / certainty of immortality
+  mystical2, #	Expansion / explosion of consciousness
+  mystical22, #	Expansion of consciousness
+  mystical3, #	Loss of personal limitations / boundaries
+  mystical15, #	Expanded comprehension of reality
+  mystical13, #	All sense of separateness disappears
+  mystical24, #	Experience of Higher consciousness/cosmic consciousness
+  mystical6, #	New knowledge / awareness of the unbounded intelligence behind universe
+  mystical12, #	Experience of deep unity and expansive consciousness
+  mystical23, #	Union with Life Energy
+  mystical27, #	Revelation: Knowledge that comes from a divine source where the individual becomes aware of the source of that knowledge
+  mystical8, #	Loss of fear of death / certainty of immortality
+  mystical10, #	Increased feelings of unity with creation
+  mystical26, #	Personal identification with all of creation
+  mystical14, #	Profound feelings of connection with a spiritural source
+  mystical25 #	An experience of union with the Divine-God or universal consciousness
 )~1)
-kps.data <- fire.cluster(kps.data, f, "MS.CONSCIOUSNESS", c = 2)
+kps.data <- fire.cluster(kps.data, f, "MS.HC")
 
 
 # ECSTACY
 f<-with(kps.data, cbind(
-  mystical4, # Intense feeling of peace
-  mystical5, # Overwhelming sense of love
-  mystical9, # Overwhelming sense of bliss, joy and or contentment
-  mystical7, # Overwhelming sense of wonder and awe
-  mystical3, # Loss of personal limitations / boundaries
-  mystical11, # Divine altered states
-  mystical20, # Feeling sacred touch (wind, presence, touch)
-  mystical16, # Holy trance
-  mystical18, # Visions of glowing geometric shapes
-  mystical1, # Experiences or visions of deities, gurus, icons, saints or mystics or other religious prophets, religious icons or universal archetypes
-  mystical21, # Insightful compreshension of scripture
-  mystical17, # Receiving instructions from the divine
-  mystical19 # Tasting sacred nectar dripping from the roof of mouth or back of throat (amrita or soma)
+  mystical5, #	Overwhelming sense of love
+  mystical4, #	Intense feeling of peace
+  mystical9, #	Overwhelming sense of bliss, joy and or contentment
+  mystical7 #	Overwhelming sense of wonder and awe
 )~1)
 kps.data <- fire.cluster(kps.data, f, "MS.ECSTACY")
 
-# GRACE
+
+# ALTERED
 f<-with(kps.data, cbind(
-  mystical11, # Divine altered states
-  mystical20, # Feeling sacred touch (wind, presence, touch)
-  mystical16, # Holy trance
-  mystical18, # Visions of glowing geometric shapes
-  mystical1, # Experiences or visions of deities, gurus, icons, saints or mystics or other religious prophets, religious icons or universal archetypes
-  mystical21, # Insightful compreshension of scripture
-  mystical17, # Receiving instructions from the divine
-  mystical19 # Tasting sacred nectar dripping from the roof of mouth or back of throat (amrita or soma)
+  mystical11, #	Divine altered states
+  mystical20, #	Feeling sacred touch (wind, presence, touch)
+  mystical16, #	Holy trance
+  mystical18, #	Visions of glowing geometric shapes
+  mystical1, #	Experiences or visions of deities, gurus, icons, saints or mystics or other religious prophets, religious icons or universal archetypes
+  mystical17, #	Receiving instructions from the divine
+  mystical21, #	Insightful compreshension of scripture
+  mystical19 #	Tasting sacred nectar dripping from the roof of mouth or back of throat (amrita or soma)
 )~1)
-kps.data <- fire.cluster(kps.data, f, "MS.GRACE")
+kps.data <- fire.cluster(kps.data, f, "MS.ALTERED")
+
+
+#
+# SPIRITUAL
+#
 
 # REBIRTH
 f<-with(kps.data, cbind(
-  spiritual1, # Spiritual rebirth - spontaneous religious conversion or dramatic spiritual awakening, including a major reorientation of spiritual beliefs.
-  spiritual2, # New understanding of spiritual truths/Insight into the inner meaning of spiritual teachings
-  spiritual3,  # An unshakable conviction about the reality of the experience
-  spiritual4, # Transient, atypical, pivotal, or opening experiences
-  spiritual5 # Glimpses of bliss, spiritual advancement
+  spiritual5, #	Glimpses of bliss, spiritual advancement
+  spiritual3, #	An unshakable conviction about the reality of the experience
+  spiritual4, #	Transient, atypical, pivotal, or opening experiences
+  spiritual1, #	Spiritual rebirth - spontaneous religious conversion or dramatic spiritual awakening, including a major reorientation of spiritual beliefs.
+  spiritual2 #	New understanding of spiritual truths/Insight into the inner meaning of spiritual teachings
 )~1)
 kps.data <- fire.cluster(kps.data, f, "SP.REBIRTH")
 
 # CONNECTION
 f<-with(kps.data, cbind(
-  spiritual24, #	Greater incidence of prayers being answered
-  spiritual18, #	Communion with nature and animals
-  spiritual12, #	Feeling able to influence another's mind or know the contents of their mind
   spiritual10, #	Ability to heal or to balance disturbed energies in self and others
+  spiritual20, #	Feeling of connection with a spiritual guide or lineage
+  spiritual9, #	Past lives recall
   spiritual8, #	Increased intuition/Intuitive awareness
   spiritual17, #	Receiving inner instruction
-  spiritual7, #	Increased desire for spiritual experiences
-  spiritual20, #	Feeling of connection with a spiritual guide or lineage
-  spiritual9 #	Past lives recall
+  spiritual13, #	Encounters with nonmaterial entities(the deceased, lower astral beings, aliens, spirit guides)
+  spiritual18, #	Communion with nature and animals
+  spiritual11, #	Ability to see auras
+  spiritual12 #	Feeling able to influence another's mind or know the contents of their mind
+spiritual16	Near death experiences
 )~1)
 kps.data <- fire.cluster(kps.data, f, "SP.CONNECTION")
 
-# NOETIC
+# SYNCH
 f<-with(kps.data, cbind(
-  spiritual25, #	Spontaneously going into a deep meditative experience
-  spiritual22, #	Inspired creativity
+  spiritual24, #	Greater incidence of prayers being answered
   spiritual23, #	Increased experience of unsual synchronistic events
-  spiritual21, #	Deep intuitive knowledge of self and others
+  spiritual25, #	Spontaneously going into a deep meditative experience
+  spiritual27, #	A newly developed power of spiritual insight and wisdom
   spiritual26, #	A profound insight into the inner workings of the Cosmos
-  spiritual27 #	A newly developed power of spiritual insight and wisdom
+  spiritual21, #	Deep intuitive knowledge of self and others
+  spiritual22 #	Inspired creativity
 )~1)
-kps.data <- fire.cluster(kps.data, f, "SP.NOETIC")
+kps.data <- fire.cluster(kps.data, f, "SP.SYNCH")
 
 # AURAL
 f<-with(kps.data, cbind(
@@ -213,55 +201,54 @@ kps.data <- fire.cluster(kps.data, f, "SP.AURAL")
 
 # OOB
 f<-with(kps.data, cbind(
-  spiritual11, #	Ability to see auras
   spiritual15, #	Astral/time travel experiences
-  spiritual16, #	Near death experiences
-  spiritual14, #	Out of body experiences
-  spiritual13 #	Encounters with nonmaterial entities(the deceased, lower astral beings, aliens, spirit guides)
+  spiritual14 #	Out of body experiences
 )~1)
 kps.data <- fire.cluster(kps.data, f, "SP.OOB")
 
-# LIGHT
+# LONGING
 f<-with(kps.data, cbind(
-  psyphys11, #	Visions of light
-  psyphys12, #	Floating in the light
+  spiritual7 #	Increased desire for spiritual experiences
+)~1)
+kps.data <- fire.cluster(kps.data, f, "SP.LONGING")
+
+
+
+#
+# PSYPHYS
+#
+
+# SENSORY
+f<-with(kps.data, cbind(
+  psyphys6, #	Inner sensations of heat or cold
+  psyphys7, #	Transient or unusual symptoms or some features atypical for a standard diagnosis
+  psyphys8 #	Inner sensory experiences (sounds, light, smells, tastes, touch)
+)~1)
+kps.data <- fire.cluster(kps.data, f, "PP.SENSORY")
+
+# LIGHTSOUND
+f<-with(kps.data, cbind(
   psyphys1, #	Sensations of white light or luminosity
   psyphys2, #	Inner sound (rushing of water, humming of bees, distant music)
-  psyphys8, #	Inner sensory experiences (sounds, light, smells, tastes, touch)
-  psyphys10 #	Loss of body awareness
+  psyphys11 #	Visions of light
 )~1)
-kps.data <- fire.cluster(kps.data, f, "PP.LIGHT")
+kps.data <- fire.cluster(kps.data, f, "PP.LIGHTSOUND")
+
+# FLOATING
+f<-with(kps.data, cbind(
+  psyphys10, #	Loss of body awareness
+  psyphys12 #	Floating in the light
+)~1)
+kps.data <- fire.cluster(kps.data, f, "PP.FLOATING")
 
 # ENERGY
 f<-with(kps.data, cbind(
-  psyphys4, #	Marked increase in sensitivity of the five senses
-  psyphys7, #	Transient or unusual symptoms or some features atypical for a standard diagnosis
-  psyphys9, #	Sensations of energy along the seven major chakras (chakras are spinning vortices of energy) that run from the base of the spine to the crown of the head
   psyphys3, #	Sensations of energy rushing up the spine
-  psyphys6, #	Inner sensations of heat or cold
-  psyphys5 #	Feelings of energy flowing or vibrating within
+  psyphys5, #	Feelings of energy flowing or vibrating within
+  psyphys9, #	Sensations of energy along the seven major chakras (chakras are spinning vortices of energy) that run from the base of the spine to the crown of the head
+  psyphys4 #	Marked increase in sensitivity of the five senses
 )~1)
 kps.data <- fire.cluster(kps.data, f, "PP.ENERGY")
-
-
-# MCLASS
-f<-with(kps.data, cbind(
-  MS.CONSCIOUSNESS,
-  MS.ECSTACY,
-  MS.GRACE,
-  SP.REBIRTH,
-  SP.OOB,
-  SP.CONNECTION,
-  SP.NOETIC,
-  SP.AURAL,
-  PP.LIGHT,
-  PP.ENERGY
-)~1)
-kps.data <- fire.cluster(kps.data, f, "MCLASS")
-
-
-
-
 
 
 
@@ -289,86 +276,92 @@ kps.data.pg[,likert.names] <- lapply(kps.data.pg[,likert.names], function(x) {
 })
 
 
-
 # PG.YEARN
 f<-with(kps.data.pg, cbind(
-  psygrowth31, #	Spiritual yearning
-  psygrowth13, #	Seeking respite, answers, guidance, meaning
-  psygrowth1, #	A deep yearning for inner development and self-understanding
-  psygrowth15, #	An interest in spiritual growth, religion, metaphysics, the non-ordinary, the beyond
   psygrowth17, #	A desire to pray, meditate, study scripture, read about holy people, go to holy places
-  psygrowth16, #	A sense that something non-ordinary, transformative, or holy is happening within
   psygrowth20, #	Increased study of spiritual topics
+  psygrowth31, #	Spiritual yearning
   psygrowth18, #	Increase spiritual practices (prayer, meditation)
-  psygrowth19 #	Increased focus on spiritual issues and settings
+  psygrowth19, #	Increased focus on spiritual issues and settings
+  psygrowth15, #	An interest in spiritual growth, religion, metaphysics, the non-ordinary, the beyond
+  psygrowth1, #	A deep yearning for inner development and self-understanding
+  psygrowth16 #	A sense that something non-ordinary, transformative, or holy is happening within
 )~1)
 kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.YEARN")
 
+# PG.SURFACE
+f<-with(kps.data.pg, cbind(
+  psygrowth43, #	Intensification of unresolved psychological issues
+  psygrowth42 #	Spontaneous surfacing of unconscious issues
+)~1)
+kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.SURFACE")
 
+# PG.SOLITUDE
+f<-with(kps.data.pg, cbind(
+  psygrowth38, #	Desire for a different life
+  psygrowth7, #	Being particular about one's environment, food, company, etc.
+  psygrowth27, #	Decreased interest in activities formerly enjoyed
+  psygrowth28, #	Making a sudden change in one's life
+  psygrowth26, #	Aversion to negative people or crowds
+  psygrowth13, #	Seeking respite, answers, guidance, meaning
+  psygrowth21, #	Increased desire for a simpler, more balanced lifestyle
+  psygrowth36, #	Increased desire to heal from emotional issues
+  psygrowth12, #	Being introspective about values, purpose
+  psygrowth9 #	A heightened inner awareness
+)~1)
+kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.SOLITUDE")
 
-
-# PG.DESPONDENT
+# PG.SEPARATED
 f<-with(kps.data.pg, cbind(
   psygrowth3, #	Feeling separated, empty, hollow
-  psygrowth2, #	Feeling different, not fitting in
-  psygrowth26, #	Aversion to negative people or crowds
-  psygrowth38, #	Desire for a different life
-  psygrowth36, #	Increased desire to heal from emotional issues
-  psygrowth27, #	Decreased interest in activities formerly enjoyed
-  psygrowth37, #	Detachment
-  psygrowth28, #	Making a sudden change in one's life
-  psygrowth29, #	Keeping of silence
-  psygrowth7 #	Being particular about one's environment, food, company, etc.
+  psygrowth2 #	Feeling different, not fitting in
 )~1)
-kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.DESPONDENT")
+kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.SEPARATED")
+
+# PG.INWARD
+f<-with(kps.data.pg, cbind(
+  psygrowth29, #	Keeping of silence
+  psygrowth41, #	The mind becomes inward and vacant
+  psygrowth37, #	Detachment
+  psygrowth35, #	Decreased materialism and greed
+  psygrowth40, #	Increased mental flexibility
+  psygrowth32, #	Increased centeredness and objectivity
+  psygrowth39 #	Improved concentration
+)~1)
+kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.INWARD")
+
+# PG.HEALTH
+f<-with(kps.data.pg, cbind(
+  psygrowth23, #	Increased rest and relaxation
+  psygrowth22, #	Improved dietary observations
+  psygrowth25, #	Increased activities involving creativity and concentration
+  psygrowth24, #	Increased uplifting physical activity (walking, gardening, singing, dancing)
+  psygrowth44 #	An increase in energy level and health
+)~1)
+kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.HEALTH")
 
 # PG.ALTRUISM
 f<-with(kps.data.pg, cbind(
-  psygrowth35, #	Decreased materialism and greed
-  psygrowth33, #	Increase sensitivity to others' feelings
-  psygrowth30, #	Deep compassion
-  psygrowth34, #	Increased altruism
   psygrowth47, #	Increase in morals
   psygrowth10, #	An interest in helping others, compassion for the suffering
+  psygrowth30, #	Deep compassion
+  psygrowth46, #	Increase in discipline
   psygrowth45, #	A deep abiding love for humanity and family
-  psygrowth46 #	Increase in discipline
+  psygrowth34, #	Increased altruism
+  psygrowth33 #	Increase sensitivity to others' feelings
 )~1)
 kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.ALTRUISM")
 
 # PG.ABILITY
 f<-with(kps.data.pg, cbind(
   psygrowth4, #	An elevated sensitivity
-  psygrowth9, #	A heightened inner awareness
-  psygrowth8, #	Good intuition, insight, perceptiveness, empathy
-  psygrowth12, #	Being introspective about values, purpose
   psygrowth5, #	Special capacities, intelligence, creativity
+  psygrowth6, #	Competence in some special area
   psygrowth14, #	Non-ordinary abilities
-  psygrowth6 #	Competence in some special area
+  psygrowth8, #	Good intuition, insight, perceptiveness, empathy
+  psygrowth11 #	Some ability for inner focus and concentration
 )~1)
 kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.ABILITY")
-
-# PG.HEALING
-f<-with(kps.data.pg, cbind(
-  psygrowth43, #	Intensification of unresolved psychological issues
-  psygrowth42, #	Spontaneous surfacing of unconscious issues
-  psygrowth41, #	The mind becomes inward and vacant
-  psygrowth32, #	Increased centeredness and objectivity
-  psygrowth40, #	Increased mental flexibility
-  psygrowth11, #	Some ability for inner focus and concentration
-  psygrowth44, #	An increase in energy level and health
-  psygrowth39 #	Improved concentration
-)~1)
-kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.HEALING")
-
-# PG.HEALTH
-f<-with(kps.data.pg, cbind(
-  psygrowth21, #	Increased desire for a simpler, more balanced lifestyle
-  psygrowth23, #	Increased rest and relaxation
-  psygrowth22, #	Improved dietary observations
-  psygrowth24, #	Increased uplifting physical activity (walking, gardening, singing, dancing)
-  psygrowth25 #	Increased activities involving creativity and concentration
-)~1)
-kps.data.pg <- fire.cluster(kps.data.pg, f, "PG.HEALTH")
 
 
 # Merge back with original data
@@ -383,48 +376,48 @@ kps.data.pb <- subset(kps.data, psybliss.gate == "Y")
 
 # PB.ONENESS
 f<-with(kps.data.pb, cbind(
-  psybliss21, #	Increased beief in the unity of humanity
-  psybliss18, #	Increased belief in the divine or One
+  psybliss19, #	Increased maturation of the personality
   psybliss22, #	Increased tolerance and balance
-  psybliss23 #	Increase ability to see the underlying point of things
+  psybliss23, #	Increase ability to see the underlying point of things
+  psybliss18, #	Increased belief in the divine or One
+  psybliss21 #	Increased belief in the unity of humanity
 )~1)
 kps.data.pb <- fire.cluster(kps.data.pb, f, "PB.ONENESS")
 
 # PB.INTUNE
 f<-with(kps.data.pb, cbind(
-  psybliss14, #	Increased capacity for love and forgiveness
-  psybliss1, #	Loss of fear or death/ certainty of immortality
-  psybliss3, #	Flood of pure emotion, feeling of overwhelming emotion, devotion, reverence, cascading tears
-  psybliss15, #	Emotional balance in perturbed conditons
-  psybliss13, #	Devotional focus
-  psybliss12, #	A floaty or spacey sensation
-  psybliss4, #	Feeling inwardly connected, in tune, fulfilled
-  psybliss5, #	A good capacity for natural highs (peak experiences)
   psybliss7, #	Increased focus on and great energy for purposeful work
-  psybliss11 #	Feeling buoyant and full of energy
+  psybliss12, #	A floaty or spacey sensation
+  psybliss13, #	Devotional focus
+  psybliss5, #	A good capacity for natural highs (peak experiences)
+  psybliss3, #	Flood of pure emotion, feeling of overwhelming emotion, devotion, reverence, cascading tears
+  psybliss11, #	Feeling buoyant and full of energy
+  psybliss14, #	Increased capacity for love and forgiveness
+  psybliss4, #	Feeling inwardly connected, in tune, fulfilled
+  psybliss15, #	Emotional balance in perturbed conditons
+  psybliss1 #	Loss of fear or death/ certainty of immortality
 )~1)
 kps.data.pb <- fire.cluster(kps.data.pb, f, "PB.INTUNE")
 
 # PB.INSPIRATION
 f<-with(kps.data.pb, cbind(
-  psybliss25, #	Increased personal magnetism
   psybliss24, #	Increased creativity
-  psybliss2, #	Flashes of genius
-  psybliss8, #	Increase altruistic service activities
+  psybliss6, #	Spontaneous composition of poems, prose, or music
   psybliss16, #	Special talents
-  psybliss6 #	Spontaneous composition of poems, prose, or music
+  psybliss2, #	Flashes of genius
+  psybliss25, #	Increased personal magnetism
+  psybliss8 #	Increase altruistic service activities
 )~1)
 kps.data.pb <- fire.cluster(kps.data.pb, f, "PB.INSPIRATION")
 
 # PB.DETACHMENT
 f<-with(kps.data.pb, cbind(
-  psybliss20, #	Increased clarity of self and values
-  psybliss19, #	Increased maturation of the personality
-  psybliss26, #	Highly developed moral sense
-  psybliss27, #	Increased virtue
-  psybliss28, #	Increased insight regarding personal issues
   psybliss17, #	Increased self-actualizing traits
+  psybliss26, #	Highly developed moral sense
+  psybliss28, #	Increased insight regarding personal issues
+  psybliss27, #	Increased virtue
   psybliss29, #	Abandonment of self-destructive patterns
+  psybliss20, #	Increased clarity of self and values
   psybliss9, #	Enhanced ability to overcome addictions and negative behaviors
   psybliss10 #	Increased ability to disengage from dysfunctional relationships
 )~1)
@@ -734,7 +727,7 @@ kps.data <- fire.cluster(kps.data, f, "TL.LANGSTRENGTH")
 
 # VIZTALENT
 # f<-with(kps.data, cbind(
-#   talents2	# Visual artistic talents
+#  talents2	# Visual artistic talents
 # )~1)
 # kps.data <- fire.cluster(kps.data, f, "TL.VIZTALENT")
 
@@ -1000,7 +993,7 @@ fire.profile <- function(data = NULL, target = "", grepstr = "", prefix = "") {
 }
 
 kps.sub <- kps.data[,grepl("[A-Z]+|PB.|PG.", names(kps.data))]
-fprofile <- fire.profile(data = kps.sub, target = "MS.CONSCIOUSNESS", prefix = "all")
+fprofile <- fire.profile(data = kps.sub, target = "MS.HC", prefix = "all")
 
 # Output subject record
 t(sub)
