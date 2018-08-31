@@ -1,0 +1,393 @@
+orig.question.name,orig.cleaned.name,question.text
+pbnature[1][1],pbnature1_1,"Please indicate, on average, how much time you spend in nature (including parks and nature preserves) [Please select one from each list][Scale 1]"
+pbnature[1][2],pbnature1_2,"Please indicate, on average, how much time you spend in nature (including parks and nature preserves) [Please select one from each list][Scale 2]"
+pbenoughnature[1],pbenoughnature1,Please indicate how much you agree or disagree with the following statement. [I get enough enough time in nature.]
+pbelechabits[1],pbelechabits1,"On average, how many hours per week do you spend on the following? [Go on social media]"
+pbelechabits[2],pbelechabits2,"On average, how many hours per week do you spend on the following? [Play video games]"
+pbelechabits[3],pbelechabits3,"On average, how many hours per week do you spend on the following? [Watch T.V. shows]"
+pbsocialpercep[01],pbsocialpercep01,Please indicate your level of belief in the following statements: [I believe that the distribution of wealth is fair]
+pbsocialpercep[02],pbsocialpercep02,Please indicate your level of belief in the following statements: [I believe that a strong economy is what poor countries need]
+pbsocialpercep[03],pbsocialpercep03,Please indicate your level of belief in the following statements: [I believe that I am safe around local law enforcement]
+pbsocialpercep[04],pbsocialpercep04,Please indicate your level of belief in the following statements: [I believe that politics and government genuinely serve the interest of the people]
+pbsocialpercep[05],pbsocialpercep05,Please indicate your level of belief in the following statements: [I believe that the major news organizations are important for our information]
+pbsocialpercep[06],pbsocialpercep06,Please indicate your level of belief in the following statements: [I believe that families in modern society are fragmented]
+pbsocialpercep[07],pbsocialpercep07,Please indicate your level of belief in the following statements: [I believe that primary and secondary education including college are necessary]
+pbsocialpercep[08],pbsocialpercep08,Please indicate your level of belief in the following statements: [I believe people should be concerned about how humans are affecting the natural environment]
+pbsocialpercep[09],pbsocialpercep09,Please indicate your level of belief in the following statements: [I believe that there is an overuse of technology today]
+pbsocialpercep[10],pbsocialpercep10,Please indicate your level of belief in the following statements: [I believe that education in my country is in need of reform]
+pbsocialpercep[11],pbsocialpercep11,Please indicate your level of belief in the following statements: [I believe that security is more important than privacy]
+pbsocialpercep[12],pbsocialpercep12,Please indicate your level of belief in the following statements: [I believe that humanity's current mode of living is sustainable]
+pbsocialpercep[13],pbsocialpercep13,Please indicate your level of belief in the following statements: [I believe that news and advertising are being used to manipulate society]
+pbsocialpercep[14],pbsocialpercep14,Please indicate your level of belief in the following statements: [I believe that it is important to improve relations between people of different races/ethnic origins]
+pbsocialpercep[15],pbsocialpercep15,Please indicate your level of belief in the following statements: [I believe that the military spending in my country is justified]
+pbsocialpercep[16],pbsocialpercep16,Please indicate your level of belief in the following statements: [I believe that the Internet and technology are generally beneficial]
+pbsocialpercep[17],pbsocialpercep17,Please indicate your level of belief in the following statements: [I believe that war is a necessary part of human life]
+pbsocialpercep[18],pbsocialpercep18,Please indicate your level of belief in the following statements: [I believe that healthcare should be free for all]
+pbsocialpercep[19],pbsocialpercep19,Please indicate your level of belief in the following statements: [I believe that I make or have enough money to support my basic needs.]
+pbinequality[1],pbinequality1,"Please finish the following statement [If a person is poor, more often to blame are ...]"
+pbsubstance[1],pbsubstance1,"Substance use history. [Do you use or have you tried any recreational drugs such as cocaine, heroin, or ecstasy (EXCLUDING marijuana and hallucinogenics like psilocybin, LSD, or DMT)?]"
+pbsubstance[2],pbsubstance2,"Substance use history. [Do you use or have you tried any hallucinogens/psychedelics like psilocybin, LSD, or DMT?]"
+pbsubstance[3],pbsubstance3,Substance use history. [Do you use or have you tried marijuana?]
+pbsubstance[4],pbsubstance4,Substance use history. [Do you use or have you tried alcohol?]
+pbsubstance[5],pbsubstance5,Substance use history. [Do you use or have you tried tobacco?]
+pbopentext,pbopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+beliefs[01],beliefs01,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [There is a predetermined purpose and meaning for your life on this Earth]
+beliefs[02],beliefs02,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [Whatever I give out into the universe I will receive back]
+beliefs[03],beliefs03,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [There is life after death or permanency of the soul]
+beliefs[04],beliefs04,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [God or the divine is ultimately in control]
+beliefs[05],beliefs05,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [God or the divine is capable of healing me and others]
+beliefs[06],beliefs06,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [All people are worth loving]
+beliefs[07],beliefs07,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [Giving is a greater gift than receiving]
+beliefs[08],beliefs08,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [It is important to follow the literal words of the scriptures]
+beliefs[09],beliefs09,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [Spiritual wealth is more important than physical wealth]
+beliefs[10],beliefs10,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [We are all one]
+beliefs[11],beliefs11,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [It is more important to follow the spirit of the scriptures rather than the literal words]
+beliefs[12],beliefs12,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [God or the divine can help me improve myself]
+beliefs[13],beliefs13,Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [Ultimate fulfillment and satisfaction in this life are within oneself]
+beliefs[14],beliefs14,"Please rate each of the following statements with regard to how true they are for you. Please rate each of the following statements with regard to how true they are for you. [All people should be loved, regardless of what they have done]"
+beliefsopentext,beliefsopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+spirex[01],spirex01,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Overwhelming sense of bliss, joy and or contentment]"
+spirex[02],spirex02,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Overwhelming sense of love]"
+spirex[03],spirex03,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Intense feeling of peace]"
+spirex[04],spirex04,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [New knowledge / awareness of the unbounded intelligence behind universe]"
+spirex[05],spirex05,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [An experience of union with the Divine-God or universal consciousness]"
+spirex[06],spirex06,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Personal identification with all of creation]"
+spirex[07],spirex07,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Revelation: Knowledge that comes from a divine source where the individual becomes aware of the source of that knowledge]"
+spirex[08],spirex08,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Loss of fear of death / certainty of immortality]"
+spirex[09],spirex09,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Experience of expansive consciousness]"
+spirex[10],spirex10,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [In touch with a reality beyond the physical]"
+spirex[11],spirex11,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Being among the stars]"
+spirex[12],spirex12,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [A profound insight into the inner workings of the Cosmos]"
+spirex[13],spirex13,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [New understanding of spiritual truths/Insight into the inner meaning of spiritual teachings]"
+spirex[14],spirex14,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [A newly developed power of spiritual insight and wisdom]"
+spirex[15],spirex15,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Increased experience of unsual synchronistic events]"
+spirex[16],spirex16,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Inspired creativity]"
+spirex[17],spirex17,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Spontaneously going into a deep meditative experience]"
+spirex[18],spirex18,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Sensations of energy rushing up the spine]"
+spirex[19],spirex19,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Feelings of energy flowing or vibrating within]"
+spirex[20],spirex20,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Sensations of light or luminosity]"
+spirex[21],spirex21,"If you have had any of the following experiences AT ANY POINT in your life, please rate the MAXIMUM INTENSITY of the experience. An answer of ""Not at all"" means that you have never had the experience. [Sensations of energy rising up from the reproductive area into the spine or brain]"
+spirexpleasant,spirexpleasant,"Overall, would you say that your spiritual experiences have been pleasant or unpleasant?"
+spirexdifficulty,spirexdifficulty,Please rate your overall spiritual awakening process in terms of ease or difficulty.
+spirexhelpful,spirexhelpful,Please rate your overall spiritual awakening process in terms of its helpfulness or unhelpfulness to you.
+spirexopentext,spirexopentext,"OPTIONAL: Please briefly include anything we may have overlooked, including anything that might have triggered a spiritual experience:"
+behaviors[01],behaviors01,I live my life according to the following.... [Being compassionate]
+behaviors[02],behaviors02,I live my life according to the following.... [Having self-control/willpower/discipline]
+behaviors[03],behaviors03,I live my life according to the following.... [Seeking a conscious connection with God or the divine through prayer or meditation]
+behaviors[04],behaviors04,I live my life according to the following.... [Healing psychological wounds that might exist in the body(body work)]
+behaviors[05],behaviors05,I live my life according to the following.... [Living with humility and lack of ego]
+behaviors[06],behaviors06,I live my life according to the following.... [Honoring your relatives and ancestors]
+behaviors[07],behaviors07,I live my life according to the following.... [Expressing gratitude/thankfulness]
+behaviors[08],behaviors08,I live my life according to the following.... [Being truthful and honest to yourself and others]
+behaviors[09],behaviors09,I live my life according to the following.... [Admitting mistakes to oneself or God or the divine]
+behaviors[10],behaviors10,I live my life according to the following.... [Being forgiving]
+behaviors[11],behaviors11,I live my life according to the following.... [Knowing oneself deeply]
+behaviors[12],behaviors12,I live my life according to the following.... [Being selfless]
+behaviors[13],behaviors13,I live my life according to the following.... [Not doing physical or psychological harm to anyone]
+behaviors[14],behaviors14,I live my life according to the following.... [Being generous]
+behaviors[15],behaviors15,I live my life according to the following.... [Healing conscious or subconscious psychological wounds/matters of the heart]
+behaviors[16],behaviors16,I live my life according to the following.... [Making amends with people I've harmed]
+behaviors[17],behaviors17,I live my life according to the following.... [Not judging others and oneself]
+behaviors[18],behaviors18,I live my life according to the following.... [Being slow to anger]
+behaviors[19],behaviors19,I live my life according to the following.... [Being loyal and honest]
+behaviors[20],behaviors20,"I live my life according to the following.... [Love for oneself, others and all of creation, including the divine or God]"
+behaviors[21],behaviors21,I live my life according to the following.... [Being fair and just]
+behaviors[22],behaviors22,I live my life according to the following.... [Being detached]
+behaviors[23],behaviors23,I live my life according to the following.... [Surrendering to God or the divine]
+behaviors[24],behaviors24,I live my life according to the following.... [Being a peacemaker with others]
+behaviors[25],behaviors25,I live my life according to the following.... [Treating others as I would like to be treated]
+behaviorsopentext,behaviorsopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+spirpract[01],spirpract01,"Please indicate the frequency you practiced the following, now or in the past. [Fasting / calorie restriction]"
+spirpract[02],spirpract02,"Please indicate the frequency you practiced the following, now or in the past. [Detachment from the fruit of your actions and/or from material possessions]"
+spirpract[03],spirpract03,"Please indicate the frequency you practiced the following, now or in the past. [Blank mind, no-mind, zen, or zazen meditation]"
+spirpract[04],spirpract04,"Please indicate the frequency you practiced the following, now or in the past. [Self-control/willpower/discipline]"
+spirpract[05],spirpract05,"Please indicate the frequency you practiced the following, now or in the past. [Prayer]"
+spirpract[06],spirpract06,"Please indicate the frequency you practiced the following, now or in the past. [Martial arts]"
+spirpract[07],spirpract07,"Please indicate the frequency you practiced the following, now or in the past. [Spiritual/religious pilgrimage]"
+spirpract[08],spirpract08,"Please indicate the frequency you practiced the following, now or in the past. [Energy work or energy manipulation]"
+spirpract[09],spirpract09,"Please indicate the frequency you practiced the following, now or in the past. [Meditation - gazing / mandalas]"
+spirpract[10],spirpract10,"Please indicate the frequency you practiced the following, now or in the past. [Meditation on love and/or compassion]"
+spirpract[11],spirpract11,"Please indicate the frequency you practiced the following, now or in the past. [Forgiveness]"
+spirpract[12],spirpract12,"Please indicate the frequency you practiced the following, now or in the past. [Church, temple, mosque, place of worship, etc.]"
+spirpract[13],spirpract13,"Please indicate the frequency you practiced the following, now or in the past. [Service work or volunteering]"
+spirpract[14],spirpract14,"Please indicate the frequency you practiced the following, now or in the past. [Sacred drumming]"
+spirpract[15],spirpract15,"Please indicate the frequency you practiced the following, now or in the past. [Dissolving the ego]"
+spirpract[16],spirpract16,"Please indicate the frequency you practiced the following, now or in the past. [Pure devotion towards guru/god/higher consciousness or focus on the divine]"
+spirpract[17],spirpract17,"Please indicate the frequency you practiced the following, now or in the past. [Contemplation, introspection, or inner absorption]"
+spirpract[18],spirpract18,"Please indicate the frequency you practiced the following, now or in the past. [Mantra / singing / chanting meditation]"
+spirpract[19],spirpract19,"Please indicate the frequency you practiced the following, now or in the past. [Prayer beads / prayer wheel / prayer bowl]"
+spirpract[20],spirpract20,"Please indicate the frequency you practiced the following, now or in the past. [Breathing techniques / pranayama]"
+spirpract[21],spirpract21,"Please indicate the frequency you practiced the following, now or in the past. [Dancing / whirling]"
+spirpract[22],spirpract22,"Please indicate the frequency you practiced the following, now or in the past. [Reflecting / journaling]"
+spirpract[23],spirpract23,"Please indicate the frequency you practiced the following, now or in the past. [Listening to sacred music]"
+spirpract[24],spirpract24,"Please indicate the frequency you practiced the following, now or in the past. [Ceremony / ritual]"
+spirpract[25],spirpract25,"Please indicate the frequency you practiced the following, now or in the past. [Mental silence meditation]"
+spirpract[26],spirpract26,"Please indicate the frequency you practiced the following, now or in the past. [Self-acceptance]"
+spirpract[27],spirpract27,"Please indicate the frequency you practiced the following, now or in the past. [Personal journaling  or diary]"
+spirpract[28],spirpract28,"Please indicate the frequency you practiced the following, now or in the past. [Asanas / stretching]"
+spirpract[29],spirpract29,"Please indicate the frequency you practiced the following, now or in the past. [Qigong, thai chi, or taoist meditation]"
+spirpract[30],spirpract30,"Please indicate the frequency you practiced the following, now or in the past. [Inner healing / emotional healing (energy, psychophysiological)]"
+spirpract[31],spirpract31,"Please indicate the frequency you practiced the following, now or in the past. [Astral travel / out of body techniques]"
+spirpract[32],spirpract32,"Please indicate the frequency you practiced the following, now or in the past. [Transcendental Meditation (TM)]"
+spirpract[33],spirpract33,"Please indicate the frequency you practiced the following, now or in the past. [Being in the present moment]"
+spirpract[34],spirpract34,"Please indicate the frequency you practiced the following, now or in the past. [Chakra or color visualization]"
+spirpract[35],spirpract35,"Please indicate the frequency you practiced the following, now or in the past. [Positive affirmation]"
+spirpract[36],spirpract36,"Please indicate the frequency you practiced the following, now or in the past. [Pure heart]"
+spirpract[37],spirpract37,"Please indicate the frequency you practiced the following, now or in the past. [Awareness of the present moment]"
+spirpract[38],spirpract38,"Please indicate the frequency you practiced the following, now or in the past. [12-Steps, Alcoholics Anonymous, or similar]"
+spirpract[39],spirpract39,"Please indicate the frequency you practiced the following, now or in the past. [Biofeedback (technology)]"
+spirpract[40],spirpract40,"Please indicate the frequency you practiced the following, now or in the past. [Dream work / lucid dreaming]"
+spirpract[41],spirpract41,"Please indicate the frequency you practiced the following, now or in the past. [Sexual practices (abstinence, celibacy, tantric, etc)]"
+spirpract[42],spirpract42,"Please indicate the frequency you practiced the following, now or in the past. [Study of or reading religious/spiritual/sacred scripture]"
+spirpract[43],spirpract43,"Please indicate the frequency you practiced the following, now or in the past. [Relaxation, calmness, or tranquility meditation]"
+spirpract[44],spirpract44,"Please indicate the frequency you practiced the following, now or in the past. [Bell, gong, drum, chime/sound meditation]"
+spirpract[45],spirpract45,"Please indicate the frequency you practiced the following, now or in the past. [Focus, mental stillness]"
+spirpractopentext,spirpractopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+dsediet[01],dsediet01,Please select the diets you consume at least once a week. [Conventional western diet]
+dsediet[02],dsediet02,Please select the diets you consume at least once a week. [Calorie Restricted / Regular Fasting / Modified Fasting]
+dsediet[03],dsediet03,Please select the diets you consume at least once a week. [Raw Foods]
+dsediet[04],dsediet04,Please select the diets you consume at least once a week. [Juicing]
+dsediet[05],dsediet05,Please select the diets you consume at least once a week. [Use of a microwave to prepare meals or beverages]
+dsediet[06],dsediet06,Please select the diets you consume at least once a week. [Vegan]
+dsediet[07],dsediet07,Please select the diets you consume at least once a week. [Organic Foods]
+dsediet[08],dsediet08,Please select the diets you consume at least once a week. [Vegetarian]
+dsediet[09],dsediet09,Please select the diets you consume at least once a week. [Cook at home]
+dsediet[10],dsediet10,Please select the diets you consume at least once a week. [Canned Foods]
+dsediet[11],dsediet11,Please select the diets you consume at least once a week. [Ayurvedic]
+dsediet[12],dsediet12,Please select the diets you consume at least once a week. [Meat (dark meats)]
+dsediet[13],dsediet13,Please select the diets you consume at least once a week. [Macrobiotic]
+dsediet[14],dsediet14,Please select the diets you consume at least once a week. [Seafood]
+dsediet[15],dsediet15,Please select the diets you consume at least once a week. [Poultry]
+dsediet[16],dsediet16,Please select the diets you consume at least once a week. [Frozen Foods]
+dsediet[17],dsediet17,Please select the diets you consume at least once a week. [Fruitarian]
+dsediet[18],dsediet18,Please select the diets you consume at least once a week. [Packaged Foods]
+dsediet[19],dsediet19,Please select the diets you consume at least once a week. [Eat out]
+dsediet[20],dsediet20,Please select the diets you consume at least once a week. [Fast food]
+dsediet[21],dsediet21,Please select the diets you consume at least once a week. [Paleolithic (Hunter-Gatherer)]
+dsediet[22],dsediet22,Please select the diets you consume at least once a week. [Coffee]
+dsediet[23],dsediet23,Please select the diets you consume at least once a week. [Tea]
+dsediet[24],dsediet24,Please select the diets you consume at least once a week. [Energy drinks]
+dsediet[25],dsediet25,Please select the diets you consume at least once a week. [Alcoholic beverages]
+dsebodyweight,dsebodyweight,Choose your current body weight.
+dsesleeptime,dsesleeptime,Sleep Patterns- After how many hours of sleep do you feel well rested?
+dsesleephabits[1],dsesleephabits1,Sleeping habits. [Do you take naps during the day? (Please mark yes even if it's not daily)]
+dsesleephabits[2],dsesleephabits2,Sleeping habits. [Do you often feel refreshed in the morning?]
+dseexercise[1][1],dseexercise1_1,"Exercise - Please indicate the frequency of exercise you engage in (exercise means increase in heart rate). On average, how many days a week and for how long? [][Scale 1]"
+dseexercise[1][2],dseexercise1_2,"Exercise - Please indicate the frequency of exercise you engage in (exercise means increase in heart rate). On average, how many days a week and for how long? [][Scale 2]"
+dseopentext,dseopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+childenv[01],childenv01,Please answer about the environmental factors of your childhood (under the age of 18). [Did you have politically active parents/caretakers?]
+childenv[02],childenv02,Please answer about the environmental factors of your childhood (under the age of 18). [Did your parents participate in charity organizations or in social reform groups?]
+childenv[03],childenv03,Please answer about the environmental factors of your childhood (under the age of 18). [Were you ever institutionalized for mental or health reasons?]
+childenv[04],childenv04,Please answer about the environmental factors of your childhood (under the age of 18). [Did your parents ever separate or divorce?]
+childenv[05],childenv05,Please answer about the environmental factors of your childhood (under the age of 18). [Did you have a sole parent?]
+childenv[06],childenv06,Please answer about the environmental factors of your childhood (under the age of 18). [Did your family live on a farm or agricultural land?]
+childenv[07],childenv07,Please answer about the environmental factors of your childhood (under the age of 18). [Were your parents/family spiritual?]
+childenv[08],childenv08,Please answer about the environmental factors of your childhood (under the age of 18). [Did you take part in a regular religious practice?]
+childenv[09],childenv09,Please answer about the environmental factors of your childhood (under the age of 18). [Were you raised by non-biological parents?]
+childenv[10],childenv10,Please answer about the environmental factors of your childhood (under the age of 18). [Did you have any siblings?]
+childenv[11],childenv11,Please answer about the environmental factors of your childhood (under the age of 18). [Were your parents/family religious?]
+childenv[12],childenv12,Please answer about the environmental factors of your childhood (under the age of 18). [Did you have same sex parents?]
+childenv[13],childenv13,Please answer about the environmental factors of your childhood (under the age of 18). [Did you have a generally happy childhood experience?]
+childenv[14],childenv14,Please answer about the environmental factors of your childhood (under the age of 18). [Did you experience any major physical traumas or injuries as a child?]
+childenv[15],childenv15,Please answer about the environmental factors of your childhood (under the age of 18). [Did you ever experience a life threatening illness as a child?]
+childenv[16],childenv16,Please answer about the environmental factors of your childhood (under the age of 18). [Did you have a good relationship with your siblings?]
+childenv[17],childenv17,Please answer about the environmental factors of your childhood (under the age of 18). [Were there financial hardships throughout your childhood?]
+childexp[1],childexp1,Please rate the intensity of each during your childhood. [Loving parents]
+childexp[2],childexp2,Please rate the intensity of each during your childhood. [Intuitive spiritual understanding]
+childexp[3],childexp3,Please rate the intensity of each during your childhood. [Interest in the paranormal]
+childexp[4],childexp4,Please rate the intensity of each during your childhood. [Follow the rules]
+childexp[5],childexp5,Please rate the intensity of each during your childhood. [Self-control]
+childexp[6],childexp6,Please rate the intensity of each during your childhood. [Strict upbringing]
+childexp[7],childexp7,Please rate the intensity of each during your childhood. [Interest in the occult]
+childexp[8],childexp8,Please rate the intensity of each during your childhood. [Emotionally sensitive]
+childexp[9],childexp9,Please rate the intensity of each during your childhood. [Academic-oriented upbringing]
+childparentrel[1],childparentrel1,Please rate how much do you agree or disagree with the statement. [I had a good relationship with my FATHER]
+childparentrel[2],childparentrel2,Please rate how much do you agree or disagree with the statement. [I had a good relationship with my MOTHER]
+childparentrel[3],childparentrel3,Please rate how much do you agree or disagree with the statement. [My FATHER was mostly in a happy state.]
+childparentrel[4],childparentrel4,Please rate how much do you agree or disagree with the statement. [My MOTHER was mostly in a happy state.]
+childnature[1][1],childnature1_1,Please indicate how much time you spent in nature as a child. Choose an answer from each list. [][Scale 1]
+childnature[1][2],childnature1_2,Please indicate how much time you spent in nature as a child. Choose an answer from each list. [][Scale 2]
+childlocation,childlocation,What was your primary living environment as a child?
+childbirthorder,childbirthorder,"If you have siblings, please select your birth order. If you are the only child, select ""First."""
+childsibgendercount[1],childsibgendercount1,"If you have siblings, state how many of that gender. [Sister(s)]"
+childsibgendercount[2],childsibgendercount2,"If you have siblings, state how many of that gender. [Brother(s)]"
+childparented[1],childparented1,Please select the highest level of education your parents received. [Mother]
+childparented[2],childparented2,Please select the highest level of education your parents received. [Father]
+childparentemploy[1],childparentemploy1,Please select your parent's employment status for MOST of your childhood. [Mother]
+childparentemploy[2],childparentemploy2,Please select your parent's employment status for MOST of your childhood. [Father]
+childstress[01],childstress01,"In this section, we ask about childhood stressors and traumas. [Alien intervention (abduction)]"
+childstress[02],childstress02,"In this section, we ask about childhood stressors and traumas. [Paranormal activity (e.g. haunting)]"
+childstress[03],childstress03,"In this section, we ask about childhood stressors and traumas. [Raised in a cult]"
+childstress[04],childstress04,"In this section, we ask about childhood stressors and traumas. [Substance abuse by relatives]"
+childstress[05],childstress05,"In this section, we ask about childhood stressors and traumas. [Sexual abuse]"
+childstress[06],childstress06,"In this section, we ask about childhood stressors and traumas. [Raised in a very strict environment]"
+childstress[07],childstress07,"In this section, we ask about childhood stressors and traumas. [Physically abused]"
+childstress[08],childstress08,"In this section, we ask about childhood stressors and traumas. [Government experimental program]"
+childstress[09],childstress09,"In this section, we ask about childhood stressors and traumas. [Emotional abuse]"
+childstress[10],childstress10,"In this section, we ask about childhood stressors and traumas. [Neglected]"
+childopentext,childopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+medmental[01],medmental01,Have you ever had any of the following mental conditions? [Psychosis (connection with reality is severely impaired)]
+medmental[02],medmental02,Have you ever had any of the following mental conditions? [Bipolar]
+medmental[03],medmental03,Have you ever had any of the following mental conditions? [Post Traumatic Stress Disorder]
+medmental[04],medmental04,Have you ever had any of the following mental conditions? [Mood disorders]
+medmental[05],medmental05,Have you ever had any of the following mental conditions? [Nervous problems]
+medmental[06],medmental06,Have you ever had any of the following mental conditions? [Depression]
+medmental[07],medmental07,Have you ever had any of the following mental conditions? [Mania]
+medmental[08],medmental08,Have you ever had any of the following mental conditions? [ADHD]
+medmental[09],medmental09,Have you ever had any of the following mental conditions? [Multiple personality]
+medmental[10],medmental10,Have you ever had any of the following mental conditions? [Autism]
+medmental[11],medmental11,Have you ever had any of the following mental conditions? [Anxiety]
+medmental[12],medmental12,Have you ever had any of the following mental conditions? [Medication for mental illness]
+medmental[13],medmental13,Have you ever had any of the following mental conditions? [Schizophrenia]
+medmental[14],medmental14,Have you ever had any of the following mental conditions? [Suicidal thoughts/tendencies]
+medmental[15],medmental15,Have you ever had any of the following mental conditions? [Obsessive compulsive disorder/tendencies]
+medmental[16],medmental16,Have you ever had any of the following mental conditions? [Substance abuse]
+medphysical[01],medphysical01,Have you ever had any of the following physical conditions? [Diabetes]
+medphysical[02],medphysical02,Have you ever had any of the following physical conditions? [High cholesterol]
+medphysical[03],medphysical03,Have you ever had any of the following physical conditions? [Insomnia]
+medphysical[04],medphysical04,Have you ever had any of the following physical conditions? [Strokes]
+medphysical[05],medphysical05,Have you ever had any of the following physical conditions? [Medication for physical illness]
+medphysical[06],medphysical06,Have you ever had any of the following physical conditions? [Back pains]
+medphysical[07],medphysical07,Have you ever had any of the following physical conditions? [Cancer]
+medphysical[08],medphysical08,Have you ever had any of the following physical conditions? [Heart problems]
+medphysical[09],medphysical09,Have you ever had any of the following physical conditions? [High blood pressure]
+medphysical[10],medphysical10,Have you ever had any of the following physical conditions? [Osteoporosis]
+medphysical[11],medphysical11,Have you ever had any of the following physical conditions? [Headaches/migraines]
+medphysical[12],medphysical12,Have you ever had any of the following physical conditions? [Food allergies]
+medphysical[13],medphysical13,Have you ever had any of the following physical conditions? [Thyroid]
+medphysical[14],medphysical14,Have you ever had any of the following physical conditions? [Seizures/epilepsy]
+medphysical[15],medphysical15,Have you ever had any of the following physical conditions? [Increased heartbeat]
+medphysical[16],medphysical16,Have you ever had any of the following physical conditions? [Arrhythmias]
+medphysical[17],medphysical17,Have you ever had any of the following physical conditions? [Infertility]
+medsurgery,medsurgery,"Have you ever had surgery, if yes please describe the kind of surgery?"
+medsurgery[comment],medsurgerycomment,"Have you ever had surgery, if yes please describe the kind of surgery? [Comment]"
+medsexual[1],medsexual1,"In this section, we ask about your sexual habits. [Do you sublimate your sexual energy?]"
+medsexual[2],medsexual2,"In this section, we ask about your sexual habits. [Please estimate the frequency of your sexual releases.]"
+medphyshealth[1],medphyshealth1,Please rate your physical health. [I am in good physical health]
+medphyshealth[2],medphyshealth2,Please rate your physical health. [I have always been in good physical health]
+medphyshealth[3],medphyshealth3,Please rate your physical health. [I was in good physical health once upon a time]
+medopentext,medopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+heredtraits[1],heredtraits1,Please indicate whether any of your immediate or extended family have exhibited any of the following: [Talents in learning multiple languages?]
+heredtraits[2],heredtraits2,Please indicate whether any of your immediate or extended family have exhibited any of the following: [Talents in writing or speaking?]
+heredtraits[3],heredtraits3,Please indicate whether any of your immediate or extended family have exhibited any of the following: [Talents in athletics?]
+heredtraits[4],heredtraits4,"Please indicate whether any of your immediate or extended family have exhibited any of the following: [Spiritual experience, or were deeply religious?]"
+heredtraits[5],heredtraits5,Please indicate whether any of your immediate or extended family have exhibited any of the following: [Visual or artistic talents?]
+heredtraits[6],heredtraits6,Please indicate whether any of your immediate or extended family have exhibited any of the following: [Intellectual or mental talents?]
+heredtraits[7],heredtraits7,Please indicate whether any of your immediate or extended family have exhibited any of the following: [Talents in music?]
+heredphysical[01],heredphysical01,Please indicate whether any of your immediate or extended family have had any of the following: [Infertility]
+heredphysical[02],heredphysical02,Please indicate whether any of your immediate or extended family have had any of the following: [Arrhythmia]
+heredphysical[03],heredphysical03,Please indicate whether any of your immediate or extended family have had any of the following: [Seizures/epilepsy]
+heredphysical[04],heredphysical04,Please indicate whether any of your immediate or extended family have had any of the following: [Have you ever had changes in your sexual drive?]
+heredphysical[05],heredphysical05,Please indicate whether any of your immediate or extended family have had any of the following: [Headaches/migraines]
+heredphysical[06],heredphysical06,Please indicate whether any of your immediate or extended family have had any of the following: [Osteoporosis]
+heredphysical[07],heredphysical07,Please indicate whether any of your immediate or extended family have had any of the following: [High blood pressure]
+heredphysical[08],heredphysical08,Please indicate whether any of your immediate or extended family have had any of the following: [Heart problems]
+heredphysical[09],heredphysical09,Please indicate whether any of your immediate or extended family have had any of the following: [Cancer]
+heredphysical[10],heredphysical10,Please indicate whether any of your immediate or extended family have had any of the following: [Backpains]
+heredphysical[11],heredphysical11,Please indicate whether any of your immediate or extended family have had any of the following: [Medication for physical illness]
+heredphysical[12],heredphysical12,Please indicate whether any of your immediate or extended family have had any of the following: [Strokes]
+heredphysical[13],heredphysical13,Please indicate whether any of your immediate or extended family have had any of the following: [Insomnia]
+heredphysical[14],heredphysical14,Please indicate whether any of your immediate or extended family have had any of the following: [Thyroid]
+heredphysical[15],heredphysical15,Please indicate whether any of your immediate or extended family have had any of the following: [Food allergies]
+heredphysical[16],heredphysical16,Please indicate whether any of your immediate or extended family have had any of the following: [High cholesterol]
+heredphysical[17],heredphysical17,Please indicate whether any of your immediate or extended family have had any of the following: [Diabetes]
+heredphysical[18],heredphysical18,Please indicate whether any of your immediate or extended family have had any of the following: [Increased heartbeat]
+heredmental[01_P],heredmental01_P,Has anyone in your immeditate or extended family had any mental illnesses? [Substance abuse][Parents]
+heredmental[01_S],heredmental01_S,Has anyone in your immeditate or extended family had any mental illnesses? [Substance abuse][Siblings]
+heredmental[01_C],heredmental01_C,Has anyone in your immeditate or extended family had any mental illnesses? [Substance abuse][Children]
+heredmental[01_G],heredmental01_G,Has anyone in your immeditate or extended family had any mental illnesses? [Substance abuse][Grandparents]
+heredmental[01_O],heredmental01_O,Has anyone in your immeditate or extended family had any mental illnesses? [Substance abuse][Other extended family]
+heredmental[02_P],heredmental02_P,Has anyone in your immeditate or extended family had any mental illnesses? [Mood disorders][Parents]
+heredmental[02_S],heredmental02_S,Has anyone in your immeditate or extended family had any mental illnesses? [Mood disorders][Siblings]
+heredmental[02_C],heredmental02_C,Has anyone in your immeditate or extended family had any mental illnesses? [Mood disorders][Children]
+heredmental[02_G],heredmental02_G,Has anyone in your immeditate or extended family had any mental illnesses? [Mood disorders][Grandparents]
+heredmental[02_O],heredmental02_O,Has anyone in your immeditate or extended family had any mental illnesses? [Mood disorders][Other extended family]
+heredmental[03_P],heredmental03_P,Has anyone in your immeditate or extended family had any mental illnesses? [Multiple personality][Parents]
+heredmental[03_S],heredmental03_S,Has anyone in your immeditate or extended family had any mental illnesses? [Multiple personality][Siblings]
+heredmental[03_C],heredmental03_C,Has anyone in your immeditate or extended family had any mental illnesses? [Multiple personality][Children]
+heredmental[03_G],heredmental03_G,Has anyone in your immeditate or extended family had any mental illnesses? [Multiple personality][Grandparents]
+heredmental[03_O],heredmental03_O,Has anyone in your immeditate or extended family had any mental illnesses? [Multiple personality][Other extended family]
+heredmental[04_P],heredmental04_P,Has anyone in your immeditate or extended family had any mental illnesses? [Anxiety][Parents]
+heredmental[04_S],heredmental04_S,Has anyone in your immeditate or extended family had any mental illnesses? [Anxiety][Siblings]
+heredmental[04_C],heredmental04_C,Has anyone in your immeditate or extended family had any mental illnesses? [Anxiety][Children]
+heredmental[04_G],heredmental04_G,Has anyone in your immeditate or extended family had any mental illnesses? [Anxiety][Grandparents]
+heredmental[04_O],heredmental04_O,Has anyone in your immeditate or extended family had any mental illnesses? [Anxiety][Other extended family]
+heredmental[05_P],heredmental05_P,Has anyone in your immeditate or extended family had any mental illnesses? [Depression][Parents]
+heredmental[05_S],heredmental05_S,Has anyone in your immeditate or extended family had any mental illnesses? [Depression][Siblings]
+heredmental[05_C],heredmental05_C,Has anyone in your immeditate or extended family had any mental illnesses? [Depression][Children]
+heredmental[05_G],heredmental05_G,Has anyone in your immeditate or extended family had any mental illnesses? [Depression][Grandparents]
+heredmental[05_O],heredmental05_O,Has anyone in your immeditate or extended family had any mental illnesses? [Depression][Other extended family]
+heredmental[06_P],heredmental06_P,Has anyone in your immeditate or extended family had any mental illnesses? [ADHD][Parents]
+heredmental[06_S],heredmental06_S,Has anyone in your immeditate or extended family had any mental illnesses? [ADHD][Siblings]
+heredmental[06_C],heredmental06_C,Has anyone in your immeditate or extended family had any mental illnesses? [ADHD][Children]
+heredmental[06_G],heredmental06_G,Has anyone in your immeditate or extended family had any mental illnesses? [ADHD][Grandparents]
+heredmental[06_O],heredmental06_O,Has anyone in your immeditate or extended family had any mental illnesses? [ADHD][Other extended family]
+heredmental[07_P],heredmental07_P,Has anyone in your immeditate or extended family had any mental illnesses? [Obsessive compulsive disorder/tendencies][Parents]
+heredmental[07_S],heredmental07_S,Has anyone in your immeditate or extended family had any mental illnesses? [Obsessive compulsive disorder/tendencies][Siblings]
+heredmental[07_C],heredmental07_C,Has anyone in your immeditate or extended family had any mental illnesses? [Obsessive compulsive disorder/tendencies][Children]
+heredmental[07_G],heredmental07_G,Has anyone in your immeditate or extended family had any mental illnesses? [Obsessive compulsive disorder/tendencies][Grandparents]
+heredmental[07_O],heredmental07_O,Has anyone in your immeditate or extended family had any mental illnesses? [Obsessive compulsive disorder/tendencies][Other extended family]
+heredmental[08_P],heredmental08_P,Has anyone in your immeditate or extended family had any mental illnesses? [Mania][Parents]
+heredmental[08_S],heredmental08_S,Has anyone in your immeditate or extended family had any mental illnesses? [Mania][Siblings]
+heredmental[08_C],heredmental08_C,Has anyone in your immeditate or extended family had any mental illnesses? [Mania][Children]
+heredmental[08_G],heredmental08_G,Has anyone in your immeditate or extended family had any mental illnesses? [Mania][Grandparents]
+heredmental[08_O],heredmental08_O,Has anyone in your immeditate or extended family had any mental illnesses? [Mania][Other extended family]
+heredmental[09_P],heredmental09_P,"Has anyone in your immeditate or extended family had any mental illnesses? [Suicide, suicidal thoughts/tendencies][Parents]"
+heredmental[09_S],heredmental09_S,"Has anyone in your immeditate or extended family had any mental illnesses? [Suicide, suicidal thoughts/tendencies][Siblings]"
+heredmental[09_C],heredmental09_C,"Has anyone in your immeditate or extended family had any mental illnesses? [Suicide, suicidal thoughts/tendencies][Children]"
+heredmental[09_G],heredmental09_G,"Has anyone in your immeditate or extended family had any mental illnesses? [Suicide, suicidal thoughts/tendencies][Grandparents]"
+heredmental[09_O],heredmental09_O,"Has anyone in your immeditate or extended family had any mental illnesses? [Suicide, suicidal thoughts/tendencies][Other extended family]"
+heredmental[10_P],heredmental10_P,Has anyone in your immeditate or extended family had any mental illnesses? [Hyperactivity][Parents]
+heredmental[10_S],heredmental10_S,Has anyone in your immeditate or extended family had any mental illnesses? [Hyperactivity][Siblings]
+heredmental[10_C],heredmental10_C,Has anyone in your immeditate or extended family had any mental illnesses? [Hyperactivity][Children]
+heredmental[10_G],heredmental10_G,Has anyone in your immeditate or extended family had any mental illnesses? [Hyperactivity][Grandparents]
+heredmental[10_O],heredmental10_O,Has anyone in your immeditate or extended family had any mental illnesses? [Hyperactivity][Other extended family]
+heredmental[11_P],heredmental11_P,Has anyone in your immeditate or extended family had any mental illnesses? [Schizophrenia][Parents]
+heredmental[11_S],heredmental11_S,Has anyone in your immeditate or extended family had any mental illnesses? [Schizophrenia][Siblings]
+heredmental[11_C],heredmental11_C,Has anyone in your immeditate or extended family had any mental illnesses? [Schizophrenia][Children]
+heredmental[11_G],heredmental11_G,Has anyone in your immeditate or extended family had any mental illnesses? [Schizophrenia][Grandparents]
+heredmental[11_O],heredmental11_O,Has anyone in your immeditate or extended family had any mental illnesses? [Schizophrenia][Other extended family]
+heredmental[12_P],heredmental12_P,Has anyone in your immeditate or extended family had any mental illnesses? [Autism][Parents]
+heredmental[12_S],heredmental12_S,Has anyone in your immeditate or extended family had any mental illnesses? [Autism][Siblings]
+heredmental[12_C],heredmental12_C,Has anyone in your immeditate or extended family had any mental illnesses? [Autism][Children]
+heredmental[12_G],heredmental12_G,Has anyone in your immeditate or extended family had any mental illnesses? [Autism][Grandparents]
+heredmental[12_O],heredmental12_O,Has anyone in your immeditate or extended family had any mental illnesses? [Autism][Other extended family]
+heredmental[13_P],heredmental13_P,Has anyone in your immeditate or extended family had any mental illnesses? [Nervous problems][Parents]
+heredmental[13_S],heredmental13_S,Has anyone in your immeditate or extended family had any mental illnesses? [Nervous problems][Siblings]
+heredmental[13_C],heredmental13_C,Has anyone in your immeditate or extended family had any mental illnesses? [Nervous problems][Children]
+heredmental[13_G],heredmental13_G,Has anyone in your immeditate or extended family had any mental illnesses? [Nervous problems][Grandparents]
+heredmental[13_O],heredmental13_O,Has anyone in your immeditate or extended family had any mental illnesses? [Nervous problems][Other extended family]
+heredmental[14_P],heredmental14_P,Has anyone in your immeditate or extended family had any mental illnesses? [Medication for mental illness][Parents]
+heredmental[14_S],heredmental14_S,Has anyone in your immeditate or extended family had any mental illnesses? [Medication for mental illness][Siblings]
+heredmental[14_C],heredmental14_C,Has anyone in your immeditate or extended family had any mental illnesses? [Medication for mental illness][Children]
+heredmental[14_G],heredmental14_G,Has anyone in your immeditate or extended family had any mental illnesses? [Medication for mental illness][Grandparents]
+heredmental[14_O],heredmental14_O,Has anyone in your immeditate or extended family had any mental illnesses? [Medication for mental illness][Other extended family]
+heredmental[15_P],heredmental15_P,Has anyone in your immeditate or extended family had any mental illnesses? [Bipolar][Parents]
+heredmental[15_S],heredmental15_S,Has anyone in your immeditate or extended family had any mental illnesses? [Bipolar][Siblings]
+heredmental[15_C],heredmental15_C,Has anyone in your immeditate or extended family had any mental illnesses? [Bipolar][Children]
+heredmental[15_G],heredmental15_G,Has anyone in your immeditate or extended family had any mental illnesses? [Bipolar][Grandparents]
+heredmental[15_O],heredmental15_O,Has anyone in your immeditate or extended family had any mental illnesses? [Bipolar][Other extended family]
+heredmental[16_P],heredmental16_P,Has anyone in your immeditate or extended family had any mental illnesses? [Psychotic][Parents]
+heredmental[16_S],heredmental16_S,Has anyone in your immeditate or extended family had any mental illnesses? [Psychotic][Siblings]
+heredmental[16_C],heredmental16_C,Has anyone in your immeditate or extended family had any mental illnesses? [Psychotic][Children]
+heredmental[16_G],heredmental16_G,Has anyone in your immeditate or extended family had any mental illnesses? [Psychotic][Grandparents]
+heredmental[16_O],heredmental16_O,Has anyone in your immeditate or extended family had any mental illnesses? [Psychotic][Other extended family]
+heredmental[17_P],heredmental17_P,Has anyone in your immeditate or extended family had any mental illnesses? [Post Traumatic Stress Disorder][Parents]
+heredmental[17_S],heredmental17_S,Has anyone in your immeditate or extended family had any mental illnesses? [Post Traumatic Stress Disorder][Siblings]
+heredmental[17_C],heredmental17_C,Has anyone in your immeditate or extended family had any mental illnesses? [Post Traumatic Stress Disorder][Children]
+heredmental[17_G],heredmental17_G,Has anyone in your immeditate or extended family had any mental illnesses? [Post Traumatic Stress Disorder][Grandparents]
+heredmental[17_O],heredmental17_O,Has anyone in your immeditate or extended family had any mental illnesses? [Post Traumatic Stress Disorder][Other extended family]
+heredopentext,heredopentext,OPTIONAL: Please briefly include anything we may have overlooked.
+demosexorientation,demosexorientation,What is your sexual orientation?
+demoemploystatus,demoemploystatus,What is your current employment status?
+demovetstatus,demovetstatus,Have you or are you now serving for the military?
+demoactivecombat,demoactivecombat,Have you engaged in active combat?
+demoptsd[1],demoptsd1,If you were in active combat for your service.... [Do you have post traumatic stress disorder from your service?]
+demobirthplace,demobirthplace,"Please tell us where you were born, (city or town, country)"
+demoethnicity,demoethnicity,Please type in the ethnicity you identify yourself as
+demorelstatus,demorelstatus,What is your relationship status?
+demohighested,demohighested,What is the highest level of education you completed?
+demonetworth,demonetworth,"What is your net worth? Please combine if more than one. (CAD, EURO, USD, GBP)"
+demoincome,demoincome,"What is your yearly income? Please combine if more than one. (CAD, EURO, USD, GBP)"
+demobloodtype,demobloodtype,What is your blood type?
+demoopentext,demoopentext,OPTIONAL: Please briefly include anything we may have overlooked.
