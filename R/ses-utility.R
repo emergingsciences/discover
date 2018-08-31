@@ -9,7 +9,7 @@
 
 
 # Load the default data file
-kps.loaddatafile <- function(file = "data/kps1-results.txt") {
+kps.loaddatafile <- function(file = "data/ses-data.txt") {
   df <- dget(file)
   return(df)
 }
@@ -17,7 +17,7 @@ kps.loaddatafile <- function(file = "data/kps1-results.txt") {
 
 
 # Load the default variables file. Contains original question text
-kps.loadvarfile <- function(file = "data/kps1-variables.csv") {
+kps.loadvarfile <- function(file = "data/ses-vars.csv") {
   return(read.csv(file = file))
 }
 

@@ -4,7 +4,7 @@ This file contains data definitions for specific data sets in the tool.
 
 ## Kundalini Profile Survey (KPS)
 
-Variable definitions, specifically for all likert-scaled variables can be found in the `data/kps1-variables.csv` data file. In addition to these descriptions, the KPS survey contains a number of "gate" questions which control which questions are administered to survey participants.
+Variable definitions, specifically for all likert-scaled variables can be found in the data file. In addition to these descriptions, the KPS survey contains a number of "gate" questions which control which questions are administered to survey participants.
 
 ### KPS Gate Questions
 

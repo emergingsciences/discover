@@ -2,4 +2,5 @@
 *
 # Except this file
 !.gitignore
-!kps1-variables.csv
+!ses-vars.csv
+!pbs-vars.csv
