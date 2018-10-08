@@ -37,6 +37,9 @@ sub <- results[,grepl('HC|spirpract\\d+', names(results))]
 # sub <- results[,grepl('HC|pbelechabits\\d+', names(results))]
 # sub <- results[,grepl('HC|dsediet\\d+', names(results))]
 
+library(likert)
+sub[,!grepl("HC", names(sub))] <- lapply(sub[,!grepl("HC", names(sub))], as.numeric)
+
 #
 # Simple decision tree
 #
@@ -45,7 +48,7 @@ library(rpart.plot) # See: http://www.milbo.org/rpart-plot/prp.pdf
 tree <- rpart(
   HC ~ .
   , sub
-  , control = rpart.control(minsplit = 10)
+  , control = rpart.control(minsplit = 7)
 )
 rpart.plot(tree, tweak = 1.1)
 

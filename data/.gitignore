@@ -4,3 +4,4 @@
 !.gitignore
 !ses-vars.csv
 !pbs-vars.csv
+!ses-question-groups.csv
