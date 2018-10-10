@@ -29,12 +29,9 @@ These scripts produce the primary analysis output for the Discover project. Each
 - `ses-fa-lca.R` -  **Spiritual Experience Survey LCA and Factor Analysis Script**. Contains methods to automatically generate factors using Principal Axis Factoring with Promax rotation. The number of factors is determined using an empirical approach called parallel analysis. These factors are then used as inputs to a Latent Class Analysis algorithm which discovers latent classes (clusters) in the data. Finally, the script scores all survey respondents.
 - `ses-summary.R` - **Spiritual Experience Survey Summary Script**. Creates summary visualizations for key data points for the Spiritual Experience Survey.
 
-
-
 **Helper Scripts**
 
 These scripts contain utility and helper functions:
 
-- `ses-fa-lca-functions.R` - **Spiritual Experience Survey LCA and Factor Analysis Script Functions**. Functions containing the majority of the logic for the FA and LCA analysis.
-including the actual FA and LCA algorithms used and starting parameters for analysis.
+- `ses-fa-lca-functions.R` - **Spiritual Experience Survey LCA and Factor Analysis Script Functions**. Functions containing the majority of the logic for the FA and LCA analysis, including the actual FA and LCA algorithms used and starting parameters for analysis.
 - `ses-utility.R` - **Spiritual Experience Survey LCA and Factor Analysis Script Helper Functions**. Utility functions for loading data and replace question codes with question text.

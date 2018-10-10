@@ -414,3 +414,47 @@ kps.compvar <- function(data, newname, names) {
 
 # Drop a composite variable  
 # q.num <- q.num[ , !(names(q.num) %in% c("CONSCIOUSNESS"))]
+
+
+# fire.profile()
+#
+# Profile all non-primary experience clusters. Returns a data frame
+# containing all descriptive and statistical output.
+#
+fire.profile <- function(data = NULL, target = "", grepstr = "", prefix = "") {
+  
+  # Populate "compare" data frame one row at a time
+  
+  compare <- data.frame( # Destination for all our statistics
+    question = character(),
+    polychor = double(), # Polychoric r
+    chisq = double(), # Chi-square
+    stringsAsFactors = FALSE)
+  
+  varnames <- names( data[,!grepl(target, names(data))]) # All but the MCLASS
+  
+  for(i in 1:length(varnames)) {
+    compare[i,"question"] <- varnames[i]
+    
+    # Conduct a Mann-Whitney U Test
+    # This generates the u (sometimes called w), p, and r statistics. For more information
+    # see the resources below:
+    #
+    # http://www.stata-journal.com/sjpdf.html?articlenum=st0253
+    # https://statistics.laerd.com/premium-sample/mwut/mann-whitney-test-in-spss-2.php
+    # http://yatani.jp/teaching/doku.php?id=hcistats:mannwhitney
+    
+    compare[i, "polychor"] <- polychor(data[,target], data[,varnames[i]])
+    
+    chiresult <- chisq.test(data[,target], data[,varnames[i]])
+    compare[i, "chisq"] <- as.double(chiresult$statistic)
+  }
+  
+  # Tack on the question text to the end
+  # compare <- merge(compare, kps.vars[c("varname", "question.text")], by.x = "question", by.y = "varname")
+  
+  # Write file out to the output folder with the specified prefix
+  write.csv(compare, file = paste("output/", prefix, "-FIRE-profile.csv", sep = ""))
+  
+  return(data.frame(compare))
+}
