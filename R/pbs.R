@@ -16,6 +16,7 @@ library(digest)
 
 #dput(results, file = "data/pbs-data.txt")
 results <- dget("data/pbs-data.txt")
+vars <- read.csv(file = "data/pbs-vars.csv")
 
 #
 # Create Higher Consciousness composite variable
@@ -29,11 +30,11 @@ results$HC <- results$spirex01 +
 # Get subset of data / questions
 #
 
-# sub <- results[,grepl('HC|pbnature\\d+|pbenoughnature\\d+|pbsocialpercep\\d+|pbelechabits\\d+|beliefs\\d+|behaviors\\d+|spirprac\\d+', names(results))]
+sub <- results[,grepl('HC|pbnature\\d+|pbenoughnature\\d+|pbsocialpercep\\d+|pbelechabits\\d+|beliefs\\d+|behaviors\\d+|spirprac\\d+', names(results))]
 # sub <- results[,grepl('HC|hered.*', names(results))]  
 # sub <- results[,grepl('HC|pbsocialpercep\\d+', names(results))]
 # sub <- results[,grepl('HC|beliefs\\d+', names(results))]
-sub <- results[,grepl('HC|spirpract\\d+', names(results))]
+# sub <- results[,grepl('HC|spirpract\\d+', names(results))]
 # sub <- results[,grepl('HC|pbelechabits\\d+', names(results))]
 # sub <- results[,grepl('HC|dsediet\\d+', names(results))]
 

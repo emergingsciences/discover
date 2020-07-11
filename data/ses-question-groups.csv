@@ -1,13 +1,2 @@
-group
-mystical
-spiritual
-psyphys
-psychic
-talents
-invmov
-sensation
-negphysical
-otherphysical
-negpsych
-psybliss
-psygrowth
+group,name,factors
+mystical13$|mystical4$|mystical9$|mystical10$|mystical22$|mystical7$|mystical3$|mystical24$|mystical26$|mystical23$|mystical6$|mystical15$|mystical5$|mystical14$|mystical8$|mystical11$|mystical27$|psygrowth\d+,hcwithpsygrowth,

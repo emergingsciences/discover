@@ -31,7 +31,7 @@ These scripts produce the primary analysis output for the Discover project. Each
 
 **Helper Scripts**
 
-These scripts contain utility and helper functions:
+These scripts contain utility and helper functions for primary scripts. These scripts are not meant to be run by themselves:
 
 - `ses-fa-lca-functions.R` - **Spiritual Experience Survey LCA and Factor Analysis Script Functions**. Functions containing the majority of the logic for the FA and LCA analysis, including the actual FA and LCA algorithms used and starting parameters for analysis.
 - `ses-utility.R` - **Spiritual Experience Survey LCA and Factor Analysis Script Helper Functions**. Utility functions for loading data and replace question codes with question text.
