@@ -10,32 +10,41 @@ library("psych") # LCA library
 
 # Generate factors based on parallel analysis
 #
-# @param factorGroupCSVLocation The location of the file listing out target
-#                               question groups for factor analysis
+# @param factorGroupCSVLocation The location of the file listing out target question groups for factor analysis
+# @return Factor analysis results
 ses.generate.factors <- function(x = NULL, threshold = .6, outputPath = "output/fa/", factorGroupCSVLocation = "data/ses-question-groups.csv") {
-  factors <- NULL
+  results <- list()
   kps.groups <- read.csv(file = factorGroupCSVLocation)
+  print(paste("Using data file",factorGroupCSVLocation))
   
   # Extract loadings in format suitable for further LCA analysis
-  for(group in kps.groups$group) {
-    print(paste(group,"\\d+",sep=""))
-    fa.results <- kfire.fa(
+  # apply(kps.groups, 1, function(group, results) {
+  for(row in 1:nrow(kps.groups)) {
+    group <- kps.groups[row,]
+    
+    print(paste("Running factor analysis"))
+    print(paste("Prefix:",group['name']))
+    print(paste("Output Path:",outputPath))
+    print(paste("Number of factors:",group['factors']))
+    
+    fa.results <- facorr(
       x,
-      grepmatch = paste(group,"\\d+",sep=""),
-      prefix = group,
-      outputPath = outputPath
+      grepmatch = paste(unlist(group['group'])),
+      prefix = group['name'],
+      outputPath = outputPath,
+      numFactors = group['factors']
     )
     
-    groupFactors <- kfire.process.loadings(fa.results$fa$loadings, threshold=threshold, outputPath = outputPath)
+    groupFactors <- process.loadings(fa.results$fa$loadings, threshold=threshold, name = group['name'], outputPath = outputPath)
     
-    if(is.null(factors)) {
-      factors <- groupFactors
-    } else {
-      factors <- rbind(factors, groupFactors)  
-    }
+    # browser()
+    results[[row]] <- fa.results
+    
+    if( !dir.exists("output/fa") ) dir.create("output/fa")
+    write.csv(groupFactors, file = paste("output/fa/", as.character(unlist(group['name'])), '.csv', sep=""), row.names = FALSE)
   }
   
-  return(factors)
+  results
 }
 
 # Conduct polychoric factor analysis with PAF and promax rotation
@@ -52,33 +61,39 @@ ses.generate.factors <- function(x = NULL, threshold = .6, outputPath = "output/
 # @param parallel TRUE if you only want to run parallel analysis to determine the number of factors
 #           Defaults to FALSE.
 #
-kfire.fa <- function(data, grepmatch = NULL, prefix = NULL, outputPath="output/fa/") {
+facorr <- function(data, grepmatch = NULL, prefix = NULL, outputPath="output/fa/", numFactors = NULL) {
   
   # Provide some basic output to show how many data records and
   # the names of the columns for validation
-  print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
+  print(paste("Matched", sum(grepl(grepmatch, names(data), perl = TRUE)), "columns"))
   print(paste("Names: "
               , paste(
-                names(data[,grepl(grepmatch, names(data))])
+                names(data[,grepl(grepmatch, names(data), perl = TRUE)])
                 , collapse = ", "
               )
   ))
   
   # Exit if no columns match
-  if(sum(grepl(grepmatch, names(data))) < 1) return()
+  if(sum(grepl(grepmatch, names(data), perl = TRUE)) < 1) return()
   
   # Extract columns specified
-  q <- data[,grepl(grepmatch, names(data))]
+  q <- data[,grepl(grepmatch, names(data), perl = TRUE)]
   q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric  
   
   # Run parallel analysis to determine number of factors to use
-  q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
-  suggestedFactors <- q.par$nfact
-  
-  print(paste("Parallel analysis resulted in a",suggestedFactors,"factor solution"))
+  if(!is.na(numFactors)) {
+    suggestedFactors <- as.numeric(numFactors)
+    print(paste("Skipping parallel analysis and using",suggestedFactors,"factors."))
+  } else {
+    print("Conducting parallel analysis")
+    q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
+    suggestedFactors <- q.par$nfact 
+    print(paste("Parallel analysis resulted in a",suggestedFactors,"factor solution"))
+  }
   
   # Generate factors with rotation
   q.poly.fa.pro <- fa.poly(x = q.num, nfactors = suggestedFactors, fm = "pa", rotate = "promax")
+  # q.poly.fa.pro <- fa.poly(x = q.num, nfactors = suggestedFactors, fm = "pa") # No rotation
   print(q.poly.fa.pro)
   
   # FA diagram and ICLUST output
@@ -87,7 +102,7 @@ kfire.fa <- function(data, grepmatch = NULL, prefix = NULL, outputPath="output/f
   
   # Write polychoric correlations to disk
   if( !dir.exists(outputPath) ) dir.create(outputPath)
-  write.csv(q.poly.fa.pro$rho, file = paste(outputPath, prefix, "-poly-correlations.csv", sep = ''))
+  write.csv(q.poly.fa.pro$rho, file = paste(outputPath, "factor-poly-correlations.csv", sep = ''))
   
   return(q.poly.fa.pro)
 }
@@ -97,7 +112,7 @@ kfire.fa <- function(data, grepmatch = NULL, prefix = NULL, outputPath="output/f
 #'
 #' Original loadings usually kept in an object similar to fa.object$fa$loadings
 #' @param original.loadings The psych library's fa() loadings
-kfire.process.loadings <- function(original.loadings, threshold=0.6, outputPath="output/fa/") {
+process.loadings <- function(original.loadings, threshold=0.6, name = NULL, outputPath="output/fa/") {
   var.names <- ses.loadvarfile()
   
   # Create initial data frame from loadings. Create additional columns
@@ -120,24 +135,29 @@ kfire.process.loadings <- function(original.loadings, threshold=0.6, outputPath=
   # Identify which column has the largest loading, above a certain theshold
   factorNames <- apply(loadings, 1, FUN = function(x) {
     factorsOnly <- x[-c(1,2,3)]
-    if(as.double(max(factorsOnly)) > threshold) {
-      return(paste(x[['category']], names(factorsOnly[which.max(factorsOnly)]), sep="-"))
+    
+    maxAndThreshold <- which( as.double(factorsOnly) == max(as.double(factorsOnly)) & 
+      as.double(factorsOnly) > threshold)
+      
+    if(!is.null(maxAndThreshold)) {
+      return(paste(names(factorsOnly[maxAndThreshold])))
     } else {
       return(NA)
     }
   })
-  factorNames <- as.data.frame(factorNames)
+  
+  factorNames[sapply(factorNames, function(x) length(x) == 0L)] <- NA
+  factorNames <- data.frame(unlist(factorNames))
   factorMap <- cbind(loadings$code, loadings$text, factorNames)
   colnames(factorMap) <- c('code', 'text', 'factor')
   rownames(factorMap) <- NULL
   
   rownames(loadings) <- NULL
   if( !dir.exists(outputPath) ) dir.create(outputPath)
-  write.csv(loadings, file = paste(outputPath, loadings$category[1], "-loadings.csv", sep = ""))
+  write.csv(loadings, file = paste(outputPath, name, "-factor-loadings.csv", sep = ""))
   
   return(factorMap)
 }
-
 
 
 
@@ -154,6 +174,7 @@ kfire.process.loadings <- function(original.loadings, threshold=0.6, outputPath=
 #
 fire.bestLCAModel <- function(x, f, maxnclasses = 6) {
 
+  browser()
   min_bic <- 100000 # Some ridiculous starting max. We're looking for the smallest BIC
   num.classes <- 1
   for(i in 1:maxnclasses){
