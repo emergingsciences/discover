@@ -64,7 +64,7 @@ nrow (kps.data)
 
 # Age histogram
 # Credit: https://www.datacamp.com/community/tutorials/make-histogram-ggplot2#gs.ko0NeIE
-# hist(kps.data$age, nclass = 15, xlim=c(0,100), main="Age Histogam", xlab="Age")
+hist(kps.data$age, nclass = 15, xlim=c(0,100), main="Age Histogam", xlab="Age")
 # qplot(kps.data$age, data=data.frame(kps.data$age), geom="histogram")
 
 
