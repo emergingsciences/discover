@@ -20,8 +20,8 @@ generateLevel2 <- TRUE
 
 
 # Read in output file from LimeSurvey (question codes and answer codes)
-raw_survey_results.df <- read.csv("../laravel/storage/app/kps-results-raw.csv", na.strings = "")
-var.names <- read.csv("data/kps-variables.csv", stringsAsFactors = FALSE)
+raw_survey_results.df <- read.csv("data/ses-results-raw.csv", na.strings = "")
+var.names <- read.csv("data/ses-vars.csv", stringsAsFactors = FALSE)
 
 # Remove "." characters in column names. R has problems with these
 names(raw_survey_results.df) <- gsub(".", "", names(raw_survey_results.df), fixed = TRUE)
@@ -45,15 +45,24 @@ likert.questions <- grepl('MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSy
 
 likert.names <- names(extract.df[,likert.questions])
 
-levels(extract.df$Sex) <- c('female', 'male', 'intersex')
+extract.df$Sex <- factor(extract.df$Sex, levels = c('A1', 'A2', 'A3'), labels = c('female', 'male', 'intersex'))
+
+likert.levels <- c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity')
 
 # 'Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'
 require(plyr)
 extract.df[,likert.names] <- lapply(extract.df[,likert.names], function(x) {
-  mapvalues(x, 
-            from=c("L001","L002","L003", "L004", "L005", "L006"), 
-            to=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
+  x <- mapvalues(x,
+            from=c("L001","L002","L003", "L004", "L005", "L006"),
+            to=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity')
+  )
+
+  # Convert the likert columns to an ordered factor
+  x <- factor(x, levels = likert.levels, ordered = TRUE)
+  return(x)
 })
+
+
 
 
 #
@@ -99,10 +108,16 @@ if(isTRUE(generateLevel2)) {
   names(extract.df)[names(extract.df) == 'PsyBlissOpenText'] <- 'psybliss.text'
 }
 
+# Remove rows with missing values in the "Age" column
+print(paste("Initial row count is ", nrow(extract.df)))
+extract.df <- extract.df[!is.na(extract.df$mystical1), ]
+print(paste("After scrubbing data rows with missing values, the row count is ", nrow(extract.df)))
+
+
 # Not sure why this line exists. Try it out!
 extract.df.copy <- extract.df
 rownames(extract.df.copy) <- NULL
-dput(extract.df.copy, file = "data/kps-results.txt")
+dput(extract.df.copy, file = "data/ses-data.txt")
 
 getKPS <- function () {
   return(extract.df)

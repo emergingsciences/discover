@@ -1,65 +1,76 @@
 # °º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸¸,ø¤°º¤ø,¸¸,ø¤:>
 #
-#          KUNDALINI PROFILE SURVEY ANALYSIS
+#          SPIRITUAL EXPERIENCE SURVEY ANALYSIS
 #
 # °º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸¸,ø¤°º¤ø,¸¸,ø¤:>
 
-source("R/ses-utility.R")
-
-#
-# FULL DATA LOAD (respondent data and variable mappings)
-#
-kps.data <- ses.loaddatafile()
-kps.vars <- ses.loadvarfile()
-
-
-#
-# DATA SUMMARY VISUALIZATIONS
-#
-
 library(ggplot2)
 library(likert)
+source("code/ses-utility.R")
+
+
+#
+# DATA LOAD
+#
+ses.data <- ses.loaddatafile() # Respondent data
+ses.vars <- ses.loadvarfile() # Variable (column) information
+
+
+print(sum(is.na(ses.data$mystical1)))
+
+
+#
+# TOTALS, SEX, AND AGE
+#
 
 # Total number of participants
-barplot(nrow (kps.data), width = 1, main="Kundalini Profile Survey", ylim=c(0,400), ylab="Number of Participants", col="darkgreen")
+print(paste("Number of participants is " , nrow(ses.data)))
 
-# Number of participants by sex
-ggplot(data=kps.data, aes(x = kps.data$sex, fill = kps.data$sex)) +
+# Number of participants by sex (graphically)
+ggplot(data=ses.data, aes(x = sex, fill = sex)) +
   guides(fill = FALSE) +
   geom_bar() +
-  geom_text(stat = 'count', aes(label = ..count..), vjust=-1) +
+  geom_text(stat = 'count', aes(label = ..count..)) +
   labs(x="Sex of Participant", y="Number of participants", fill="Sex")
+
+# Number of participants by sex (console)
+table(ses.data$sex)
 
 # Age histogram
 # Credit: https://www.datacamp.com/community/tutorials/make-histogram-ggplot2#gs.ko0NeIE
-ggplot(data=kps.data, aes(x = kps.data$age, width = .4)) +
+ggplot(data=ses.data, aes(x = age, width = .4)) +
   geom_histogram(binwidth = 5, col = "white", aes(fill =..count..), alpha = .8) +
   labs(x="Age of Participant", y="Count") +
   scale_x_continuous(breaks = seq(0, 100, by = 5))
 
+
+#
+# LIKERT RESPONSES
+#
+
 # Mystical likert visualization
-q <- kps.data[,grepl("mystical\\d+", names(kps.data))]
+q <- ses.data[,grepl("mystical\\d+", names(ses.data))]
 q.questiontext <- ses.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # Spiritual likert visualization
-q <- kps.data[,grepl("spiritual\\d+", names(kps.data))]
+q <- ses.data[,grepl("spiritual\\d+", names(ses.data))]
 q.questiontext <- ses.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # PsychoPhysical likert visualization
-q <- kps.data[,grepl("psyphys\\d+", names(kps.data))]
+q <- ses.data[,grepl("psyphys\\d+", names(ses.data))]
 q.questiontext <- ses.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # Psychic likert visualization
-q <- kps.data[,grepl("psychic\\d+", names(kps.data))]
+q <- ses.data[,grepl("psychic\\d+", names(ses.data))]
 q.questiontext <- ses.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 # Talents likert visualization
-q <- kps.data[,grepl("talents\\d+", names(kps.data))]
-q.questiontext <- kps.get.questiontext(q)
+q <- ses.data[,grepl("talents\\d+", names(ses.data))]
+q.questiontext <- ses.get.questiontext(q)
 plot(likert(q.questiontext), centered = FALSE)
 
 
@@ -91,7 +102,7 @@ plot(likert(q.questiontext), centered = FALSE)
 library(psych)
 
 scores = "regression"
-data = kps.data
+data = ses.data
 grepmatch = "psyphys\\d+"
 # mystical\\d+|spiritual\\d+|
 prefix = "mysticalspiritual"
@@ -154,13 +165,13 @@ parallel=FALSE
 #  return(q.poly.fa.pro)
 #}
 
-kps.data.withfascores <- kps.data
+ses.data.withfascores <- ses.data
 
 # These can take (very) long depending on the number of variables
 
 # 4/5/2017 - n = 449 - Parallel analysis factors = 3
 fa.results <- kps.fa(scores = "regression"
-                     ,kps.data, grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+"
+                     ,ses.data, grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+"
                      ,prefix = "mysticalspiritual"
                      ,nfactors = 4
                      ,parallel=FALSE)
@@ -168,11 +179,11 @@ fa.results <- kps.fa(scores = "regression"
 # colnames(scores)[colnames(scores)=="PA1"] <- "CONSCIOUSNESS"
 # colnames(scores)[colnames(scores)=="PA2"] <- "GRACE"
 # colnames(scores)[colnames(scores)=="PA3"] <- "BLISS"
-# kps.data.withfascores <- cbind(kps.data.withfascores, scores)
+# ses.data.withfascores <- cbind(ses.data.withfascores, scores)
 
 # 4/5/2017 - n = 449 - Parallel analysis factors = 6
 fa.results <- kps.fa(scores = "regression"
-                     , kps.data
+                     , ses.data
                      , grepmatch = "spiritual\\d+"
                      , prefix = "spiritual"
                      , nfactors = 6)
@@ -183,74 +194,74 @@ fa.results <- kps.fa(scores = "regression"
 # colnames(scores)[colnames(scores)=="PA3"] <- "REBIRTH"
 # colnames(scores)[colnames(scores)=="PA4"] <- "AURAL"
 # colnames(scores)[colnames(scores)=="PA5"] <- "INTUITION"
-# kps.data.withfascores <- cbind(kps.data.withfascores, scores)
+# ses.data.withfascores <- cbind(ses.data.withfascores, scores)
 
 # 4/5/2017 - n = 449 - Parallel analysis factors = 4
 fa.results <- kps.fa(scores = "regression"
-                     , kps.data, grepmatch = "psyphys\\d+"
+                     , ses.data, grepmatch = "psyphys\\d+"
                      , prefix = "psyphys"
                      , nfactors = 4)
 
 # scores <- fa.results$scores$scores
 # colnames(scores)[colnames(scores)=="PA1"] <- "ENERGY"
 # colnames(scores)[colnames(scores)=="PA2"] <- "LIGHT"
-# kps.data.withfascores <- cbind(kps.data.withfascores, scores)
+# ses.data.withfascores <- cbind(ses.data.withfascores, scores)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "psychic\\d+", prefix = "psychic", nfactors = 3, parallel = TRUE) # 11/10 - n = 371 - Parallel analysis factors = 3
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "psychic\\d+", prefix = "psychic", nfactors = 3, parallel = TRUE) # 11/10 - n = 371 - Parallel analysis factors = 3
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "talents\\d+", prefix = "talents", nfactors = 3) # 11/10 - n = 371 - Parallel analysis factors = 3
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "talents\\d+", prefix = "talents", nfactors = 3) # 11/10 - n = 371 - Parallel analysis factors = 3
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "invmov\\d+", prefix = "invmov", nfactors = 6) # 11/10 - n = 371 - Parallel analysis factors = 6
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "invmov\\d+", prefix = "invmov", nfactors = 6) # 11/10 - n = 371 - Parallel analysis factors = 6
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "sensation\\d+", prefix = "sensation", nfactors = 4) # 11/10 - n = 371 - Parallel analysis factors = 4
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "sensation\\d+", prefix = "sensation", nfactors = 4) # 11/10 - n = 371 - Parallel analysis factors = 4
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "negphysical\\d+", prefix = "negphysical", nfactors = 7) # 11/10 - n = 371 - Parallel analysis factors = 7
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "negphysical\\d+", prefix = "negphysical", nfactors = 7) # 11/10 - n = 371 - Parallel analysis factors = 7
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "otherphysical\\d+", prefix = "otherphysical", nfactors = 9) # 11/10 - n = 371 - Parallel analysis factors = 9
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "otherphysical\\d+", prefix = "otherphysical", nfactors = 9) # 11/10 - n = 371 - Parallel analysis factors = 9
 
 # 4/5/2017 - n = 449 - Parallel analysis factors = 8
-kps.data.pg <- subset(kps.data, psygrowth.gate == "Y")
+ses.data.pg <- subset(ses.data, psygrowth.gate == "Y")
 fa.results <- kps.fa(scores = "regression"
-                     , kps.data.pg
+                     , ses.data.pg
                      , grepmatch = "psygrowth\\d+"
                      , prefix = "psygrowth"
                      , nfactors = 8)
 
-fa.results <- kps.fa(scores = "regression", kps.data, grepmatch = "negpsych\\d+", prefix = "negpsych", nfactors = 7) # 11/10 - n = 371 - Parallel analysis factors = 7
+fa.results <- kps.fa(scores = "regression", ses.data, grepmatch = "negpsych\\d+", prefix = "negpsych", nfactors = 7) # 11/10 - n = 371 - Parallel analysis factors = 7
 
 # 4/5/2017 - n = 449 - Parallel analysis factors = 4
-kps.data.pb <- subset(kps.data, psybliss.gate == "Y")
+ses.data.pb <- subset(ses.data, psybliss.gate == "Y")
 fa.results <- kps.fa(scores = "regression"
-                     , kps.data.pb
+                     , ses.data.pb
                      , grepmatch = "psybliss\\d+"
                      , prefix = "psybliss"
                      , nfactors = 4)
 
 
 # # Factor correlations
-# kps.data.withfascores <- kps.data.withfascores[,c("CONSCIOUSNESS", "GRACE", "BLISS", "SYNCHRONICITY", "OOB", "REBIRTH", "AURAL", "INTUITION", "ENERGY", "LIGHT")]
-# cor.mat <- cor(method = "pearson", x = kps.data.withfascores)
+# ses.data.withfascores <- ses.data.withfascores[,c("CONSCIOUSNESS", "GRACE", "BLISS", "SYNCHRONICITY", "OOB", "REBIRTH", "AURAL", "INTUITION", "ENERGY", "LIGHT")]
+# cor.mat <- cor(method = "pearson", x = ses.data.withfascores)
 # cor.mat.melt <- melt(cor.mat)
 # cor.plot(cor.mat, numbers = TRUE)
-# plot(kps.data.withfascores$ENERGY, kps.data.withfascores$LIGHT)
+# plot(ses.data.withfascores$ENERGY, ses.data.withfascores$LIGHT)
 
 
 # Sample scatterplot
 plot(
-  jitter(as.numeric(kps.data$mystical24), factor = 1.2)
-  , jitter(as.numeric(kps.data$mystical22), factor = 1.2)
+  jitter(as.numeric(ses.data$mystical24), factor = 1.2)
+  , jitter(as.numeric(ses.data$mystical22), factor = 1.2)
 )
 
 
 
 # Psygrowth factor analysis
-kps.fa(data = subset(kps.data, kps.data$psygrowth.gate == "Y"),
+kps.fa(data = subset(ses.data, ses.data$psygrowth.gate == "Y"),
        grepmatch = "psygrowth\\d+",
        prefix = "psygrowth",
        nfactors = 6) # 11/08 - n = 366 - Parallel analysis factors = 6
 
 # Psybliss factor analysis
-kps.fa(data = subset(kps.data, kps.data$psybliss.gate == "Y"),
+kps.fa(data = subset(ses.data, ses.data$psybliss.gate == "Y"),
        grepmatch = "psybliss\\d+",
        prefix = "psybliss",
        nfactors = 4) # 10/26 - n = 366 - Parallel analysis factors = 4
@@ -261,7 +272,7 @@ kps.fa(data = subset(kps.data, kps.data$psybliss.gate == "Y"),
 # Example polychoric correlations matrix to faciliate data analysis
 
 library(psych)
-raw.data <- kps.data[,grepl("psybliss\\d+", names(kps.data))]
+raw.data <- ses.data[,grepl("psybliss\\d+", names(ses.data))]
 raw.data <- lapply(raw.data, as.ordered)
 raw.data <- lapply(raw.data, as.numeric)
 poly.results <- polychoric(as.data.frame(raw.data))
@@ -288,7 +299,7 @@ library("plyr")
 library("ggplot2")
 
 # Format data properly. Convert text to numbers and then to ordered
-q <- kps.data
+q <- ses.data
 
 likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
                       names(q))
@@ -595,11 +606,11 @@ plot(likert(items = as.data.frame(q.sub[,grepl(likert.names, names(q.sub))]), gr
 source("R/kps-utility.R")
 
 # ETL
-kps.data <- kps.loaddatafile()
+ses.data <- kps.loaddatafile()
 kps.vars <- kps.loadvarfile()
 
 # Select only mystical questions
-q <- kps.data[,grepl("mystical", names(kps.data))]
+q <- ses.data[,grepl("mystical", names(ses.data))]
 q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric
 
 # Visualize likert questions
@@ -744,8 +755,8 @@ kps.compvar <- function(data, newname, names) {
 ## Create Composite Variables ##
 
 # Make a copy of the original dataset
-# compvar <- kps.data
-# compvar <- kps.data[,grepl("mystical", names(kps.data))]
+# compvar <- ses.data
+# compvar <- ses.data[,grepl("mystical", names(ses.data))]
 
 # Get all likert question names
 # likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
