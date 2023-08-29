@@ -12,11 +12,12 @@ Kundalini Discover is a set of R functions and analysis scripts to analyze scrub
 
 ## Directory Structure and File Locations
 
-- `/data` - "Read only" directory for source data, including survey responses.
-- `/doc` - Project documentation.
-- `/figs` - Output folder for charts, graphs, or other visualizations.
-- `/output` - "Read/Write" directory for analysis output data.
-- `/R` - Contains all R scripts used for analysis.
+- `/analysis` - Scripts needed to run all the steps of the analysis.
+- `/code` - Scripts containing the functions used in the analysis.
+- `/data` - Read-only directory for source data, including survey responses.
+- `/docker` - Docker configuration and scripts.
+- `/documents` - All the documents and other relevant materials. E.g., reports, slides, or other relevant materials.
+- `/outputs` - All the analysis output.
 
 ## Analysis Scripts
 
@@ -24,12 +25,14 @@ Kundalini Discover is a set of R functions and analysis scripts to analyze scrub
 
 These scripts produce the primary analysis output for the Discover project. Each script is designed to be run independently and should be self-contained:
 
+- `aohc.R` - **Aspects of Higher Consciousness research paper analysis**. All analysis relevant to the Aspects of Higher Consciousness research paper.
+- `kfire.R` - **Kundalini Findings, Insights, and Recommendations Engine (FIRE)**. Initial attempt at classifying a person's spiritual experience using an LCA model.
 - `pbs.R` - **Personal Background Survey Analysis Script**. Arbitrary analysis for the Personal Background Survey.
-- `ses.R` - **Spiritual Experience Survey Analysis Script**. Arbitrary analysis for the Spiritual Experience Survey, i.e., not contained in a separate analysis file.
 - `ses-fa-lca.R` -  **Spiritual Experience Survey LCA and Factor Analysis Script**. Contains methods to automatically generate factors using Principal Axis Factoring with Promax rotation. The number of factors is determined using an empirical approach called parallel analysis. These factors are then used as inputs to a Latent Class Analysis algorithm which discovers latent classes (clusters) in the data. Finally, the script scores all survey respondents.
-- `ses-summary.R` - **Spiritual Experience Survey Summary Script**. Creates summary visualizations for key data points for the Spiritual Experience Survey.
+- `ses-import.R` - **Spiritual Experience Survey Import Script**. Import functions for the SES survey directly from LimeSurvey
+- `ses.R` - **Spiritual Experience Survey Analysis Script**. Arbitrary analysis for the Spiritual Experience Survey.
 
-**Helper Scripts**
+**Code Scripts**
 
 These scripts contain utility and helper functions for primary scripts. These scripts are not meant to be run by themselves:
 
