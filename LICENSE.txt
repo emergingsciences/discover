@@ -1,5 +1,7 @@
-Copyright (c) 2016 The Emerging Sciences Foundation.
+Copyright (c) 2023 The Emerging Sciences Foundation.
 All rights reserved.
+
+Modified BSD License
 
 Redistribution and use in source and binary forms, with or
 without modification, are permitted provided that the

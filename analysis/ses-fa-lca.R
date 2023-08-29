@@ -2,7 +2,7 @@
 ##
 ## SES LCA and Factor Analysis Script
 ## Challenge: We need a way to group the population into clusters on a per-factor basis.
-##            For example, a Higher Concsiousness factor which can be further divided into
+##            For example, a Higher Consciousness factor which can be further divided into
 ##            clusters based on their scores relative to the total population.
 ##
 ## Solution: Use Principle Axis Factoring with Promax rotation to automatically generate
@@ -61,7 +61,7 @@ lca.table <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# Contains the percentages of the total pouplation in each class (from the LCA model)
+# Contains the percentages of the total population in each class (from the LCA model)
 lca.class.table <- data.frame(
   factor=character(),
   class=integer(),
