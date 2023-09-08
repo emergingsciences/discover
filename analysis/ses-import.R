@@ -18,9 +18,17 @@ library(digest)
 # Level 2 - All data contained in the Level 2 file plus all open text responses
 generateLevel2 <- TRUE
 
+# 'data' now contains all data
+
+# Limesurvey R file import
+setwd("") # Set to path of import files
+source("") # Set to name of R import file
+setwd("") # Set to path of working directory
+raw_survey_results.df <- data
+rm(data)
 
 # Read in output file from LimeSurvey (question codes and answer codes)
-raw_survey_results.df <- read.csv("data/ses-results-raw.csv", na.strings = "")
+# raw_survey_results.df <- read.csv("data/ses-results-raw.csv", na.strings = "")
 var.names <- read.csv("data/ses-vars.csv", stringsAsFactors = FALSE)
 
 # Remove "." characters in column names. R has problems with these
@@ -28,10 +36,10 @@ names(raw_survey_results.df) <- gsub(".", "", names(raw_survey_results.df), fixe
 
 # Extract only relevant fields based on flag
 if(isTRUE(generateLevel2)) {
-  extract.df <- raw_survey_results.df[,grepl('id|token|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$|MysticalText$|SpExOpenText$|PsychicOpenText$|TalentsOpenText$|PEFeelingsSensOpenT$|PEIllnessDisOpenText$|PsyGrowthOpenText$|PsyBlissOpenText$'
+  extract.df <- raw_survey_results.df[,grepl('id|token|CurrentAge$|Sex$|MysticalSymptoms_\\d+|PersonalandPsychic_\\d+|TalentsSymptoms_\\d+|PsyPhyList_\\d+|PsychicSymptoms_\\d+|PEInvMovSymptoms_\\d+|PEFeelaSenseList_\\d+|PEIlloDisSymptoms_\\d+|PEOtherBehavSymp_\\d+|PsyGrowthList_\\d+|NegPsyEffList_\\d+|PsychoBlissList_\\d+|Gate$|MysticalText$|SpExOpenText$|PsychicOpenText$|TalentsOpenText$|PEFeelingsSensOpenT$|PEIllnessDisOpenText$|PsyGrowthOpenText$|PsyBlissOpenText$'
                                              , names(raw_survey_results.df))]  
 } else {
-  extract.df <- raw_survey_results.df[,grepl('id|token|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$'
+  extract.df <- raw_survey_results.df[,grepl('id|token|CurrentAge$|Sex$|MysticalSymptoms_\\d+|PersonalandPsychic_\\d+|TalentsSymptoms_\\d+|PsyPhyList_\\d+|PsychicSymptoms_\\d+|PEInvMovSymptoms_\\d+|PEFeelaSenseList_\\d+|PEIlloDisSymptoms_\\d+|PEOtherBehavSymp_\\d+|PsyGrowthList_\\d+|NegPsyEffList_\\d+|PsychoBlissList_\\d+|Gate$'
                                              , names(raw_survey_results.df))]    
 }
 
@@ -40,12 +48,13 @@ if(isTRUE(generateLevel2)) {
 # Convert all raw answer codes from LimeSurvey to the appropriate Likert indicator
 #
 
-likert.questions <- grepl('MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+',
+likert.questions <- grepl('MysticalSymptoms_\\d+|PersonalandPsychic_\\d+|TalentsSymptoms_\\d+|PsyPhyList_\\d+|PsychicSymptoms_\\d+|PEInvMovSymptoms_\\d+|PEFeelaSenseList_\\d+|PEIlloDisSymptoms_\\d+|PEOtherBehavSymp_\\d+|PsyGrowthList_\\d+|NegPsyEffList_\\d+|PsychoBlissList_\\d+',
                           names(extract.df))
 
 likert.names <- names(extract.df[,likert.questions])
 
-extract.df$Sex <- factor(extract.df$Sex, levels = c('A1', 'A2', 'A3'), labels = c('female', 'male', 'intersex'))
+extract.df$Sex <- factor(extract.df$Sex)
+# extract.df$Sex <- factor(extract.df$Sex, levels = c('A1', 'A2', 'A3'), labels = c('female', 'male', 'intersex'))
 
 likert.levels <- c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity')
 
@@ -68,18 +77,18 @@ extract.df[,likert.names] <- lapply(extract.df[,likert.names], function(x) {
 #
 # Rename columns to final names
 #
-names(extract.df) <- gsub("MysticalSymptoms", "mystical", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PersonalandPsychic", "spiritual", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PsyPhyList", "psyphys", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PsychicSymptoms", "psychic", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("TalentsSymptoms", "talents", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PEInvMovSymptoms", "invmov", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PEFeelaSenseList", "sensation", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PEIlloDisSymptoms", "negphysical", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PEOtherBehavSymp", "otherphysical", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("NegPsyEffList", "negpsych", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PsychoBlissList", "psybliss", names(extract.df), fixed = TRUE)
-names(extract.df) <- gsub("PsyGrowthList", "psygrowth", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("MysticalSymptoms_", "mystical", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PersonalandPsychic_", "spiritual", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PsyPhyList_", "psyphys", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PsychicSymptoms_", "psychic", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("TalentsSymptoms_", "talents", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PEInvMovSymptoms_", "invmov", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PEFeelaSenseList_", "sensation", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PEIlloDisSymptoms_", "negphysical", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PEOtherBehavSymp_", "otherphysical", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("NegPsyEffList_", "negpsych", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PsychoBlissList_", "psybliss", names(extract.df), fixed = TRUE)
+names(extract.df) <- gsub("PsyGrowthList_", "psygrowth", names(extract.df), fixed = TRUE)
 
 # Non-likert responses
 names(extract.df)[names(extract.df) == 'CurrentAge'] <- 'age'
@@ -114,7 +123,7 @@ extract.df <- extract.df[!is.na(extract.df$mystical1), ]
 print(paste("After scrubbing data rows with missing values, the row count is ", nrow(extract.df)))
 
 
-# Not sure why this line exists. Try it out!
+#TODO: understand why this code exists
 extract.df.copy <- extract.df
 rownames(extract.df.copy) <- NULL
 dput(extract.df.copy, file = "data/ses-data.txt")
@@ -122,6 +131,3 @@ dput(extract.df.copy, file = "data/ses-data.txt")
 getKPS <- function () {
   return(extract.df)
 }
-
-
-

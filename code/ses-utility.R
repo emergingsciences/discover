@@ -23,12 +23,45 @@ ses.loadvarfile <- function(file = "data/ses-vars.csv") {
 }
 
 
+# Extract columns by a regex matching the column names, with all data converted
+# into numeric values
+# @return A subset of the data containing only columns specified in the regex
+extract.numeric.columns.by.regex <- function(data, grepmatch = "") {
+  print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
+  print(paste("Names: "
+              , paste(
+                names(data[,grepl(grepmatch, names(data))])
+                , collapse = ", "
+              )
+  ))
+  
+  # Exit if no columns match
+  if(sum(grepl(grepmatch, names(data))) < 1) return()
+  
+  # Extract columns specified
+  q <- data[,grepl(grepmatch, names(data))]
+  q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric  
+  return(q.num)
+}
+
 # Loads the SES data file and then replaces question codes with question text
 # @return The SES data file with question text instead of question codes (default)
-ses.get.questiontext <- function(x = ses.loaddatafile()) {
+ses.get.questiontext <- function(x = ses.loaddatafile(), max_length = NULL) {
   var.names <- ses.loadvarfile()
   mv <- match(names(x), var.names$varname)
-  names(x)[!is.na(mv)] <- as.character(var.names$question.text[na.omit(mv)])
+  new_names <- as.character(var.names$question.text[na.omit(mv)])
+  
+  if (!is.null(max_length)) {
+    new_names <- sapply(new_names, function(name) {
+      if (is.na(max_length) || max_length < 1) {
+        return(name)
+      } else {
+        substr(name, 1, max_length)
+      }
+    })
+  }
+  
+  colnames(x)[!is.na(mv)] <- new_names
   return(x)
 }
 
@@ -39,8 +72,8 @@ ses.get.questiontext <- function(x = ses.loaddatafile()) {
 #
 # Original loadings usually kept in an object similar to fa.object$fa$loadings
 #
-kps.format.loadings <- function(original.loadings = NULL) {
-  var.names <- kps.loadvarfile()
+ses.format.loadings <- function(original.loadings = NULL) {
+  var.names <- ses.loadvarfile()
   
   # Create initial data frame from loadings. Create additional columns
   loadings <- data.frame(unclass(original.loadings))
@@ -127,7 +160,7 @@ kps.fa <- function(data, grepmatch = NULL) {
   return(q.poly.fa.pro)
 }
 
-kps.likert.to.numerical <- function(x) {
+ses.likert.to.numerical <- function(x) {
   likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
                         names(x))
   x[,likert.names] <- lapply(x[,likert.names], function(x) {
