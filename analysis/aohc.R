@@ -205,18 +205,26 @@ summary(cfa.all, fit.measures = TRUE, standardized = TRUE)
 
 ## CFA model ----
 hc.mod <- NULL
-hc.mod <- paste0(hc.mod, "\n", 'hc =~ consc + unity + bliss + rebirth')
-hc.mod <- paste0(hc.mod, "\n", 'consc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15')
-hc.mod <- paste0(hc.mod, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
-hc.mod <- paste0(hc.mod, "\n", 'bliss =~ mystical5 + mystical7 + mystical4')
-hc.mod <- paste0(hc.mod, "\n", 'rebirth =~ spiritual3 + spiritual2 + mystical8')
-# hc.mod <- paste0(hc.mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
-# hc.mod <- paste0(hc.mod, "\n", 'light = ~ psyphys11 + psyphys1')
+
+# Unity-Consciousness Model of Higher Consciousness (for regression, to reduce noise). Contains consc + unity
+hc.mod <- paste0(hc.mod, "\n", 'hc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10')
 # cfa <- cfa(hc.mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
 # summary(cfa, fit.measures = TRUE, standardized = TRUE)
-# lavResiduals(cfa)
-# hc.modindices(cfa, sort = TRUE)
-# lavaanPlot(hc.model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+
+# Composite Experience Model of Higher Consciousness
+mod <- NULL
+mod <- mod
+mod <- paste0(mod, "\n", 'consc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15')
+mod <- paste0(mod, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
+mod <- paste0(mod, "\n", 'bliss =~ mystical5 + mystical7 + mystical4')
+mod <- paste0(mod, "\n", 'rebirth =~ spiritual3 + spiritual2')
+mod <- paste0(mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
+mod <- paste0(mod, "\n", 'light = ~ psyphys11 + psyphys1')
+cfa <- cfa(mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+lavResiduals(cfa)
+modindices(cfa, sort = TRUE)
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 
 # Analyze markers
 
