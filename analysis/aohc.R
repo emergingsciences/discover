@@ -6,7 +6,6 @@
 #
 # °º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸¸,ø¤°º¤ø,¸¸,ø¤:>
 
-
 # Load libraries and utility scripts ----
 
 library(ggplot2)
@@ -14,26 +13,67 @@ library(likert) # https://github.com/jbryer/likert
 library(psych)
 library(plyr) # For mapvalues
 library(ltm)
-
 # CFA Libraries
 library(lavaan)
 library(lavaanPlot)
-# library(semPlot)
-
 source("code/ses-utility.R")
-
-# 
-# Full Data Load (respondent data and variable mappings) ----
-#
-
+# ETL (respondent data and variable mappings) ----
 ses.data <- ses.loaddatafile()
 ses.vars <- ses.loadvarfile()
 
+# ~~~~~~~~~~~~~~~~~~~~~~ ----
 
-# TODO: Data Summary and Cleanup ----
+# Data Summary ----
 
+# Total number of participants
+print(paste("Number of records is " , nrow(ses.data)))
+
+# Number of participants by sex
+table(ses.data$sex)
+
+# Number of participants by sex (graphically)
+ggplot(data=ses.data, aes(x = sex, fill = sex)) +
+  guides(fill = FALSE) +
+  geom_bar() +
+  geom_text(stat = 'count', aes(label = ..count..)) +
+  labs(x="Sex of Participant", y="Number of participants", fill="Sex")
+
+# Age histogram
+# Credit: https://www.datacamp.com/community/tutorials/make-histogram-ggplot2#gs.ko0NeIE
+ggplot(data=ses.data[ses.data$age > 10, ]
+, aes(x = age, width = .4)) +
+  geom_histogram(binwidth = 5, col = "white", aes(fill =..count..), alpha = .8) +
+  labs(x="Age of Participant", y="Count") +
+  scale_x_continuous(breaks = seq(10, 100, by = 5))
+
+#
+## Likert Visualizations ----
+#
+likert_viz <- function (data, regex = "") {
+  results <- ses.get.questiontext(
+    data[,grepl(regex, names(data))], # Grab by category
+    max_length = 30 # Truncate text
+  )
+  plot(likert(results), centered = FALSE)
+}
+
+likert_viz(ses.data, "mystical\\d+")
+likert_viz(ses.data, "spiritual\\d+")
+likert_viz(ses.data, "psyphys\\d+")
+likert_viz(ses.data, "psychic\\d+")
+likert_viz(ses.data, "talents\\d+")
+likert_viz(ses.data, "invmov\\d+")
+likert_viz(ses.data, "sensation\\d+")
+likert_viz(ses.data, "negphysical\\d+")
+likert_viz(ses.data, "otherphysical\\d+")
+likert_viz(ses.data, "negpsych\\d+")
+likert_viz(ses.data, "psybliss\\d+")
+likert_viz(ses.data, "psygrowth\\d+")
 
 # ~~~~~~~~~~~~~~~~~~~~~~ ----
+
+
+
 # # # # # # # # # # # # # # # # # # # # #
 # Experience Item Factor Analysis ----  
 # # # # # # # # # # # # # # # # # # # # #
@@ -44,27 +84,8 @@ ses.vars <- ses.loadvarfile()
 grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+"
 data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
 
-
 #
-## Primary experience likert viz's ----
-#
-pexp.likert <- ses.data[,grepl(x = names(ses.data), pattern = "mystical\\d+")]
-pexp.likert <- ses.get.questiontext(pexp.likert, max_length = 25)
-plot(likert(pexp.likert))
-
-pexp.likert <- ses.data[,grepl(x = names(ses.data), pattern = "spiritual\\d+")]
-pexp.likert <- ses.get.questiontext(pexp.likert, max_length = 25)
-plot(likert(pexp.likert))
-
-pexp.likert <- ses.data[,grepl(x = names(ses.data), pattern = "psyphys\\d+")]
-pexp.likert <- ses.get.questiontext(pexp.likert, max_length = 25)
-plot(likert(pexp.likert))
-
-rm(pexp.likert)
-
-
-#
-## Primary experience correlation matrices ----
+## Correlation matrices ----
 #
 
 grepmatch = "mystical\\d+"
@@ -78,7 +99,7 @@ corPlot(extract.numeric.columns.by.regex(ses.data, grepmatch))
 
 
 #
-## FA Reliability Tests (pre-FA) ----
+## Validity and Reliability Tests ----
 #
 
 # Kaiser-Meyer-Olkin measure of sampling adequacy
@@ -195,128 +216,83 @@ write.csv(fa.res$Phi, file = paste("outputs/", "mystical", "-factorcorrelations.
 # Experience Item CFA ----
 # # # # # # # # # # # # # #
 
-data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+')
-# data.num[] <- lapply(data.num, as.factor)
+data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|pe.gate')
+data.num <- na.omit(data.num)
 
-## All item model ----
+## CFA model ----
+
+### All item model (baseline) ----
 mod.all <- 'f =~ psyphys11 + psyphys1 + psyphys12 + psyphys2 + mystical13 + spiritual11 + mystical4 + psyphys8 + mystical12 + spiritual25 + spiritual12 + mystical9 + psyphys6 + mystical10 + spiritual15 + psyphys9 + mystical22 + mystical23 + psyphys3 + mystical26 + spiritual14 + spiritual13 + mystical5 + mystical24 + spiritual24 + mystical7 + spiritual18 + spiritual9 + mystical2 + mystical3 + spiritual22 + mystical25 + spiritual1 + spiritual6 + mystical6 + mystical15 + spiritual10 + spiritual20 + spiritual23 + mystical14 + mystical8 + spiritual27 + mystical11 + spiritual16 + mystical27 + spiritual2 + mystical17 + mystical18 + mystical21 + mystical1 + spiritual8 + psyphys5 + spiritual3 + spiritual21'
 cfa.all <- cfa(mod.all, data=data.num, ordered = TRUE, std.lv = TRUE) # std.lv = fix factor variances
 summary(cfa.all, fit.measures = TRUE, standardized = TRUE)
 
-## CFA model ----
+### Unity-Consciousness Model of Higher Consciousness ----
+# For regression and to reduce noise, contains consc + unity ONLY
 hc.mod <- NULL
-
-# Unity-Consciousness Model of Higher Consciousness (for regression, to reduce noise). Contains consc + unity
-hc.mod <- paste0(hc.mod, "\n", 'hc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10')
-# cfa <- cfa(hc.mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
-# summary(cfa, fit.measures = TRUE, standardized = TRUE)
-
-# Composite Experience Model of Higher Consciousness
-mod <- NULL
-mod <- mod
-mod <- paste0(mod, "\n", 'consc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15')
-mod <- paste0(mod, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
-mod <- paste0(mod, "\n", 'bliss =~ mystical5 + mystical7 + mystical4')
-mod <- paste0(mod, "\n", 'rebirth =~ spiritual3 + spiritual2')
-mod <- paste0(mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
-mod <- paste0(mod, "\n", 'light = ~ psyphys11 + psyphys1')
-cfa <- cfa(mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
+hc.mod <- paste0(hc.mod, "\n", 'hc =~ mystical6 + mystical2 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10')
+cfa <- cfa(hc.mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
+
+### Composite Experience Model of Higher Consciousness ----
+hc.mod <- NULL
+# hc.mod <- paste0(hc.mod, "\n", 'allind =~ mystical6 + mystical2 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1')
+# hc.mod <- paste0(hc.mod, "\n", 'hc =~ consc + unity + bliss + insight + energy + light')
+# hc.mod <- paste0(hc.mod, "\n", 'hc =~ consc + unity + bliss + insight + f2_psysom')
+# hc.mod <- paste0(hc.mod, "\n", 'f2_psysom =~ energy + light')
+# hc.mod <- paste0(hc.mod, "\n", 'hc =~ consc + unity')
+hc.mod <- paste0(hc.mod, "\n", 'consc =~ mystical6 + mystical2 + mystical25 + spiritual26 + mystical15')
+hc.mod <- paste0(hc.mod, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
+hc.mod <- paste0(hc.mod, "\n", 'bliss =~ mystical5 + mystical7 + mystical4')
+hc.mod <- paste0(hc.mod, "\n", 'insight =~ spiritual3 + spiritual2')
+hc.mod <- paste0(hc.mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
+hc.mod <- paste0(hc.mod, "\n", 'light = ~ psyphys11 + psyphys1')
+cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+# summary(cfa, fit.measures = TRUE, standardized = TRUE)
+limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
 lavResiduals(cfa)
 modindices(cfa, sort = TRUE)
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 
 # Analyze markers
-
 # barplot(table(data.num[,'psyphys3'])) # Visualization
 # shapiro.test(data.num$spiritual3) # Test for normality
 # describe(data.num[,'mystical5']) # Descriptive stats
 
-mod <- hc.mod
-
 # Primary experience MIMIC
-mod <- paste0(mod, "\n", 'hc ~ psyphys5 + psyphys3 + psyphys9 + psyphys1 + psyphys11')
-cfa <- cfa(mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
+hc.mod <- paste0(hc.mod, "\n", 'bliss ~ hc')
+hc.mod <- paste0(hc.mod, "\n", 'insight ~ hc')
+hc.mod <- paste0(hc.mod, "\n", 'hc ~ energy')
+hc.mod <- paste0(hc.mod, "\n", 'hc ~ light')
+cfa <- cfa(hc.mod, data=data.num, ordered = T) # WLSMV - Confirmatory Factor Analysis p. 354
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
-lavResiduals(cfa) # Local areas of strain - Brown, T. A., & Moore, M. T. (2012). Confirmatory factor analysis. Handbook of structural equation modeling, 361, 379. p. 97
-modindices(cfa, sort = TRUE)
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 
 
-# round(cor(data.num[,c("mystical2", "mystical3")]), 2)
-lavInspect(cfa, "cov.lv")
-cor <- cov2cor(lavInspect(cfa, what = "est")$psi)
 
-
-
-
-## Structural model ----
-
-# mod <- paste0(mod, "\n", 'consc ~ bliss + unity')
-# mod <- paste0(mod, "\n", 'bliss ~ unity + consc')
-# mod <- paste0(mod, "\n", 'unity ~ consc + bliss') # Best
-
-# BCU Relationship 
-# mod <- paste0(mod, "\n", 'consc ~ bliss')
-# mod <- paste0(mod, "\n", 'unity ~ consc')
-# mod <- paste0(mod, "\n", 'unity ~ bliss')
-
-# CBU Relationship
-# mod <- paste0(mod, "\n", 'bliss ~ consc')
-# mod <- paste0(mod, "\n", 'unity ~ consc')
-# mod <- paste0(mod, "\n", 'unity ~ bliss')
-
-# Meditation (C -> B -> U)
-# mod <- paste0(mod, "\n", 'unity ~ c*consc') # Direct effect
-# mod <- paste0(mod, "\n", 'bliss ~ a*consc') # mediator
-# mod <- paste0(mod, "\n", 'unity ~ b*bliss') # mediator
-# mod <- paste0(mod, "\n", 'ab := a*b') # indirect effect
-# mod <- paste0(mod, "\n", 'total := c + (a*b)') # total effect
-
-# Meditation (B -> C -> U)
-# mod <- paste0(mod, "\n", 'unity ~ c*bliss') # Direct effect
-# mod <- paste0(mod, "\n", 'consc ~ a*bliss') # mediator
-# mod <- paste0(mod, "\n", 'unity ~ b*consc') # mediator
-# mod <- paste0(mod, "\n", 'ab := a*b') # indirect effect
-# mod <- paste0(mod, "\n", 'total := c + (a*b)') # total effect
-
-cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = TRUE)
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-
-
-modindices(cfa, sort = TRUE)
-# round(cor(data.num[,c("mystical2", "mystical3")]), 2)
-lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-lavInspect(cfa, "cov.lv")
-cov2cor(lavInspect(cfa, what = "est")$psi)
-
-## Validate internal reliability of primary factors ----
+## Internal reliability of factors ----
 
 # Cronbach's Alpha > 0.7 is acceptable per Nunnally and Bernstein, 1994
 
-# Higher Consciousness
-psych::alpha(data.num[,c("mystical22", "mystical24", "mystical2", "mystical25", "mystical6", "mystical13", "mystical12", "mystical10", "mystical23", "mystical26", "mystical3", "mystical14", "mystical4", "mystical5", "mystical7", "mystical9")])
+# Higher Consciousness (Unity Consciousness)
+psych::alpha(data.num[,c("mystical6", "mystical2", "mystical25", "spiritual26", "mystical15", "mystical8", "mystical13", "mystical10")])
 
 # Consciousness
-psych::alpha(data.num[,c("mystical22", "mystical24", "mystical2", "mystical25", "mystical6")])
+psych::alpha(data.num[,c("mystical6", "mystical2", "mystical25", "spiritual26", "mystical15")])
 
 # Unity
-psych::alpha(data.num[,c("mystical13", "mystical12", "mystical10", "mystical23", "mystical26", "mystical3", "mystical14")])
+psych::alpha(data.num[,c("mystical8", "mystical13", "mystical10")])
 
 # Bliss
-psych::alpha(data.num[,c("mystical4", "mystical5", "mystical7", "mystical9")])
-
-# Rebirth
-psych::alpha(data.num[,c("spiritual1", "spiritual2", "spiritual3")])
+psych::alpha(data.num[,c("mystical5", "mystical7", "mystical4")])
 
 # Insight
-psych::alpha(data.num[,c("spiritual21", "spiritual22", "spiritual26", "spiritual27", "spiritual8", "spiritual10", "spiritual12")])
-
-# Light/Sound
-psych::alpha(data.num[,c("psyphys11", "psyphys1", "psyphys12", "psyphys2", "psyphys8", "psyphys10")])
+psych::alpha(data.num[,c("spiritual3", "spiritual2")])
 
 # Energy
 psych::alpha(data.num[,c("psyphys5", "psyphys3", "psyphys9")])
+
+# Light
+psych::alpha(data.num[,c("psyphys11", "psyphys1")])
 
 
 
@@ -407,21 +383,9 @@ write.csv(psychic.fa.res$Phi, file = paste("outputs/", "psychic", "-factorcorrel
 data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+')
 
 ## CFA model ----
-mod <- NULL
-# HC
-mod <- paste0(mod, "\n", 'hc =~ mystical22 + mystical24 + mystical2 + mystical25 + mystical6 + mystical13 + mystical12 + mystical10 + mystical23 + mystical26 + mystical3 + mystical14 + mystical4 + mystical5 + mystical7 + mystical9')
-# mod <- paste0(mod, "\n", 'consc =~ mystical22 + mystical24 + mystical2 + mystical25 + mystical6')
-# mod <- paste0(mod, "\n", 'unity =~ mystical13 + mystical12 + mystical10 + mystical23 + mystical26 + mystical3 + mystical14')
-# mod <- paste0(mod, "\n", 'bliss =~ mystical4 + mystical5 + mystical7 + mystical9')
-mod <- paste0(mod, "\n", "mystical12 ~~ mystical13") # DUPLICATE: Experience of deep unity and expansive consciousness / All sense of separateness disappears
-mod <- paste0(mod, "\n", "mystical22 ~~ mystical2") # DUPLICATE: Expansion of consciousness and Expansion / explosion of consciousness are highly correlated
-mod <- paste0(mod, "\n", "mystical4 ~~ mystical9") # DUPLICATE: Intense feeling of peace / Overwhelming sense of bliss, joy and or contentment
-
-# HC Direct Effects 
-# mod <- paste0(mod, "\n", 'rebirth =~ spiritual1 + spiritual2 + spiritual3')
-# mod <- paste0(mod, "\n", 'insight =~ spiritual21 + spiritual22 + spiritual26 + spiritual27 + spiritual8 + spiritual10 + spiritual12')
 
 # Psychic MIMIC model (formative)
+mod <- hc.mod
 mod <- paste0(mod, "\n", 'hc ~ psychic1')
 mod <- paste0(mod, "\n", 'hc ~ psychic2')
 mod <- paste0(mod, "\n", 'hc ~ psychic3')
@@ -524,21 +488,7 @@ data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\
 data.num <- na.omit(data.num)
 
 ## CFA model ----
-mod <- NULL
-mod <- paste0(mod, "\n", 'hc =~ mystical22 + mystical24 + mystical2 + mystical25 + mystical6 + mystical13 + mystical12 + mystical10 + mystical23 + mystical26 + mystical3 + mystical14 + mystical4 + mystical5 + mystical7 + mystical9')
-# mod <- paste0(mod, "\n", 'consc =~ mystical22 + mystical24 + mystical2 + mystical25 + mystical6')
-# mod <- paste0(mod, "\n", 'unity =~ mystical13 + mystical12 + mystical10 + mystical23 + mystical26 + mystical3 + mystical14')
-# mod <- paste0(mod, "\n", 'bliss =~ mystical4 + mystical5 + mystical7 + mystical9')
-# mod <- paste0(mod, "\n", 'rebirth =~ spiritual1 + spiritual2 + spiritual3')
-mod <- paste0(mod, "\n", "mystical12 ~~ mystical13") # DUPLICATE: Experience of deep unity and expansive consciousness / All sense of separateness disappears
-mod <- paste0(mod, "\n", "mystical22 ~~ mystical2") # DUPLICATE: Expansion of consciousness and Expansion / explosion of consciousness are highly correlated
-
-# HC Direct Effects
-mod <- paste0(mod, "\n", 'rebirth =~ spiritual1 + spiritual2 + spiritual3')
-mod <- paste0(mod, "\n", 'insight =~ spiritual21 + spiritual22 + spiritual26 + spiritual27 + spiritual8 + spiritual10 + spiritual12')
-
-mod <- paste0(mod, "\n", 'rebirth ~ hc')
-mod <- paste0(mod, "\n", 'insight ~ hc')
+mod <- hc.mod
 
 # MIMIC (formative)
 mod <- paste0(mod, "\n", 'hc ~ talents1')
@@ -551,7 +501,8 @@ mod <- paste0(mod, "\n", 'hc ~ talents7')
 mod <- paste0(mod, "\n", 'hc ~ talents8')
 
 cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = TRUE, likelihood = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
+limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
+# summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
 modindices(cfa, sort = TRUE)
 # round(cor(data.num[,c("mystical2", "mystical3")]), 2)
@@ -637,14 +588,6 @@ write.csv(psygrowth.fa.res$Phi, file = paste("outputs/", "psygrowth", "-factorco
 
 data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+')
 
-library(MVN)
-
-## All item model ----
-# TODO
-# mod.all <- 'f =~ psyphys11 + psyphys1 + psyphys12 + psyphys2 + mystical13 + spiritual11 + mystical4 + psyphys8 + mystical12 + spiritual25 + spiritual12 + mystical9 + psyphys6 + mystical10 + spiritual15 + psyphys9 + mystical22 + mystical23 + psyphys3 + mystical26 + spiritual14 + spiritual13 + mystical5 + mystical24 + spiritual24 + mystical7 + spiritual18 + spiritual9 + mystical2 + mystical3 + spiritual22 + mystical25 + spiritual1 + spiritual6 + mystical6 + mystical15 + spiritual10 + spiritual20 + spiritual23 + mystical14 + mystical8 + spiritual27 + mystical11 + spiritual16 + mystical27 + spiritual2 + mystical17 + mystical18 + mystical21 + mystical1 + spiritual8 + psyphys5 + spiritual3 + spiritual21'
-# cfa.all <- cfa(mod.all, data=data.num, std.lv = TRUE) # std.lv = fix factor variances
-# summary(cfa.all, fit.measures = TRUE, standardized = TRUE)
-
 ## Psychological Growth Model ----
 mod <- hc.mod
 # mod <- NULL # Start the model here - to check local fit, etc.
@@ -653,8 +596,8 @@ mod <- paste0(mod, "\n", 'talent =~ psygrowth6 + psygrowth5 + psygrowth14')
 mod <- paste0(mod, "\n", 'desire =~ psygrowth18 + psygrowth19 + psygrowth20 + psygrowth15 + psygrowth17')
 mod <- paste0(mod, "\n", 'physcare =~ psygrowth24 + psygrowth22 + psygrowth23')
 mod <- paste0(mod, "\n", 'healing =~ psygrowth43 + psygrowth42 + psygrowth36')
-mod <- paste0(mod, "\n", 'concen =~ psygrowth41 + psygrowth39 + psygrowth29')
-mod <- paste0(mod, "\n", 'detach =~ psygrowth3 + psygrowth2 + psygrowth37')
+mod <- paste0(mod, "\n", 'concen =~ psygrowth41 + psygrowth39 + psygrowth29 + psygrowth37')
+mod <- paste0(mod, "\n", 'empty =~ psygrowth3 + psygrowth2')
 
 # MIMIC (formative)
 mod <- paste0(mod, "\n", 'hc ~ altruism')
@@ -663,10 +606,11 @@ mod <- paste0(mod, "\n", 'hc ~ concen')
 mod <- paste0(mod, "\n", 'hc ~ desire')
 mod <- paste0(mod, "\n", 'hc ~ physcare')
 mod <- paste0(mod, "\n", 'hc ~ healing')
-mod <- paste0(mod, "\n", 'hc ~ detach')
+mod <- paste0(mod, "\n", 'hc ~ empty')
 
 cfa <- cfa(mod, data=data.num, ordered = TRUE) # Fix factor variances with std.lv = TRUE
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
+limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
+# summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
 modindices(cfa, sort = TRUE)
 # round(cor(data.num[,c("mystical2", "mystical3")]), 2)
@@ -676,11 +620,111 @@ cov2cor(lavInspect(cfa, what = "est")$psi)
 
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~ ----
+# # # # # # # # # # # # # # # # # # # # # #
+# Psychological Bliss Factor Analysis ----
+# # # # # # # # # # # # # # # # # # # # # #
+
+grepmatch = "psybliss\\d+"
+psybliss.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
+
+
+#
+## FA Reliability Tests (pre-FA) ----
+#
+
+# Kaiser-Meyer-Olkin measure of sampling adequacy
+KMO(psybliss.num)[["MSA"]]
+
+# Bartlett’s Test of Sphericity
+bartlett.test(psybliss.num) # result is greater than the critical value for chi2
+
+# Cronbach's Alpha
+psych::alpha(psybliss.num)
 
 
 
-# Group invariance
+#
+## Select # of Factors ----
+#
 
+# Cattell's scree test
+# Raymond B. Cattell (1966) The Scree Test For The Number Of Factors, Multivariate Behavioral Research, 1:2, 245-276, DOI: 10.1207/s15327906mbr0102_10
+scree(psybliss.num)
+
+# Horn’s parallel analysis
+# Horn, J.L. A rationale and test for the number of factors in factor analysis. Psychometrika 30, 179–185 (1965). https://doi.org/10.1007/BF02289447
+# Dinno, A. (2009). Exploring the sensitivity of Horn's parallel analysis to the distributional form of random data. Multivariate behavioral research, 44(3), 362-388.
+fa.parallel(x = psybliss.num, cor = "poly", fa = "both", sim = TRUE, n.iter=20)
+fa.parallel(x = psybliss.num, cor = "poly", fa = "pc", n.iter=20)
+
+# Revelle’s Very Simple Structure
+# Revelle, W., & Rocklin, T. (1979). Very simple structure: An alternative procedure for estimating the optimal number of interpretable factors. Multivariate behavioral research, 14(4), 403-414.
+vss(psybliss.num)
+
+## Experience Item ICLUST ----
+# Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
+pchor <- polychoric(psybliss.num)
+iclust <- iclust(pchor$rho, beta.min = 0.99, n.iterations = 20, purify = TRUE, nclusters = 8)
+iclust <- iclust(psybliss.num)
+
+
+#
+## Factor Extraction ----
+#
+psybliss.fa.res <- fa(r = psybliss.num, nfactors = 5, fm = "pa", rotate = "promax", cor = "poly")
+pca.res <- principal(r = psybliss.num, nfactors = 2, cor = "poly")
+pca.loadings <- as.data.frame.matrix(pca.res$loadings)
+
+# McDonald's Omega(h and t)
+# Revelle, W., & Condon, D. M. (2019). Reliability from α to ω: A tutorial. Psychological assessment, 31(12), 1395.
+omega(m = psybliss.num, nfactors = 7, fm="pa", rotate="promax", poly = TRUE)
+
+fa.diagram(psybliss.fa.res)
+omega(m = psybliss.num, 8)
+
+# Factor loadings (ouput to CSV)
+friendly.loadings <- ses.format.loadings(psybliss.fa.res$loadings)
+write.csv(friendly.loadings, file = paste("outputs/", "psybliss", "-loadings.csv", sep = ''))
+
+# Factor correlations (ouput to CSV)
+write.csv(psybliss.fa.res$Phi, file = paste("outputs/", "psybliss", "-factorcorrelations.csv", sep = ''))
+
+
+# # # # # # # # # # # # # # # # # # #
+# Psychological Bliss CFA Model ----
+# # # # # # # # # # # # # # # # # # #
+
+data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|psybliss\\d+')
+
+## Psychological Bliss Model ----
+mod <- hc.mod
+# mod <- NULL # Start the model here - to check local fit, etc.
+mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss23 + psybliss19')
+mod <- paste0(mod, "\n", 'creative =~ psybliss6 + psybliss24 + psybliss16')
+mod <- paste0(mod, "\n", 'peaks =~ psybliss4 + psybliss3 + psybliss5')
+mod <- paste0(mod, "\n", 'overcome =~ psybliss10 + psybliss9 + psybliss29')
+
+# MIMIC (formative)
+mod <- paste0(mod, "\n", 'hc ~ oneness')
+mod <- paste0(mod, "\n", 'hc ~ creative')
+mod <- paste0(mod, "\n", 'hc ~ peaks')
+mod <- paste0(mod, "\n", 'hc ~ overcome')
+
+cfa <- cfa(mod, data=data.num, ordered = TRUE) # Fix factor variances with std.lv = TRUE
+limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
+# summary(cfa, fit.measures = TRUE, standardized = TRUE)
+
+
+modindices(cfa, sort = TRUE)
+# round(cor(data.num[,c("mystical2", "mystical3")]), 2)
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+lavInspect(cfa, "cov.lv")
+cov2cor(lavInspect(cfa, what = "est")$psi)
+
+
+# Measurement invariance ----
+mod <- hc.mod 
 data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+')
 nrow(data.num)
 data.num <- cbind(data.num, ses.data['pe.gate'])
@@ -693,10 +737,10 @@ data.num <- na.omit(data.num)
 
 nrow(data.num)
 
-fit1 <- cfa(mod, data=data.num, std.lv = TRUE, group = "pe.gate")
-fit2 <- cfa(mod, data=data.num, std.lv = TRUE, group = "pe.gate", group.equal = "loadings")
-fit3 <- cfa(mod, data=data.num, std.lv = TRUE, group = "pe.gate", group.equal = c("intercepts", "loadings"))
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fit1 <- cfa(mod, data=data.num, group = "pe.gate")
+fit2 <- cfa(mod, data=data.num, group = "pe.gate", group.equal = "loadings")
+fit3 <- cfa(mod, data=data.num, group = "pe.gate", group.equal = c("intercepts", "loadings"))
+
 lavTestLRT(fit1, fit2, fit3)
 
 
@@ -707,7 +751,8 @@ data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\
 nrow(data.num)
 data.num <- cbind(data.num, ses.data['sex'])
 nrow(data.num)
-data.num <- data.num[!data.num$sex == "Intersex", ]
+data.num <- data.num[!data.num$sex == 3, ]
+nrow(data.num)
 ses.data$sex <- as.factor(ses.data$sex)
 # ses.data$pe.negphysical.gate <- as.factor(ses.data$pe.negphysical.gate)
 str(data.num)
@@ -715,10 +760,10 @@ data.num <- na.omit(data.num)
 
 nrow(data.num)
 
-fit1 <- cfa(mod, data=data.num, std.lv = TRUE, group = "sex")
-fit2 <- cfa(mod, data=data.num, std.lv = TRUE, group = "sex", group.equal = "loadings")
-fit3 <- cfa(mod, data=data.num, std.lv = TRUE, group = "sex", group.equal = c("intercepts", "loadings"))
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fit1 <- cfa(mod, data=data.num, group = "sex")
+fit2 <- cfa(mod, data=data.num, group = "sex", group.equal = "loadings")
+fit3 <- cfa(mod, data=data.num, group = "sex", group.equal = c("intercepts", "loadings"))
+# summary(cfa, fit.measures = TRUE, standardized = TRUE)
 lavTestLRT(fit1, fit2, fit3)
 
 
@@ -786,21 +831,6 @@ kps.numeric[is.na(kps.numeric)] <- 1
 kps.numeric <- kps.numeric[,grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+', names(kps.numeric))]
 
 
-# TOTAL NUMBER OF PARTICIPANTS
-
-nrow (kps.data)
-
-
-
-
-#
-# RESPONDENT BREAKDOWN BY AGE
-#
-
-# Age histogram
-# Credit: https://www.datacamp.com/community/tutorials/make-histogram-ggplot2#gs.ko0NeIE
-hist(kps.data$age, nclass = 15, xlim=c(0,100), main="Age Histogam", xlab="Age")
-# qplot(kps.data$age, data=data.frame(kps.data$age), geom="histogram")
 
 
 #
@@ -850,43 +880,14 @@ plot(likert(q.questiontext), centered = FALSE)
 
 
 
-#
-#
-#
-#
-
-# Config
-LCAOutputPath <- "output/lca/"
-FAOutputPath <- "output/fa/"
-generateFactors <- TRUE # will take lots of time if TRUE
-generateLCAModel <- TRUE
-options(error = browser())
-
-# Create dirs
-if( !dir.exists(LCAOutputPath) ) dir.create(LCAOutputPath)
-if( !dir.exists(FAOutputPath) ) dir.create(FAOutputPath)
-
-# Load utility functions
-source("R/ses-utility.R") # REQUIRED utility functions
-source("R/ses-fa-lca-functions.R") # Load Apollo Kundalini FIRE scoring functions
-
-
 # Load survey response and variable information
 # ses.data <- ses.loaddatafile() # question codes, or...
 # ses.data <- ses.get.questiontext() # question text
 # ses.vars <- ses.loadvarfile()
-
-# Run factor analysis and extract all factors into an editable CSV.
-# The CSV can be edited to rename default factor names.
-fa.results <- ses.generate.factors(x = kps.numeric, threshold = 0.6, outputPath = FAOutputPath) # This will take a while to run due to parallel analysis
-factor.scores <- data.frame(fa.results[[1]]$scores$scores)
-
+=
 # Data integrity checks
 # tmp <- as.data.frame(apply(kps.numeric, 2, function(x) any(is.na(x))))
 # tmp <- as.data.frame(apply(factor.scores, 2, function(x) any(is.na(x))))
-
-# integer.scores <- as.data.frame(lapply(factor.scores, function(x) as.integer(x + 100 * 100)))
-# fire.bestLCAModel(integer.scores, "cbind(PA1, PA2) ~ 1")
 
 
 
@@ -915,17 +916,18 @@ plot(mod, what = "classification")
 
 library(mclust)
 # pred <- lavPredict(cfa, append.data = TRUE)
-pred <- lavPredict(cfa)
+pred <- lavPredict(cfa, transform = F)
+tmp <- pred
 # clusterdata <- pred[,c("consc", "altruism")]
 pred <- as.data.frame(pred)
-# clusterdata <- pred[,grepl( "consc|unity|bliss|rebirth" , names( pred ) )]
+# clusterdata <- pred[,grepl( "hc|energy|light" , names( pred ) )]
 clusterdata <- pred
 bic <- mclustBIC(clusterdata)
-# tmp <- as.data.frame(apply(clusterdata, 2, function(x) any(is.na(x))))
 mod <- Mclust(clusterdata, x = bic)
+# mod <- Mclust(clusterdata, G = 4) # Set # of clusters
 summary(mod)
-plot(mod, what = "uncertainty")
 plot(mod, what = "classification")
+plot(mod, what = "uncertainty")
 plot(mod, what = "density")
 
 describe(pred)

@@ -7,6 +7,9 @@
 #     instead of just the question codes
 #
 
+# # # # # # # # # # # #
+# Survey Data Load ----
+# # # # # # # # # # # #
 
 # Load the SES respondent data file
 # @return The SES respondent data file
@@ -26,7 +29,7 @@ ses.loadvarfile <- function(file = "data/ses-vars.csv") {
 # Extract columns by a regex matching the column names, with all data converted
 # into numeric values
 # @return A subset of the data containing only columns specified in the regex
-extract.numeric.columns.by.regex <- function(data, grepmatch = "") {
+extract.numeric.columns.by.regex <- function(data, grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+") {
   print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
   print(paste("Names: "
               , paste(
@@ -65,6 +68,36 @@ ses.get.questiontext <- function(x = ses.loaddatafile(), max_length = NULL) {
   return(x)
 }
 
+ses.likert.to.numerical <- function(x) {
+  likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
+                        names(x))
+  x[,likert.names] <- lapply(x[,likert.names], function(x) {
+    x <- mapvalues(x, 
+                   from=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'), 
+                   to=c("1", "2","3", "4", "5", "6"))
+    x <- ordered(x)
+    return(x)
+  })
+  
+  return(x)
+}
+
+# # # # # # # # # # # #
+# Output Utilities ----
+# # # # # # # # # # # #
+
+# Limit console output to n_rows
+#
+# nrows - Specify the number of rows you want to display (e.g., first 10 rows)
+limit.output <- function(consoleObject, n_rows = 10) {
+  # Create a summary object
+  summary_result <- consoleObject
+  # Capture and store the summary as text
+  summary_text <- capture.output(summary_result)
+  
+  # Display the first n rows of the summary
+  cat(paste(head(summary_text, n_rows), collapse = "\n"))
+}
 
 
 # Format factor loadings from the psych fa() family of functions
@@ -88,88 +121,4 @@ ses.format.loadings <- function(original.loadings = NULL) {
   matches <- match(loadings$text, var.names$varname)
   loadings$text[!is.na(matches)] <- as.character(var.names$question.text[na.omit(matches)])
   return(loadings)
-}
-
-
-
-#
-# TODO: COMPOSITE SCORE CREATION
-#        - Crate composite variables based on factors
-#        - Simple average of individual factor variables
-#
-
-# kps.compvar() - Create a KPS composite variable
-# 
-# Parameters
-#
-# data: Original dataset to process
-# names: Vector of names to use to create the composite variable.
-#        These will be automatically removed from the original dataset
-# newname: The name of the new composite variable
-kps.compvar <- function(data, newname, names) {
-  
-  data[newname] <- rowMeans(data[,c(names)]) # Calc row means and create comp var
-  data <- data[,-which(names(data) %in% names)] # Remove original vars
-  return(data)
-  
-  # Move new name to front (optional)
-  # col_idx <- grep(newname, names(data))
-  # compvar <- compvar[, c(col_idx, (1:ncol(data))[-col_idx])]
-}
-
-## Create Composite Variables ##
-
-#' kps.fa()
-#'
-#' Runs factor analysis on a given subset of data. Factors are generated
-#' using principal axis factoring with promax rotation.
-#'
-#' @param data The data to process
-#' @param grepmatch A regular expression indicating which columns should be processed
-#'
-#' @return The generated factor analysis
-#'
-kps.fa <- function(data, grepmatch = NULL) {
-  
-  # Provide some basic output to show how many data records and
-  # the names of the columns for validation
-  print(paste("Matched", sum(grepl(grepmatch, names(data))), "columns"))
-  print(paste("Names: "
-              , paste(
-                names(data[,grepl(grepmatch, names(data))])
-                , collapse = ", "
-              )
-  ))
-  
-  # Exit if no columns match
-  if(sum(grepl(grepmatch, names(data))) < 1) return()
-  
-  # Extract columns specified
-  q <- data[,grepl(grepmatch, names(data))]
-  q.num <- as.data.frame(lapply(q, as.numeric)) # Convert all values to numeric  
-  
-  # Run parallel analysis
-  q.par <- fa.parallel(x = q.num, cor = "poly", fa = "fa") # Also generates plot
-  suggestedFactors <- q.par$nfact
-  
-  print(paste("Parallel analysis resulted in a",suggestedFactors,"factor solution"))
-  
-  # Generate factors with rotation
-  q.poly.fa.pro <- fa(r = q.num, nfactors = suggestedFactors, fm = "pa", rotate = "promax", cor = "poly")
-  
-  return(q.poly.fa.pro)
-}
-
-ses.likert.to.numerical <- function(x) {
-  likert.names <- grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+',
-                        names(x))
-  x[,likert.names] <- lapply(x[,likert.names], function(x) {
-    x <- mapvalues(x, 
-                   from=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'), 
-                   to=c("1", "2","3", "4", "5", "6"))
-    x <- ordered(x)
-    return(x)
-  })
-  
-  return(x)
 }

@@ -20,31 +20,6 @@ print(sum(is.na(ses.data$mystical1)))
 
 
 #
-# TOTALS, SEX, AND AGE
-#
-
-# Total number of participants
-print(paste("Number of participants is " , nrow(ses.data)))
-
-# Number of participants by sex (graphically)
-ggplot(data=ses.data, aes(x = sex, fill = sex)) +
-  guides(fill = FALSE) +
-  geom_bar() +
-  geom_text(stat = 'count', aes(label = ..count..)) +
-  labs(x="Sex of Participant", y="Number of participants", fill="Sex")
-
-# Number of participants by sex (console)
-table(ses.data$sex)
-
-# Age histogram
-# Credit: https://www.datacamp.com/community/tutorials/make-histogram-ggplot2#gs.ko0NeIE
-ggplot(data=ses.data, aes(x = age, width = .4)) +
-  geom_histogram(binwidth = 5, col = "white", aes(fill =..count..), alpha = .8) +
-  labs(x="Age of Participant", y="Count") +
-  scale_x_continuous(breaks = seq(0, 100, by = 5))
-
-
-#
 # LIKERT RESPONSES
 #
 
@@ -430,70 +405,6 @@ q <- kps.cluster(q, f, "MCLASS", c = 2)
 #
 
 # Source: http://www.edureka.co/blog/implementation-of-decision-tree/
-
-library(rpart)
-library(rpart.plot) # See: http://www.milbo.org/rpart-plot/prp.pdf
-library(plyr)
-
-# MCLASS psychological decision trees
-
-q.sub <- subset(q, psybliss.gate == "Y")
-tree <- rpart(
-  MCLASS ~ .
-  , data = q.sub[,grepl('psybliss\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.1)
-
-q.sub <- subset(q, psygrowth.gate == "Y")
-tree <- rpart(
-  MCLASS ~ .
-  , data = q.sub[,grepl('psygrowth\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.1)
-
-
-# Negative physical symtoms decision trees
-
-q.sub <- subset(q, psygrowth.gate == "Y")
-tree <- rpart(
-  pe.negphysical.gate ~ .
-  , data = q.sub[,grepl('pe.negphysical.gate|psygrowth\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.25)
-
-q.sub <- subset(q, psybliss.gate == "Y")
-tree <- rpart(
-  pe.negphysical.gate ~ .
-  , data = q.sub[,grepl('pe.negphysical.gate|psybliss\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.1)
-
-
-# Negative psychological decision tree
-
-q.sub <- subset(q, psybliss.gate == "Y")
-tree <- rpart(
-  negpsych.gate ~ .
-  , data = q.sub[,grepl('negpsych.gate|psybliss\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.1)
-
-
-q.sub <- subset(q, psygrowth.gate == "Y")
-tree <- rpart(
-  negpsych.gate ~ .
-  , data = q.sub[,grepl('negpsych.gate|psygrowth\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.1)
-
-
-q.sub <- q
-tree <- rpart(
-  MCLASS ~ .
-  , data = q.sub[,grepl('talents\\d+|MCLASS', names(q.sub))]
-)
-rpart.plot(tree, tweak = 1.1)
-
 
 
 #
