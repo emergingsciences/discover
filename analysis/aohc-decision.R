@@ -9,12 +9,10 @@ library(plyr)
 
 pred <- lavPredict(cfa, data.num)
 
-exclude_col <- c("consc", "unity", "bliss", "energy", "light", "insight", "f2_psysom")
-tmp <- as.data.frame(pred)
+exclude_col <- c("unityconsc", "bliss", "insight", "energy", "light")
+tmp <- data.frame(pred, data.num)
+res <- tmp
 res <- tmp[!(names(tmp) %in% exclude_col)]
 
-tree <- rpart(
-  hc ~ .
-  , data = res
-)
+tree <- rpart(hc~., data = res)
 rpart.plot(tree, tweak = 1.1)

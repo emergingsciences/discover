@@ -122,3 +122,131 @@ ses.format.loadings <- function(original.loadings = NULL) {
   loadings$text[!is.na(matches)] <- as.character(var.names$question.text[na.omit(matches)])
   return(loadings)
 }
+
+
+# High-level Analysis Utilities ----
+ses.qgroup <- function(name = "", grepmatch = "", parallel = F, nfactors = NULL, omit.na = F) {
+  return.list <- list()
+  
+  data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
+  if(omit.na) {
+    data.num <- na.omit(data.num)
+  }
+  return.list <- c(return.list, list(data=data.num))
+  
+  #
+  ## FA Reliability Tests (pre-FA) ----
+  #
+  
+  # Kaiser-Meyer-Olkin measure of sampling adequacy
+  print("KMO Output")
+  flush.console()
+  kmo <- psych::KMO(data.num)[["MSA"]]
+  print(kmo)
+  return.list <- c(return.list, list(kmo=kmo))
+  
+  # Bartlett’s Test of Sphericity
+  print("Bartlett's Test Output")
+  flush.console()
+  bart <- bartlett.test(data.num) # result is greater than the critical value for chi2
+  print(bart)
+  return.list <- c(return.list, list(bartlett = bart))
+  
+  # Cronbach's Alpha
+  print("Cronbach's Alpha")
+  flush.console()
+  alf <- psych::alpha(data.num)
+  print(alf)
+  return.list <- c(return.list, list(alpha = alf))
+  
+  
+  #
+  ## Select # of Factors ----
+  #  
+  
+  # Cattell's scree test
+  # Raymond B. Cattell (1966) The Scree Test For The Number Of Factors, Multivariate Behavioral Research, 1:2, 245-276, DOI: 10.1207/s15327906mbr0102_10
+  print("Cattell's scree test")
+  flush.console()  
+  sc <- scree(data.num)
+  print(sc)
+  return.list <- c(return.list, list(scree = sc))
+  
+  # Revelle’s Very Simple Structure
+  # Revelle, W., & Rocklin, T. (1979). Very simple structure: An alternative procedure for estimating the optimal number of interpretable factors. Multivariate behavioral research, 14(4), 403-414.
+  print("VSS")
+  flush.console()   
+  vss <- vss(data.num)
+  print(vss)
+  return.list <- c(return.list, list(vss=vss))
+  
+  ## Experience Item ICLUST ----
+  # Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
+  print("Generating polychoric correlations matrix")
+  flush.console()
+  pchor <- polychoric(data.num)
+  iclust <- iclust(pchor$rho)
+  # iclust <- iclust(data.num)  
+  
+  # Horn’s parallel analysis
+  # Horn, J.L. A rationale and test for the number of factors in factor analysis. Psychometrika 30, 179–185 (1965). https://doi.org/10.1007/BF02289447
+  # Dinno, A. (2009). Exploring the sensitivity of Horn's parallel analysis to the distributional form of random data. Multivariate behavioral research, 44(3), 362-388.
+  if(parallel) {
+    print("Parallel analysis")
+    flush.console()
+    par.pa <- fa.parallel(x = data.num, cor = "poly", fa = "fa", fm = "pa", sim = TRUE, n.iter=20)  
+    print(par.pa)
+    return.list <- c(return.list, list(parallel=par.pa))
+    # par.pc <- fa.parallel(x = data.num, cor = "poly", fa = "pc", n.iter=20)
+    print("Parallel analysis completed. Not running factor extraction unless parallel is F and nfactors is specified")
+    flush.console()
+    return(return.list)
+  }
+
+  if(!nfactors > 0) {
+    print("nfactors not specified. Returning")
+    flush.console()
+    return(return.list)
+  }
+  
+  #
+  ## Factor Extraction ----
+  #
+  data.fa.res <- fa(r = data.num, nfactors = nfactors, fm = "pa", rotate = "promax", cor = "poly")
+  return.list <- c(return.list, list(fa=data.fa.res))
+  fa.diagram(data.fa.res)
+  # pca.res <- principal(r = data.num, nfactors = 2, cor = "poly")
+  # pca.loadings <- as.data.frame.matrix(pca.res$loadings)
+  
+  # McDonald's Omega(h and t)
+  # Revelle, W., & Condon, D. M. (2019). Reliability from α to ω: A tutorial. Psychological assessment, 31(12), 1395.
+  print("Omega")
+  omega <- omega(m = data.num, nfactors = nfactors, fm="pa", rotate="promax", poly = T)
+  print(omega)
+  return.list <- c(return.list, list(omega=omega))
+  
+  # Factor loadings (ouput to CSV)
+  friendly.loadings <- ses.format.loadings(data.fa.res$loadings)
+  write.csv(friendly.loadings, file = paste("outputs/", name, "-loadings.csv", sep = ''))
+  
+  # Factor correlations (ouput to CSV)
+  write.csv(data.fa.res$Phi, file = paste("outputs/", name, "-factorcorrelations.csv", sep = ''))
+  
+  return(return.list)
+}
+
+ses.regsem <- function(grepmatch, hc.mod, data, n.lambda, jump) {
+  mod <- hc.mod # Start with the HC model
+  all.vars <- paste('g ~', colnames(data[,grepl(grepmatch, names(data))]),collapse="\n")
+  mod <- paste(mod, all.vars)
+  reg.mod <- mod
+  reg.mod <- paste0(reg.mod, "\n", 'g =~ NA*unityconsc + bliss + insight + energy + light')
+  reg.mod <- paste0(reg.mod, "\n", 'g ~~ 1*g')
+  cfa <- cfa(reg.mod, data=data)
+  summary(cfa, fit.measures = TRUE, standardized = TRUE)
+  reg.out <- cv_regsem(cfa,n.lambda=n.lambda,jump=jump,type="enet",pars_pen="regressions")
+  plot(reg.out)
+  summary(reg.out)
+  return(list(reg.out=reg.out))
+}
+
