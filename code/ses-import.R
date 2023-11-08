@@ -21,9 +21,9 @@ generateLevel2 <- TRUE
 # 'data' now contains all data
 
 # Limesurvey R file import
-setwd("") # Set to path of import files
+setwd("~/discover/data") # Set to path of import files
 source("survey_575246_R_syntax_file.R") # R import file
-setwd("") # Set to path of working directory
+setwd("~/discover") # Set to path of working directory
 raw_survey_results.df <- data
 rm(data)
 
@@ -67,11 +67,12 @@ require(plyr)
 extract.df[,likert.names] <- lapply(extract.df[,likert.names], function(x) {
   x <- mapvalues(x,
             from=c("L001","L002","L003", "L004", "L005", "L006"),
-            to=c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity')
+            # from=likert.levels,
+            to=c(1, 2, 3, 4, 5, 6)
   )
 
   # Convert the likert columns to an ordered factor
-  x <- factor(x, levels = likert.levels, ordered = TRUE)
+  x <- ordered(x)
   return(x)
 })
 
@@ -104,6 +105,17 @@ names(extract.df)[names(extract.df) == 'PEIlloDisGate'] <- 'pe.negphysical.gate'
 names(extract.df)[names(extract.df) == 'PsyGrowthGate'] <- 'psygrowth.gate'
 names(extract.df)[names(extract.df) == 'NegPsyEffGate'] <- 'negpsych.gate'
 names(extract.df)[names(extract.df) == 'PsyBlissGate'] <- 'psybliss.gate'
+
+# 'Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'
+matching_gate <- grepl("*.\\.gate", names(extract.df))
+require(plyr)
+extract.df[,matching_gate] <- lapply(extract.df[,matching_gate], function(x) {
+  x <- mapvalues(x,
+                 from=c("Y", "N"),
+                 to=c(1, 2)
+  )
+  return(x)
+})
 
 # Rename open text questions
 if(isTRUE(generateLevel2)) {
@@ -147,10 +159,12 @@ corrupted_rows <- extract.df[!corr_detect,]
 extract.df <- extract.df[corr_detect,]
 print(paste("Removed", nrow(corrupted_rows),"corrupted gated rows with",nrow(extract.df),"remaining"))
 
+# For the ungated questions, code any NA values with 1
+matching_cols <- grep(grepmatch, names(extract.df), value = TRUE)
+extract.df[matching_cols][is.na(extract.df[matching_cols])] <- 1
 
-#TODO: understand why this code exists
 extract.df.copy <- extract.df
-rownames(extract.df.copy) <- NULL
+rownames(extract.df.copy) <- NULL # Don't need these
 dput(extract.df.copy, file = "data/ses-data.txt")
 
 return(extract.df)

@@ -125,11 +125,11 @@ ses.format.loadings <- function(original.loadings = NULL) {
 
 
 # High-level Analysis Utilities ----
-ses.qgroup <- function(name = "", grepmatch = "", parallel = F, nfactors = NULL, omit.na = F) {
+ses.qgroup <- function(fname = "", grepmatch = "", parallel = F, nfactors = NULL, omit.na = F) {
   return.list <- list()
   
   data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
-  if(omit.na) {
+  if(omit.na == T) {
     data.num <- na.omit(data.num)
   }
   return.list <- c(return.list, list(data=data.num))
@@ -182,10 +182,10 @@ ses.qgroup <- function(name = "", grepmatch = "", parallel = F, nfactors = NULL,
   
   ## Experience Item ICLUST ----
   # Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
-  print("Generating polychoric correlations matrix")
-  flush.console()
-  pchor <- polychoric(data.num)
-  iclust <- iclust(pchor$rho)
+  # print("Generating polychoric correlations matrix")
+  # flush.console()
+  # pchor <- polychoric(data.num)
+  # iclust <- iclust(pchor$rho)
   # iclust <- iclust(data.num)  
   
   # Horn’s parallel analysis
@@ -226,11 +226,12 @@ ses.qgroup <- function(name = "", grepmatch = "", parallel = F, nfactors = NULL,
   return.list <- c(return.list, list(omega=omega))
   
   # Factor loadings (ouput to CSV)
+  print(paste0("Writing loadings to ", fname,"-loadings.csv file"))
   friendly.loadings <- ses.format.loadings(data.fa.res$loadings)
-  write.csv(friendly.loadings, file = paste("outputs/", name, "-loadings.csv", sep = ''))
+  write.csv(friendly.loadings, file = paste("outputs/", fname, "-loadings.csv", sep = ''))
   
   # Factor correlations (ouput to CSV)
-  write.csv(data.fa.res$Phi, file = paste("outputs/", name, "-factorcorrelations.csv", sep = ''))
+  write.csv(data.fa.res$Phi, file = paste("outputs/", fname, "-factorcorrelations.csv", sep = ''))
   
   return(return.list)
 }
@@ -247,6 +248,6 @@ ses.regsem <- function(grepmatch, hc.mod, data, n.lambda, jump) {
   reg.out <- cv_regsem(cfa,n.lambda=n.lambda,jump=jump,type="enet",pars_pen="regressions")
   plot(reg.out)
   summary(reg.out)
-  return(list(reg.out=reg.out))
+  return(as.data.frame(reg.out$final_pars))
 }
 

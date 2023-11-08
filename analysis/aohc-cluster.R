@@ -1,7 +1,7 @@
 # aohc-cluster.R
 
 library(mclust)
-source("code/ses-combiClust.R")
+# source("code/ses-combiClust.R")
 # pred <- lavPredict(cfa, append.data = TRUE)
 
 mod <- hc.mod
@@ -9,25 +9,44 @@ mod <- hc.mod
 # tmp <- na.omit(data.num) # TODO: Account for missing records
 tmp <- data.num
 nrow(tmp)
-pred <- lavPredict(cfa, transform = T, newdata = tmp)
+pred <- lavPredict(cfa, newdata = tmp)
 nrow(pred)
 pred <- as.data.frame(pred)
 clusterdata <- pred
-# clusterdata <- pred[,grepl( "hc|energy|light" , names(pred) )]
+# clusterdata <- pred[,grepl( "unityconsc|bliss|insight|light" , names(pred) )]
+
+# Interactive 3D scatterplot
+library("car")
+library("rgl")
+scatter3d(pred$light, pred$unityconsc, pred$energy, surface = F, point.col = "blue")
+
+
+hc1 <- hc(clusterdata, modelName = "VVV", use = "SVD")
+bic1 <- mclustBIC(clusterdata, initialization = list(hcPairs = hc1))
+summary(bic1)
+plot(bic1)
+
+hc2 <- hc(clusterdata, modelName = "VVV", use = "VARS")
+bic2 <- mclustBIC(clusterdata, initialization = list(hcPairs = hc2))
+summary(bic2)
+plot(bic2)
 
 bic <- mclustBIC(clusterdata)
 summary(bic)
 plot(bic)
 
+bic <- mclustBICupdate(bic, bic1, bic2)
+summary(bic)
+
 ICL <- mclustICL(clusterdata)
 summary(ICL)
 plot(ICL)
 
-# Bootstrap LRTto generate a p value
-# LRT <- mclustBootstrapLRT(clusterdata, modelName = "VVV", maxG = 6)
+# Bootstrap LRT to generate a p value
+lrt <- mclustBootstrapLRT(clusterdata, modelName = "VVV", maxG = 5)
 
-mod <- Mclust(clusterdata, x = bic)
-mod <- Mclust(clusterdata, G = 2, modelName = "VVV") # Set number of clusters
+mod <- Mclust(clusterdata, x = bic, hc = hc2)
+# mod <- Mclust(clusterdata, G = 4, modelName = "VVV") # Set number of clusters
 summary(mod, parameters = T)
 
 comb <- clustCombi(mod, clusterdata)
@@ -51,30 +70,32 @@ plot(mod, what = "density", type = "hdr", prob = c(0.5, .9))
 plot(mod, what = "density", type = "persp")
 
 # add a column in myData CLUST with the cluster
-results <- data.frame(cbind(tmp$id, pred)) #tmp$pe.gate, tmp$pe.negphysical.gate,
+results <- data.frame(cbind(pe.negphysicalgate=factor(tmp$pe.negphysical.gate), pred)) #, tmp$pe.negphysical.gate,
 results$CLUST <- mod$classification
 # results$CLUST <- optim$cluster.combi
-# results$CLUST <- comb$classification[[5]]
+# results$CLUST <- comb$classification[[7]]
 nrow(results)
 # now to write it out:
 write.csv(results, # reorder columns to put CLUST first
-          file="outputs/5-clusters.csv",                  # output filename
+          file="outputs/4-clusters.csv",                  # output filename
           row.names=FALSE,                 # don't save the row numbers
           quote=FALSE)                     # don't surround column names in ""
 
 table(results$CLUST)
 
-boxplot(unityconsc ~ CLUST, data = results, col = c("red", "blue"))
+boxplot(CLUST ~ pe.gate, data = results)
+
+boxplot(unityconsc ~ CLUST, data = results)
 boxplot(bliss ~ CLUST, data = results, col = c("red", "blue"))
 boxplot(insight ~ CLUST, data = results, col = c("red", "blue"))
 boxplot(energy ~ CLUST, data = results, col = c("red", "blue"))
 boxplot(light ~ CLUST, data = results, col = c("red", "blue"))
 
-oneway.test(energy ~ CLUST,
-  data = results[results$CLUST == 3 | results$CLUST == 4,], # 
-  var.equal = FALSE # assuming equal variances
+oneway.test(unityconsc ~ CLUST,
+  data = results[results$CLUST == 2 | results$CLUST == 3,], # 
+  var.equal = F # assuming equal variances
 )
-aov(consc ~ tmp.pe.gate, data = results)
+test <- aov(CLUST ~ pe.negphysicalgate, data = results)
 summary(test)
 
 
