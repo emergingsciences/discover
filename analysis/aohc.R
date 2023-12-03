@@ -6,6 +6,7 @@
 
 # Load libraries and utility scripts ----
 
+setwd("~/Desktop/esf/discover")
 library(ggplot2)
 library(likert) # https://github.com/jbryer/likert
 library(psych)
@@ -17,6 +18,7 @@ library(lavaan)
 library(lavaanPlot)
 library(EFAtools)
 library(regsem)
+library(MVN) # Multi-variate non-normality
 source("code/ses-utility.R")
 # ETL (respondent data and variable mappings) ----
 ses.data <- ses.loaddatafile()
@@ -46,6 +48,8 @@ ggplot(data=ses.data[ses.data$age > 10, ]
   geom_histogram(binwidth = 5, col = "white", aes(fill =..count..), alpha = .8) +
   labs(x="Age of Participant", y="Count") +
   scale_x_continuous(breaks = seq(10, 100, by = 5))
+
+describe(ses.data$age)
 
 ses.data[order(ses.data$age),"age"]
 max(ses.data$age)
@@ -98,18 +102,22 @@ cfa_idx <- sort(setdiff(1:nrow(data.num), efa_idx))
 set.seed(NULL) # In case we need true randomization later
 
 
+## Non-normality (univariate and multivariate) ----
+mvn(data.num, mvnTest = "hz")
+mvn(data.num, mvnTest = "mardia")
+
 #
 ## Correlation matrices ----
 #
 
 grepmatch = "mystical\\d+|spiritual\\d+"
-corPlot(extract.numeric.columns.by.regex(ses.data, grepmatch))
+corPlot(extract.numeric.columns.by.regex(ses.data[], grepmatch))
 
 grepmatch = "spiritual\\d+"
-corPlot(extract.numeric.columns.by.regex(ses.data, grepmatch))
+corPlot(extract.numeric.columns.by.regex(ses.data[], grepmatch))
 
 grepmatch = "psyphys\\d+"
-corPlot(extract.numeric.columns.by.regex(ses.data, grepmatch))
+corPlot(extract.numeric.columns.by.regex(ses.data[], grepmatch))
 
 
 #
@@ -168,10 +176,14 @@ write.csv(friendly.loadings, file = paste("outputs/", "primaryexp-loadings.csv",
 # Factor correlations (ouput to CSV)
 write.csv(fa.res$Phi, file = paste("outputs/", "primaryexp-factorcorrelations.csv", sep = ''))
 
+#
+## Factor Reliability ----
+#
 
 # McDonald's Omega(h and t)
 # Revelle, W., & Condon, D. M. (2019). Reliability from α to ω: A tutorial. Psychological assessment, 31(12), 1395.
-omega(m = data.num, nfactors = 7, fm="pa", rotate="promax", poly = TRUE)
+# omega(m = data.num[efa_idx,], nfactors = 7, fm="pa", rotate="promax", poly = TRUE)
+omega(m = fa.res$loadings, Phi = fa.res$Phi)
 
 
 
@@ -187,7 +199,7 @@ ses.qgroup("primary", grepmatch, parallel = T)
 # Higher Consciousness CFA ----
 # # # # # # # # # # # # # # # #
 
-grepmatch <- 'id|mystical\\d+|spiritual\\d+|psyphys\\d+|pe.gate|pe.negphysical.gate|sex'
+grepmatch <- 'id|mystical\\d+|spiritual\\d+|psyphys\\d+'
 data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch = grepmatch)
 nrow(data.num)
 # data.num <- ses.data[,grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|pe.gate|sex', names(ses.data))]
@@ -196,17 +208,13 @@ nrow(data.num)
 ## All item model (baseline) ----
 mod.all <- 'f =~ psyphys11 + psyphys1 + psyphys12 + psyphys2 + mystical13 + spiritual11 + mystical4 + psyphys8 + mystical12 + spiritual25 + spiritual12 + mystical9 + psyphys6 + mystical10 + spiritual15 + psyphys9 + mystical22 + mystical23 + psyphys3 + mystical26 + spiritual14 + spiritual13 + mystical5 + mystical24 + spiritual24 + mystical7 + spiritual18 + spiritual9 + mystical2 + mystical3 + spiritual22 + mystical25 + spiritual1 + spiritual6 + mystical6 + mystical15 + spiritual10 + spiritual20 + spiritual23 + mystical14 + mystical8 + spiritual27 + mystical11 + spiritual16 + mystical27 + spiritual2 + mystical17 + mystical18 + mystical21 + mystical1 + spiritual8 + psyphys5 + spiritual3 + spiritual21'
 # cfa.all <- cfa(mod.all, data=data.num, ordered = TRUE, std.lv = TRUE) # std.lv = fix factor variances
-cfa.all <- cfa(mod.all, data=data.num, ordered = F) # std.lv = fix factor variances
-summary(cfa.all, fit.measures = TRUE, standardized = TRUE)
+# summary(cfa.all, fit.measures = TRUE, standardized = TRUE)
 
 ## Higher Consciousness Model ----
 hc.mod <- NULL
 # hc.mod <- paste0(hc.mod, "\n", 'allind =~ mystical6 + mystical2 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1')
-# hc.mod <- paste0(hc.mod, "\n", 'hc =~ mystical6 + mystical2 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10')
 # hc.mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-# hc.mod <- paste0(hc.mod, "\n", 'g ~~ 1*g')
-# hc.mod <- paste0(hc.mod, "\n", 'g =~ bliss + insight')
-# hc.mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+# hc.mod <- paste0(hc.mod, "\n", 'staceconsc =~ mystical6 + mystical25 + mystical15 + mystical13 + mystical10')
 hc.mod <- paste0(hc.mod, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10')
 # hc.mod <- paste0(hc.mod, "\n", 'consc =~ mystical6 + mystical2 + mystical25 + spiritual26 + mystical15')
 # hc.mod <- paste0(hc.mod, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
@@ -216,12 +224,27 @@ hc.mod <- paste0(hc.mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
 hc.mod <- paste0(hc.mod, "\n", 'light =~ psyphys11 + psyphys1')
 hc.mod <- paste0(hc.mod, "\n")
 
-cfa <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+# cfa <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV")
+cfa <- cfa(hc.mod, data=data.num[efa_idx,], ordered = F, estimator = "MLR")
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 
-# Bootstrapped fit measures
+mod <- hc.mod
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod <- paste0(mod, "\n", 'g ~ spiritual16')
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV")
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+
+## Internal reliability of factors ----
+
+semTools::compRelSEM(cfa) # Bentler's P
+
+## Bootstrap results ----
+
+### Bootstrapped CFA data ----
 bootFit <- bootstrapLavaan(cfa, R = 1000, FUN=fitMeasures, verbose = T)
 quantile(bootFit[,"cfi"], c(0.025, .5, 0.975))
 quantile(bootFit[,"tli"], c(0.025, .5, 0.975))
@@ -229,11 +252,15 @@ quantile(bootFit[,"rmsea"], c(0.025, .5, 0.975))
 quantile(bootFit[,"cfi.scaled"], c(0.025, .5, 0.975))
 quantile(bootFit[,"tli.scaled"], c(0.025, .5, 0.975))
 quantile(bootFit[,"rmsea.scaled"], c(0.025, .5, 0.975))
+quantile(bootFit[,"cfi.robust"], c(0.025, .5, 0.975))
+quantile(bootFit[,"tli.robust"], c(0.025, .5, 0.975))
+quantile(bootFit[,"rmsea.robust"], c(0.025, .5, 0.975))
 quantile(bootFit[,"srmr"], c(0.025, .5, 0.975))
 write.csv(bootFit, file = paste("outputs/", "HC-bootfit.csv", sep = ''))
 
-# Bootstrapped fit measures using MLR
+### Bootstrapped MLR ----
 cfa_ml <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = F, estimator = "MLR")
+fitMeasures(cfa, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 summary(cfa_ml, fit.measures = TRUE, standardized = TRUE)
 bootMLR <- bootstrapLavaan(cfa_ml, R = 1000, FUN=fitMeasures, verbose = T)
 round(quantile(bootMLR[,"cfi"], c(0.025, .5, 0.975)), 2)
@@ -242,96 +269,140 @@ round(quantile(bootMLR[,"rmsea"], c(0.025, .5, 0.975)), 2)
 round(quantile(bootMLR[,"cfi.scaled"], c(0.025, .5, 0.975)), 2)
 round(quantile(bootMLR[,"tli.scaled"], c(0.025, .5, 0.975)), 2)
 round(quantile(bootMLR[,"rmsea.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"cfi.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"tli.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"rmsea.robust"], c(0.025, .5, 0.975)), 2)
 round(quantile(bootMLR[,"srmr"], c(0.025, .5, 0.975)), 2)
 write.csv(bootFit, file = paste("outputs/", "HC-MLR-bootfit.csv", sep = ''))
 
-### Validation set approach ----
-cfa <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-# cfa <- cfa(hc.mod, data=data.num[train,], ordered = F)
-limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
-# summary(cfa, fit.measures = TRUE, standardized = TRUE, rsq = T)
 
-cfa_cross <- cfa(hc.mod, data=data.num[efa_idx,], ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-# cfa <- cfa(hc.mod, data=data.num[-train,], ordered = F)
-limit.output(summary(cfa_cross, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
-# summary(cfa, fit.measures = TRUE, standardized = TRUE, rsq = T)
+### Bootstrapped Whole Sample ----
+cfa_whole_boot <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV")
+fitMeasures(cfa, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+summary(cfa_whole_boot, fit.measures = TRUE, standardized = TRUE)
+bootWhole <- bootstrapLavaan(cfa_whole_boot, R = 1000, FUN=fitMeasures, verbose = T)
+round(quantile(bootWhole[,"cfi"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"cfi.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"cfi.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"srmr"], c(0.025, .5, 0.975)), 2)
+write.csv(bootWhole, file = paste("outputs/", "HC-WHOLE-bootfit.csv", sep = ''))
 
 
-### K-fold ----
+### Bootstrapped Whole Sample MLR ----
+cfa_whole_boot_mlr <- cfa(hc.mod, data=data.num, ordered = F, estimator = "MLR")
+fitMeasures(cfa_whole_boot_mlr, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+summary(cfa_whole_boot_mlr, fit.measures = TRUE, standardized = TRUE)
+bootWholeBootMLR <- bootstrapLavaan(cfa_whole_boot_mlr, R = 1000, FUN=fitMeasures, verbose = T)
+round(quantile(bootWhole[,"cfi"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"cfi.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"cfi.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"srmr"], c(0.025, .5, 0.975)), 2)
+write.csv(bootWhole, file = paste("outputs/", "HC-WHOLE-bootfit.csv", sep = ''))
+
+
+### EFA Data ----
+cfa_efa <- cfa(hc.mod, data=data.num[efa_idx,], ordered = T, estimator = "WLSMV")
+fitMeasures(cfa_efa, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+summary(cfa_efa, fit.measures = TRUE, standardized = TRUE)
+bootEfaBoot <- bootstrapLavaan(cfa_efa, R = 1000, FUN=fitMeasures, verbose = T)
+round(quantile(bootWhole[,"cfi"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"cfi.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"cfi.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"tli.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"rmsea.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootWhole[,"srmr"], c(0.025, .5, 0.975)), 2)
+write.csv(bootEfaBoot, file = paste("outputs/", "HC-EFA-bootfit.csv", sep = ''))
+
+### EFA Data MLR ----
+cfa_efa_ml <- cfa(hc.mod, data=data.num[efa_idx,], ordered = F, estimator = "MLR")
+fitMeasures(cfa_efa_ml, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+summary(cfa_efa_ml, fit.measures = TRUE, standardized = TRUE)
+
+
+## K-fold ----
 
 CV<- function(dats, n.folds){
   folds <- list() # flexible object for storing folds
   fold.size <- nrow(dats)/n.folds
-  remain <- 1:nrow(dats) # all obs are in
+  remain <- 1:nrow(dats) # Initialize with all obs. Will be used to track remaining obs
   
+  # Set up folds
   for (i in 1:n.folds){
-    select <- sample(remain, fold.size, replace = FALSE)
     # randomly sample “fold_size” from the ‘remaining observations’
+    select <- sample(remain, fold.size, replace = FALSE)
     
     folds[[i]] <- select # store indices
     
-    # write a special statement for the last fold — if there are ‘leftover points’
-    if (i == n.folds){
-      folds[[i]] <- remain
+    if (i == n.folds){ # For the last fold...
+      folds[[i]] <- remain # assign any leftover obs
     }
     
-    #update remaining indices to reflect what was taken out
+    # Update remaining indices to reflect what was taken out
     remain <- setdiff(remain, select)
-    remain
+    remain # output
   }
   
-  results <- list()
+  results <- data.frame()
   
   for (i in 1:n.folds){
     # fold i
-    indis <- folds[[i]] #unpack into a vector
-    train <- dats[-indis, ] #split into train and test sets
+    indis <- folds[[i]] # Unpack into a vector
+    train <- dats[-indis, ] # Split into train and test sets
     test <- dats[indis, ]
     
     print(nrow(test))
     cfa <- cfa(hc.mod, data=test, ordered = F, estimator = "MLR")
-    # cfa2 <- cfa(hc.mod, data=train, ordered = T, estimator = "WLSMV")
+    # cfa <- cfa(hc.mod, data=train, ordered = T, estimator = "WLSMV")
     # results[[i]] <- fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
-    results[[length(results)+1]] <- fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
+    fitMeasures <- as.data.frame(fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled", "cfi.robust", "tli.robust", "rmsea.robust", "srmr", "pvalue.scaled")))
+    if(nrow(results) == 0) {
+      results <- t(fitMeasures)
+    } else {
+      results <- rbind(results, t(fitMeasures))
+      
+    }
+    
     # results[[length(results)+1]] <- fitmeasures(cfa2, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
     # results[[i]]<- RMSE
   }
-  return(results)
+  return(as.data.frame(results))
 }
+
+
 set.seed(1234567) # For reproducibility
-CV(data.num[cfa_idx,], 3)
+k <- 2
+results <- CV(data.num[efa_idx,], k)
+for (i in 1:99) {
+  results <- rbind(results, CV(data.num[efa_idx,], k))
+}
+mean(results$cfi.scaled)
+mean(results$tli.scaled)
+mean(results$rmsea.scaled)
+mean(results$cfi.robust)
+mean(results$tli.robust)
+mean(results$rmsea.robust)
+mean(results$srmr)
+mean(results$pvalue.scaled)
 set.seed(NULL)
 
-set.seed(1234567) # For reproducibility
-percent <- .25
-train <- sample(x = nrow(data.num), size = floor(percent*nrow(data.num)), replace = F)
-cfa <- cfa(hc.mod, data=data.num[-train,], ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-length(train)
-set.seed(NULL) # In case we need true randomization later
 
-
-### Bootstrap estimates ---
-cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-boot <- bootstrapLavaan(cfa, R = 1000, FUN=fitMeasures)
-quantile(boot[,"cfi"], c(0.025, 0.975))
-quantile(boot[,"tli"], c(0.025, 0.975))
-quantile(boot[,"rmsea"], c(0.025, 0.975))
-quantile(boot[,"cfi.scaled"], c(0.025, 0.975))
-quantile(boot[,"tli.scaled"], c(0.025, 0.975))
-quantile(boot[,"rmsea.scaled"], c(0.025, 0.975))
-quantile(boot[,"srmr"], c(0.025, 0.975))
-
-
-
-# cfa <- cfa(hc.mod, data=data.num[partition,], ordered = F)
-# cfa <- cfa(hc.mod, data=data.num[partition,], ordered = T, estimator = "ULSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-# cfa <- cfa(hc.mod, data=sapply(data.num[partition,], as.numeric), ordered = F, estimator = "MLR")
-limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
-summary(cfa, fit.measures = TRUE, standardized = TRUE, rsq = T)
-lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-
-### Local areas of strain ----
+## Local areas of strain ----
 lavResiduals(cfa)
 modindices(cfa, sort = TRUE)
 
@@ -346,12 +417,26 @@ cfa <- cfa(mod, data=pe.dummy, ordered = T, estimator = "WLSMV") # WLSMV - Confi
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
 summary(cfa, fit.measures = TRUE, standardized = TRUE, rsquare = T)
 
-### Schmid-Leiman transformation for higher order factor ----
-hc.mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-SL(cfa) # Must have higher order factor 'g', aka Higher Consciousness
-EFAtools::OMEGA(cfa) # Must have higher order factor 'g', aka Higher Consciousness
 
+## Examine factor loading differences between covarying and higher-order structures ----
+
+cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+summary(cfa, standardized = T)
+mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+summary(cfa, standardized = T)
+
+
+## Schmid-Leiman transformation for higher order factor ----
+
+mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+SL(cfa) # Must have higher order factor 'g', aka Higher Consciousness
+
+## McDonald's Omega of HC ----
+EFAtools::OMEGA(cfa) # Bifactor approach
+cfa <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
+semTools::compRelSEM(cfa, higher = "g", ord.scale=T) # Lai's multilevle approach
 
 # Covariance matrix
 lavInspect(cfa, "cov.lv")
@@ -363,9 +448,7 @@ shapiro.test(data.num$spiritual26) # Test for normality
 describe(data.num[,'spiritual26']) # Descriptive stats
 
 
-## Internal reliability of factors ----
 
-semTools::compRelSEM(cfa, ord.scale = T, tau.eq = F)
 
 # Cronbach's Alpha > 0.7 is acceptable per Nunnally and Bernstein, 1994
 
@@ -1006,33 +1089,259 @@ names(data.num)[names(data.num) == 'psygrowth34'] <- 'pg34'
 
 
 # mod <- NULL # Start the model here - to check local fit, etc.
-# mod <- hc.mod
-mod <- NULL
+mod <- hc.mod
+# mod <- NULL
 mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
 mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34')
 mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
 mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod <- paste0(mod, "\n", 'g ~ selfless')
+# mod <- paste0(mod, "\n", 'g ~ oneness')
+# mod <- paste0(mod, "\n", 'g ~ altruism')
 # non.reg <- mod
-# cfa <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
-cfa <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV", std.lv = T)
-modindices(cfa, sort = TRUE)
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
+cfa_selfless <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
+# cfa_selfless <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV", std.lv = T)
+# modindices(cfa, sort = TRUE)
+fitMeasures(cfa_selfless, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+summary(cfa_selfless, fit.measures = TRUE, standardized = TRUE)
+lavaanPlot(model = cfa_selfless, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+lavInspect(cfa_selfless, "cov.lv")
+cov2cor(lavInspect(cfa_selfless, what = "est")$psi)
 
-SL(cfa, g_name = "selfless") # Must have higher order factor 'g', aka Higher Consciousness
-EFAtools::OMEGA(cfa, g_name = "selfless") # Must have higher order factor 'g', aka Higher Consciousness
-
-
-
-boot_cfa <- cfa(non.reg, data=data.num, ordered = TRUE, estimator = "DWLS", se = "bootstrap", bootstrap = 100)
-summary(boot_cfa, fit.measures=T, standardized=T, ci=TRUE)
-boot_cfa <- cfa(non.reg, data=data.num, ordered = F, se = "bootstrap", bootstrap = 100)
-summary(boot_cfa, fit.measures=T, standardized=T, ci=TRUE)
-tmp <- parameterestimates(boot_cfa, boot.ci.type = "bca.simple", standardized = TRUE)
+SL(cfa_selfless, g_name = "selfless") # Must have higher order factor 'g', aka Higher Consciousness
+EFAtools::OMEGA(cfa_selfless, g_name = "selfless") # Must have higher order factor 'g', aka Higher Consciousness
 
 
-lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-lavInspect(cfa, "cov.lv")
-cov2cor(lavInspect(cfa, what = "est")$psi)
+## Predictor K-Fold and RMSEP ----
+
+set.seed(1234567)
+cv_data <- data.num
+ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
+xnames <- c("psybliss21", "psybliss18", "psybliss22", "psybliss19", "pg30", "pg10", "pg45", "pg33", "pg34")
+repeats = 20
+kfolds <- 3
+folds = rep(1:kfolds, length.out = nrow(cv_data))
+DE <- data.frame(model = character(), pe = numeric())
+for (r in 1:repeats){
+  yhat = yhat2 = matrix(NA, nrow(cv_data), length(ynames))
+  folds = sample(folds) # Random permutation
+  for(k in 1:kfolds) {
+    idx = which(folds == k)
+    cfa_selfless <- sem(mod, data=cv_data[idx,], ordered = F, estimator = "MLR")
+    yhat[idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+    
+    cfa_selfless <- sem(mod, data=cv_data[-idx,], ordered = F, estimator = "MLR")
+    yhat2[-idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+  }
+  # Global RMSEp
+  rmsep <- sqrt(sum((cv_data[idx, ynames] - yhat)^2)/(length(ynames) * nrow(cv_data[idx,])))
+  rmsep2 <- sqrt(sum((cv_data[-idx, ynames] - yhat2)^2)/(length(ynames) * nrow(cv_data[-idx,])))
+  
+  DE <- rbind(DE, data.frame(model = "Selflessness", pe = rmsep))
+  DE <- rbind(DE, data.frame(model = "Selflessness", pe = rmsep2))
+}
+set.seed(NULL)
+
+p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
+  geom_boxplot(aes(group = factor(model))) +
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
+  xlab("Data set") +
+  ylab("RMSEp") +
+  theme(legend.position = "none") +
+  scale_fill_grey(start = 0.3, end = 0.7)
+
+print(p)
+
+
+## Oneness and Higher Consciousness ----
+
+mod <- hc.mod
+# mod <- NULL
+mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
+# mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34')
+# mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod <- paste0(mod, "\n", 'g ~ oneness')
+
+set.seed(1234567)
+cv_data <- data.num
+ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
+xnames <- c("psybliss21", "psybliss18", "psybliss22", "psybliss19")
+repeats = 20
+kfolds <- 2
+folds = rep(1:kfolds, length.out = nrow(cv_data))
+for (r in 1:repeats){
+  yhat = yhat2 = matrix(NA, nrow(cv_data), length(ynames))
+  folds = sample(folds)
+  for(k in 1:kfolds) {
+    idx = which(folds == k)
+    cfa_selfless <- sem(mod, data=cv_data[idx,], ordered = F, estimator = "MLR")
+    yhat[idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+    
+    cfa_selfless <- sem(mod, data=cv_data[-idx,], ordered = F, estimator = "MLR")
+    yhat2[-idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+  }
+  # Global RMSEp
+  rmsep <- sqrt(sum((cv_data[idx, ynames] - yhat)^2)/(length(ynames) * nrow(cv_data[idx,])))
+  rmsep2 <- sqrt(sum((cv_data[-idx, ynames] - yhat2)^2)/(length(ynames) * nrow(cv_data[-idx,])))
+  
+  DE <- rbind(DE, data.frame(model = "Oneness", pe = rmsep))
+  DE <- rbind(DE, data.frame(model = "Oneness", pe = rmsep2))
+}
+set.seed(NULL)
+
+p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
+  geom_boxplot(aes(group = factor(model))) +
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
+  xlab("Data set") +
+  ylab("RMSEp") +
+  theme(legend.position = "none") +
+  scale_fill_grey(start = 0.3, end = 0.7)
+
+print(p)
+
+
+## Altruism and Higher Consciousness ----
+
+mod <- hc.mod
+# mod <- NULL
+# mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
+mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34')
+# mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod <- paste0(mod, "\n", 'g ~ altruism')
+
+set.seed(1234567)
+cv_data <- data.num
+ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
+xnames <- c("pg30", "pg10", "pg45", "pg33", "pg34")
+repeats = 20
+kfolds <- 2
+folds = rep(1:kfolds, length.out = nrow(cv_data))
+for (r in 1:repeats){
+  yhat = yhat2 = matrix(NA, nrow(cv_data), length(ynames))
+  folds = sample(folds)
+  for(k in 1:kfolds) {
+    idx = which(folds == k)
+    cfa_selfless <- sem(mod, data=cv_data[idx,], ordered = F, estimator = "MLR")
+    yhat[idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+    
+    cfa_selfless <- sem(mod, data=cv_data[-idx,], ordered = F, estimator = "MLR")
+    yhat2[-idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+  }
+  # Global RMSEp
+  rmsep <- sqrt(sum((cv_data[idx, ynames] - yhat)^2)/(length(ynames) * nrow(cv_data[idx,])))
+  rmsep2 <- sqrt(sum((cv_data[-idx, ynames] - yhat2)^2)/(length(ynames) * nrow(cv_data[-idx,])))
+  
+  DE <- rbind(DE, data.frame(model = "Altruism", pe = rmsep))
+  DE <- rbind(DE, data.frame(model = "Altruism", pe = rmsep2))
+}
+set.seed(NULL)
+
+p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
+  geom_boxplot(aes(group = factor(model))) +
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
+  xlab("Data set") +
+  ylab("RMSEp") +
+  theme(legend.position = "none") +
+  scale_fill_grey(start = 0.3, end = 0.7)
+
+print(p)
+
+
+oneway.test(pe ~ model,
+  data = DE, 
+  var.equal = F # assuming equal variances
+)
+
+
+
+## Bootstrapped Selfless MLR ----
+cfa_selfless <- cfa(cfa_selfless, data=data.num, ordered = F, estimator = "MLR")
+fitMeasures(cfa_selfless, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+summary(cfa_selfless, fit.measures = TRUE, standardized = TRUE)
+bootSelfless <- bootstrapLavaan(cfa_selfless, R = 1000, FUN=fitMeasures, verbose = T)
+round(quantile(bootMLR[,"cfi"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"tli"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"rmsea"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"cfi.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"tli.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"rmsea.scaled"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"cfi.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"tli.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"rmsea.robust"], c(0.025, .5, 0.975)), 2)
+round(quantile(bootMLR[,"srmr"], c(0.025, .5, 0.975)), 2)
+write.csv(bootFit, file = paste("outputs/", "selfless-MLR-bootfit.csv", sep = ''))
+
+
+## K-fold Cross-Validation ----
+CV<- function(dats, n.folds){
+  folds <- list() # flexible object for storing folds
+  fold.size <- nrow(dats)/n.folds
+  remain <- 1:nrow(dats) # all obs are in
+  
+  for (i in 1:n.folds){
+    select <- sample(remain, fold.size, replace = FALSE)
+    # randomly sample “fold_size” from the ‘remaining observations’
+    
+    folds[[i]] <- select # store indices
+    
+    # write a special statement for the last fold — if there are ‘leftover points’
+    if (i == n.folds){
+      folds[[i]] <- remain
+    }
+    
+    #update remaining indices to reflect what was taken out
+    remain <- setdiff(remain, select)
+    remain
+  }
+  
+  results <- data.frame()
+  
+  for (i in 1:n.folds){
+    # fold i
+    indis <- folds[[i]] #unpack into a vector
+    train <- dats[-indis, ] #split into train and test sets
+    test <- dats[indis, ]
+    
+    print(nrow(test))
+    cfa <- cfa(hc.mod, data=test, ordered = F, estimator = "MLR")
+    # cfa <- cfa(mod, data=train, ordered = T, estimator = "WLSMV")
+    # results[[i]] <- fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
+    fitMeasures <- as.data.frame(fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled", "cfi.robust", "tli.robust", "rmsea.robust", "srmr", "pvalue.scaled")))
+    if(nrow(results) == 0) {
+      results <- t(fitMeasures)
+    } else {
+      results <- rbind(results, t(fitMeasures))
+      
+    }
+    
+    # results[[length(results)+1]] <- fitmeasures(cfa2, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
+    # results[[i]]<- RMSE
+  }
+  return(as.data.frame(results))
+}
+set.seed(1234567) # For reproducibility
+k <- 3
+results <- CV(data.num, k)
+for (i in 1:49) {
+  results <- rbind(results, CV(data.num, k))
+}
+mean(results$cfi.scaled)
+mean(results$tli.scaled)
+mean(results$rmsea.scaled)
+mean(results$cfi.robust)
+mean(results$tli.robust)
+mean(results$rmsea.robust)
+mean(results$srmr)
+mean(results$pvalue.scaled)
+set.seed(NULL)
+
+quantile(results$cfi.robust,probs=c(.025,.5,.975))
+quantile(results$tli.robust,probs=c(.025,.5,.975))
+quantile(results$rmsea.robust,probs=c(.025,.5,.975))
+
+write.csv(results, file="outputs/selfless-kfold.csv")
 
 
 # # # # # # # # # # # # # # #

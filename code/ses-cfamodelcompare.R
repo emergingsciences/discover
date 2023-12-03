@@ -1,3 +1,4 @@
+# Model 1 ----
 mod <- NULL
 # mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
 mod <- paste0(mod, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10')
@@ -9,7 +10,7 @@ mod <- paste0(mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
 mod <- paste0(mod, "\n", 'light =~ psyphys11 + psyphys1')
 mod <- paste0(mod, "\n")
 
-
+# Model 2 ----
 mod2 <- NULL
 # mod2 <- paste0(mod2, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
 mod2 <- paste0(mod2, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10')
@@ -21,31 +22,12 @@ mod2 <- paste0(mod2, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
 mod2 <- paste0(mod2, "\n", 'light =~ psyphys11 + psyphys1')
 mod2 <- paste0(mod2, "\n")
 
-# mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
-# mod <- paste0(mod, "\n", 'altruism =~ psygrowth30 + psygrowth10 + psygrowth45 + psygrowth33 + psygrowth34')
-# # mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
-
-mod <- NULL
-mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
-mod <- paste0(mod, "\n", 'altruism =~ psygrowth30 + psygrowth10 + psygrowth45 + psygrowth33 + psygrowth34 + psygrowth35')
-mod <- paste0(mod, "\n", hc.mod)
-mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
-# mod <- paste0(mod, "\n", 'g ~ selfless')
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-
-mod2 <- NULL
-mod2 <- paste0(mod2, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
-mod <- paste0(mod, "\n", 'altruism =~ psygrowth30 + psygrowth10 + psygrowth45 + psygrowth33 + psygrowth34 + psygrowth35')
-mod2 <- paste0(mod2, "\n", hc.mod)
-mod2 <- paste0(mod2, "\n", 'selfless =~ oneness + altruism')
-mod2 <- paste0(mod2, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-# mod2 <- paste0(mod2, "\n", 'oneness ~ altruism')
-
 cfa.fit1 <- cfa(mod, data=data.num[], ordered = T, estimator = "WLSMV", std.lv = T) # WLSMV - Confirmatory Factor Analysis p. 354
 # cfa.fit1 <- cfa(mod, data=data.num[], ordered = F, estimator = "MLR", std.lv = T)
 cfa.fit2 <- cfa(mod2, data=data.num[], ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
 summary(cfa.fit1, fit.measures = TRUE, standardized = TRUE)
 summary(cfa.fit2, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa.fit1, c("rmsea.robust"))
 fitMeasures(cfa.fit1, c("cfi.scaled", "tli.scaled", "rmsea.scaled"))
 fitMeasures(cfa.fit2, c("cfi.scaled", "tli.scaled", "rmsea.scaled"))
 
@@ -155,3 +137,80 @@ append_bootstrap_quantiles <- function(boot, quantiles = c(0.025, 0.975)) {
   
   return(current_run)
 }
+
+
+## K-fold Cross-Validation ----
+kfold<- function(dats, n.folds, reps){
+  results <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c(
+    "model", "cfi", "tli", "rmsea", "srmr")
+  )))     
+  
+  folds = rep(1:n.folds, length.out = nrow(cv_data)) 
+  
+  for(r in 1:reps) {
+    folds = sample(folds) # Random permutation
+    print(paste("Repetition",r))
+    
+    for (i in 1:n.folds){
+      indis <- which(folds == i)
+      print(paste("Fitting on fold with", length(indis), "rows"))
+      
+      # Use the fold and fit model 1 and model 2 on it
+      
+      # print(nrow(test))
+      cfa.fit1 <- cfa(mod2, data=dats[indis,], ordered = T)
+      # cfa.fit2 <- cfa(mod2, data=dats[indis,], ordered = F, estimator = "MLR")
+      
+      fit.df <- data.frame(
+        model = "model1",
+        cfi = fitmeasures(cfa.fit1, "cfi.robust"),
+        tli = fitmeasures(cfa.fit1, "tli.robust"),
+        rmsea = fitmeasures(cfa.fit1, "rmsea.robust"),
+        srmr = fitmeasures(cfa.fit1, "srmr")
+      )
+      
+      # fit.df2 <- data.frame(
+      #   model = "model2",
+      #   cfi = fitmeasures(cfa.fit2, "cfi.robust"),
+      #   tli = fitmeasures(cfa.fit2, "tli.robust"),
+      #   rmsea = fitmeasures(cfa.fit2, "rmsea.robust"),
+      #   srmr = fitmeasures(cfa.fit2, "srmr")
+      # )
+      
+      results <- rbind(results, fit.df)
+      # results <- rbind(results, fit.df2)
+      rownames(results) = NULL
+    }    
+  }
+  
+  return(as.data.frame(results))
+}
+
+results <- kfold(data.num, 3, 10)
+
+ggplot(results, aes(x=model, y=cfi, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
+  xlab("Model") + ylab("CFI") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(results[,"cfi"], c(0.025, .5, 0.975)), 2)
+
+ggplot(results, aes(x=model, y=tli, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
+  xlab("Model") + ylab("TLI") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(results[,"tli"], c(0.025, .5, 0.975)), 2)
+
+ggplot(results, aes(x=model, y=rmsea, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
+  xlab("Model") + ylab("RMSEA") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(results[,"rmsea"], c(0.025, .5, 0.975)), 2)
