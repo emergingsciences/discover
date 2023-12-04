@@ -145,7 +145,7 @@ kfold<- function(dats, n.folds, reps){
     "model", "cfi", "tli", "rmsea", "srmr")
   )))     
   
-  folds = rep(1:n.folds, length.out = nrow(cv_data)) 
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
   
   for(r in 1:reps) {
     folds = sample(folds) # Random permutation

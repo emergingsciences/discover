@@ -335,71 +335,70 @@ fitMeasures(cfa_efa_ml, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robus
 summary(cfa_efa_ml, fit.measures = TRUE, standardized = TRUE)
 
 
-## K-fold ----
-
-CV<- function(dats, n.folds){
-  folds <- list() # flexible object for storing folds
-  fold.size <- nrow(dats)/n.folds
-  remain <- 1:nrow(dats) # Initialize with all obs. Will be used to track remaining obs
+## Model K-fold Cross-Validation ----
+kfold<- function(dats, n.folds, reps){
+  print(paste("Model: ", mod))
   
-  # Set up folds
-  for (i in 1:n.folds){
-    # randomly sample “fold_size” from the ‘remaining observations’
-    select <- sample(remain, fold.size, replace = FALSE)
-    
-    folds[[i]] <- select # store indices
-    
-    if (i == n.folds){ # For the last fold...
-      folds[[i]] <- remain # assign any leftover obs
-    }
-    
-    # Update remaining indices to reflect what was taken out
-    remain <- setdiff(remain, select)
-    remain # output
-  }
+  results <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c(
+    "model", "cfi", "tli", "rmsea", "srmr")
+  )))     
   
-  results <- data.frame()
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
   
-  for (i in 1:n.folds){
-    # fold i
-    indis <- folds[[i]] # Unpack into a vector
-    train <- dats[-indis, ] # Split into train and test sets
-    test <- dats[indis, ]
+  for(r in 1:reps) {
+    folds = sample(folds) # Random permutation
+    print(paste("Repetition",r))
     
-    print(nrow(test))
-    cfa <- cfa(hc.mod, data=test, ordered = F, estimator = "MLR")
-    # cfa <- cfa(hc.mod, data=train, ordered = T, estimator = "WLSMV")
-    # results[[i]] <- fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
-    fitMeasures <- as.data.frame(fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled", "cfi.robust", "tli.robust", "rmsea.robust", "srmr", "pvalue.scaled")))
-    if(nrow(results) == 0) {
-      results <- t(fitMeasures)
-    } else {
-      results <- rbind(results, t(fitMeasures))
+    for (i in 1:n.folds){
+      indis <- which(folds == i)
+      print(paste("Fitting on fold with", length(indis), "rows"))
       
-    }
-    
-    # results[[length(results)+1]] <- fitmeasures(cfa2, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
-    # results[[i]]<- RMSE
+      cfa.fit <- cfa(hc.mod, data=dats[indis,], ordered = F, estimator = "MLR")
+      
+      fit.df <- data.frame(
+        model = "HC",
+        cfi = fitmeasures(cfa.fit, "cfi.robust"),
+        tli = fitmeasures(cfa.fit, "tli.robust"),
+        rmsea = fitmeasures(cfa.fit, "rmsea.robust"),
+        srmr = fitmeasures(cfa.fit, "srmr")
+      )
+      
+      results <- rbind(results, fit.df)
+      rownames(results) = NULL
+    }    
   }
+  
   return(as.data.frame(results))
 }
 
+hc.kfold.results <- kfold(data.num, 3, 100)
 
-set.seed(1234567) # For reproducibility
-k <- 2
-results <- CV(data.num[efa_idx,], k)
-for (i in 1:99) {
-  results <- rbind(results, CV(data.num[efa_idx,], k))
-}
-mean(results$cfi.scaled)
-mean(results$tli.scaled)
-mean(results$rmsea.scaled)
-mean(results$cfi.robust)
-mean(results$tli.robust)
-mean(results$rmsea.robust)
-mean(results$srmr)
-mean(results$pvalue.scaled)
-set.seed(NULL)
+ggplot(hc.kfold.results, aes(x=model, y=cfi, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
+  xlab("Model") + ylab("CFI") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(hc.kfold.results[,"cfi"], c(0.025, .5, 0.975)), 2)
+
+ggplot(hc.kfold.results, aes(x=model, y=tli, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
+  xlab("Model") + ylab("TLI") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(hc.kfold.results[,"tli"], c(0.025, .5, 0.975)), 2)
+
+ggplot(hc.kfold.results, aes(x=model, y=rmsea, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
+  xlab("Model") + ylab("RMSEA") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(hc.kfold.results[,"rmsea"], c(0.025, .5, 0.975)), 2)
 
 
 ## Local areas of strain ----
@@ -1078,6 +1077,7 @@ cov2cor(lavInspect(cfa, what = "est")$psi)
 # Selflessness SEM / MIMIC ----
 # # # # # # # # # # # # # # # #
 
+# ETL
 data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+')) # No gate
 data.num <- na.omit(data.num)
 nrow(data.num)
@@ -1100,7 +1100,7 @@ mod <- paste0(mod, "\n", 'g ~ selfless')
 # mod <- paste0(mod, "\n", 'g ~ altruism')
 # non.reg <- mod
 cfa_selfless <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
-# cfa_selfless <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV", std.lv = T)
+cfa_selfless <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
 # modindices(cfa, sort = TRUE)
 fitMeasures(cfa_selfless, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 summary(cfa_selfless, fit.measures = TRUE, standardized = TRUE)
@@ -1114,35 +1114,42 @@ EFAtools::OMEGA(cfa_selfless, g_name = "selfless") # Must have higher order fact
 
 ## Predictor K-Fold and RMSEP ----
 
-set.seed(1234567)
-cv_data <- data.num
-ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
-xnames <- c("psybliss21", "psybliss18", "psybliss22", "psybliss19", "pg30", "pg10", "pg45", "pg33", "pg34")
-repeats = 20
-kfolds <- 3
-folds = rep(1:kfolds, length.out = nrow(cv_data))
-DE <- data.frame(model = character(), pe = numeric())
-for (r in 1:repeats){
-  yhat = yhat2 = matrix(NA, nrow(cv_data), length(ynames))
-  folds = sample(folds) # Random permutation
-  for(k in 1:kfolds) {
-    idx = which(folds == k)
-    cfa_selfless <- sem(mod, data=cv_data[idx,], ordered = F, estimator = "MLR")
-    yhat[idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
-    
-    cfa_selfless <- sem(mod, data=cv_data[-idx,], ordered = F, estimator = "MLR")
-    yhat2[-idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
-  }
-  # Global RMSEp
-  rmsep <- sqrt(sum((cv_data[idx, ynames] - yhat)^2)/(length(ynames) * nrow(cv_data[idx,])))
-  rmsep2 <- sqrt(sum((cv_data[-idx, ynames] - yhat2)^2)/(length(ynames) * nrow(cv_data[-idx,])))
+pred_kfold<- function(dats, n.folds, reps){
+  ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
+  xnames <- c("psybliss21", "psybliss18", "psybliss22", "psybliss19", "pg30", "pg10", "pg45", "pg33", "pg34")
+  results <- data.frame(matrix(ncol=2,nrow=0, dimnames=list(NULL, c(
+    "model", "rmsep")
+  )))     
   
-  DE <- rbind(DE, data.frame(model = "Selflessness", pe = rmsep))
-  DE <- rbind(DE, data.frame(model = "Selflessness", pe = rmsep2))
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
+  
+  for(r in 1:reps) {
+    folds = sample(folds) # Random permutation
+    print(paste("Repetition",r))
+    
+    yhat <- matrix(NA, nrow(dats), length(ynames))
+    
+    for (i in 1:n.folds){
+      indis <- which(folds == i)
+      print(paste("Fitting on fold with", length(indis), "rows"))
+      
+      cfa_selfless <- sem(mod, data=dats[indis,], ordered = F, estimator = "MLR")
+      yhat[indis,] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
+    }
+    
+    # Global RMSEp
+    rmsep <- sqrt(sum((dats[, ynames] - yhat)^2)/(length(ynames) * nrow(dats)))
+    results <- rbind(results, data.frame(model = "Selfless Regression", rmsep = rmsep))
+  }
+  
+  return(as.data.frame(results))
 }
+
+set.seed(1234567)
+ypred_results <- pred_kfold(data.num, 2, 100)
 set.seed(NULL)
 
-p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
+ggplot(ypred_results, aes(x = model, y = rmsep, fill = factor(model))) +
   geom_boxplot(aes(group = factor(model))) +
   geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
   xlab("Data set") +
@@ -1150,109 +1157,75 @@ p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
   theme(legend.position = "none") +
   scale_fill_grey(start = 0.3, end = 0.7)
 
-print(p)
+round(quantile(ypred_results[,"rmsep"], c(0.025, .5, 0.975)), 3)
 
 
-## Oneness and Higher Consciousness ----
-
-mod <- hc.mod
-# mod <- NULL
-mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
-# mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34')
-# mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-mod <- paste0(mod, "\n", 'g ~ oneness')
-
-set.seed(1234567)
-cv_data <- data.num
-ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
-xnames <- c("psybliss21", "psybliss18", "psybliss22", "psybliss19")
-repeats = 20
-kfolds <- 2
-folds = rep(1:kfolds, length.out = nrow(cv_data))
-for (r in 1:repeats){
-  yhat = yhat2 = matrix(NA, nrow(cv_data), length(ynames))
-  folds = sample(folds)
-  for(k in 1:kfolds) {
-    idx = which(folds == k)
-    cfa_selfless <- sem(mod, data=cv_data[idx,], ordered = F, estimator = "MLR")
-    yhat[idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
-    
-    cfa_selfless <- sem(mod, data=cv_data[-idx,], ordered = F, estimator = "MLR")
-    yhat2[-idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
-  }
-  # Global RMSEp
-  rmsep <- sqrt(sum((cv_data[idx, ynames] - yhat)^2)/(length(ynames) * nrow(cv_data[idx,])))
-  rmsep2 <- sqrt(sum((cv_data[-idx, ynames] - yhat2)^2)/(length(ynames) * nrow(cv_data[-idx,])))
+## Model K-fold Cross-Validation ----
+kfold<- function(dats, n.folds, reps){
+  print(paste("Model: ", mod))
   
-  DE <- rbind(DE, data.frame(model = "Oneness", pe = rmsep))
-  DE <- rbind(DE, data.frame(model = "Oneness", pe = rmsep2))
-}
-set.seed(NULL)
-
-p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
-  geom_boxplot(aes(group = factor(model))) +
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
-  xlab("Data set") +
-  ylab("RMSEp") +
-  theme(legend.position = "none") +
-  scale_fill_grey(start = 0.3, end = 0.7)
-
-print(p)
-
-
-## Altruism and Higher Consciousness ----
-
-mod <- hc.mod
-# mod <- NULL
-# mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
-mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34')
-# mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-mod <- paste0(mod, "\n", 'g ~ altruism')
-
-set.seed(1234567)
-cv_data <- data.num
-ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
-xnames <- c("pg30", "pg10", "pg45", "pg33", "pg34")
-repeats = 20
-kfolds <- 2
-folds = rep(1:kfolds, length.out = nrow(cv_data))
-for (r in 1:repeats){
-  yhat = yhat2 = matrix(NA, nrow(cv_data), length(ynames))
-  folds = sample(folds)
-  for(k in 1:kfolds) {
-    idx = which(folds == k)
-    cfa_selfless <- sem(mod, data=cv_data[idx,], ordered = F, estimator = "MLR")
-    yhat[idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
-    
-    cfa_selfless <- sem(mod, data=cv_data[-idx,], ordered = F, estimator = "MLR")
-    yhat2[-idx, ] = lavPredictY(cfa_selfless, xnames = xnames, ynames = ynames)
-  }
-  # Global RMSEp
-  rmsep <- sqrt(sum((cv_data[idx, ynames] - yhat)^2)/(length(ynames) * nrow(cv_data[idx,])))
-  rmsep2 <- sqrt(sum((cv_data[-idx, ynames] - yhat2)^2)/(length(ynames) * nrow(cv_data[-idx,])))
+  results <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c(
+    "model", "cfi", "tli", "rmsea", "srmr")
+  )))     
   
-  DE <- rbind(DE, data.frame(model = "Altruism", pe = rmsep))
-  DE <- rbind(DE, data.frame(model = "Altruism", pe = rmsep2))
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
+  
+  for(r in 1:reps) {
+    folds = sample(folds) # Random permutation
+    print(paste("Repetition",r))
+    
+    for (i in 1:n.folds){
+      indis <- which(folds == i)
+      print(paste("Fitting on fold with", length(indis), "rows"))
+      
+      cfa.fit <- cfa(mod, data=dats[indis,], ordered = F, estimator = "MLR")
+      
+      fit.df <- data.frame(
+        model = "Selfless and HC",
+        cfi = fitmeasures(cfa.fit, "cfi.robust"),
+        tli = fitmeasures(cfa.fit, "tli.robust"),
+        rmsea = fitmeasures(cfa.fit, "rmsea.robust"),
+        srmr = fitmeasures(cfa.fit, "srmr")
+      )
+      
+      results <- rbind(results, fit.df)
+      rownames(results) = NULL
+    }    
+  }
+  
+  return(as.data.frame(results))
 }
-set.seed(NULL)
 
-p <- ggplot(DE, aes(x = model, y = pe, fill = factor(model))) +
-  geom_boxplot(aes(group = factor(model))) +
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
-  xlab("Data set") +
-  ylab("RMSEp") +
-  theme(legend.position = "none") +
-  scale_fill_grey(start = 0.3, end = 0.7)
+results <- kfold(data.num, 3, 100)
 
-print(p)
+ggplot(results, aes(x=model, y=cfi, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
+  xlab("Model") + ylab("CFI") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
 
+round(quantile(results[,"cfi"], c(0.025, .5, 0.975)), 2)
 
-oneway.test(pe ~ model,
-  data = DE, 
-  var.equal = F # assuming equal variances
-)
+ggplot(results, aes(x=model, y=tli, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
+  xlab("Model") + ylab("TLI") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(results[,"tli"], c(0.025, .5, 0.975)), 2)
+
+ggplot(results, aes(x=model, y=rmsea, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
+  xlab("Model") + ylab("RMSEA") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(results[,"rmsea"], c(0.025, .5, 0.975)), 2)
+
+write.csv(results, file="outputs/selfless-kfold.csv")
 
 
 
@@ -1274,74 +1247,7 @@ round(quantile(bootMLR[,"srmr"], c(0.025, .5, 0.975)), 2)
 write.csv(bootFit, file = paste("outputs/", "selfless-MLR-bootfit.csv", sep = ''))
 
 
-## K-fold Cross-Validation ----
-CV<- function(dats, n.folds){
-  folds <- list() # flexible object for storing folds
-  fold.size <- nrow(dats)/n.folds
-  remain <- 1:nrow(dats) # all obs are in
-  
-  for (i in 1:n.folds){
-    select <- sample(remain, fold.size, replace = FALSE)
-    # randomly sample “fold_size” from the ‘remaining observations’
-    
-    folds[[i]] <- select # store indices
-    
-    # write a special statement for the last fold — if there are ‘leftover points’
-    if (i == n.folds){
-      folds[[i]] <- remain
-    }
-    
-    #update remaining indices to reflect what was taken out
-    remain <- setdiff(remain, select)
-    remain
-  }
-  
-  results <- data.frame()
-  
-  for (i in 1:n.folds){
-    # fold i
-    indis <- folds[[i]] #unpack into a vector
-    train <- dats[-indis, ] #split into train and test sets
-    test <- dats[indis, ]
-    
-    print(nrow(test))
-    cfa <- cfa(hc.mod, data=test, ordered = F, estimator = "MLR")
-    # cfa <- cfa(mod, data=train, ordered = T, estimator = "WLSMV")
-    # results[[i]] <- fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
-    fitMeasures <- as.data.frame(fitmeasures(cfa, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled", "cfi.robust", "tli.robust", "rmsea.robust", "srmr", "pvalue.scaled")))
-    if(nrow(results) == 0) {
-      results <- t(fitMeasures)
-    } else {
-      results <- rbind(results, t(fitMeasures))
-      
-    }
-    
-    # results[[length(results)+1]] <- fitmeasures(cfa2, c("cfi", "cfi.scaled", "tli", "tli.scaled", "rmsea", "rmsea.scaled"))
-    # results[[i]]<- RMSE
-  }
-  return(as.data.frame(results))
-}
-set.seed(1234567) # For reproducibility
-k <- 3
-results <- CV(data.num, k)
-for (i in 1:49) {
-  results <- rbind(results, CV(data.num, k))
-}
-mean(results$cfi.scaled)
-mean(results$tli.scaled)
-mean(results$rmsea.scaled)
-mean(results$cfi.robust)
-mean(results$tli.robust)
-mean(results$rmsea.robust)
-mean(results$srmr)
-mean(results$pvalue.scaled)
-set.seed(NULL)
 
-quantile(results$cfi.robust,probs=c(.025,.5,.975))
-quantile(results$tli.robust,probs=c(.025,.5,.975))
-quantile(results$rmsea.robust,probs=c(.025,.5,.975))
-
-write.csv(results, file="outputs/selfless-kfold.csv")
 
 
 # # # # # # # # # # # # # # #
