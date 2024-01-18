@@ -1,35 +1,39 @@
+library(cvsem)
+
 # Model 1 ----
-mod <- NULL
-# mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-mod <- paste0(mod, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + spiritual26 + mystical15 + mystical8 + mystical13 + mystical10')
-# mod <- paste0(mod, "\n", 'consc =~ mystical6 + mystical2 + mystical25 + mystical15')
-# mod <- paste0(mod, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
-mod <- paste0(mod, "\n", 'bliss =~ mystical5 + mystical7 + mystical4')
-mod <- paste0(mod, "\n", 'insight =~ spiritual3 + spiritual2')
-mod <- paste0(mod, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
-mod <- paste0(mod, "\n", 'light =~ psyphys11 + psyphys1')
-mod <- paste0(mod, "\n")
+mod <- hc.mod
+# mod <- NULL
+mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
+mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34')
+mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod <- paste0(mod, "\n", 'g ~ selfless')
 
 # Model 2 ----
-mod2 <- NULL
-# mod2 <- paste0(mod2, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-mod2 <- paste0(mod2, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10')
-# mod2 <- paste0(mod2, "\n", 'consc =~ mystical6 + mystical2 + mystical25 + mystical15')
-# mod2 <- paste0(mod2, "\n", 'unity =~ mystical8 + mystical13 + mystical10')
-mod2 <- paste0(mod2, "\n", 'bliss =~ mystical5 + mystical7 + mystical4')
-mod2 <- paste0(mod2, "\n", 'insight =~ spiritual3 + spiritual2 + spiritual26')
-mod2 <- paste0(mod2, "\n", 'energy =~ psyphys5 + psyphys3 + psyphys9')
-mod2 <- paste0(mod2, "\n", 'light =~ psyphys11 + psyphys1')
-mod2 <- paste0(mod2, "\n")
+mod2 <- hc.mod
+# mod2 <- NULL
+mod2 <- paste0(mod2, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
+mod2 <- paste0(mod2, "\n", 'altruism =~ pg30 + pg10 + pg45 + pg33 + pg34 + pg35')
+mod2 <- paste0(mod2, "\n", 'selfless =~ oneness + altruism')
+mod2 <- paste0(mod2, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod2 <- paste0(mod2, "\n", 'g ~ selfless')
 
-cfa.fit1 <- cfa(mod, data=data.num[], ordered = T, estimator = "WLSMV", std.lv = T) # WLSMV - Confirmatory Factor Analysis p. 354
-# cfa.fit1 <- cfa(mod, data=data.num[], ordered = F, estimator = "MLR", std.lv = T)
-cfa.fit2 <- cfa(mod2, data=data.num[], ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-summary(cfa.fit1, fit.measures = TRUE, standardized = TRUE)
-summary(cfa.fit2, fit.measures = TRUE, standardized = TRUE)
-fitMeasures(cfa.fit1, c("rmsea.robust"))
-fitMeasures(cfa.fit1, c("cfi.scaled", "tli.scaled", "rmsea.scaled"))
-fitMeasures(cfa.fit2, c("cfi.scaled", "tli.scaled", "rmsea.scaled"))
+cfa.fit1 <- cfa(mod, data=data.num[], ordered = T, estimator = "WLSMV")
+# cfa.fit1 <- cfa(mod, data=data.num[], ordered = F, estimator = "MLR")
+lavaanPlot(model = cfa.fit1, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+fitMeasures(cfa.fit1, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+lavResiduals(cfa.fit1)
+modindices(cfa.fit1, sort = TRUE)
+# summary(cfa.fit1, fit.measures = TRUE, standardized = TRUE)
+
+cfa.fit2 <- cfa(mod2, data=data.num[], ordered = T, estimator = "WLSMV")
+# cfa.fit2 <- cfa(mod2, data=data.num[], ordered = F, estimator = "MLR")
+lavaanPlot(model = cfa.fit2, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+fitMeasures(cfa.fit2, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+lavResiduals(cfa.fit2)
+modindices(cfa.fit2, sort = TRUE)
+# summary(cfa.fit2, fit.measures = TRUE, standardized = TRUE)
+
 
 out <- bootstrapLavaan(cfa.fit1, R = 2, verbose = T, FUN = function(x){
   ## get all parameter estimates, including standardized
@@ -57,8 +61,8 @@ models <- cvgather(mod, mod2)
 cvsem(data.num[-train,], Models = models, k = 5)
 
 # ANOVA / LRT Test
-cfa.fit1 <- cfa(mod, data=data.num[-train,], ordered = F, estimator="MLR")
-cfa.fit2 <- cfa(mod2, data=data.num[-train,], ordered = F, estimator="MLR")
+cfa.fit1 <- cfa(mod, data=data.num[-train,], ordered = T, estimator="WLSMV")
+cfa.fit2 <- cfa(mod2, data=data.num[-train,], ordered = T, estimator="WLSMV")
 lavTestLRT(cfa.fit1, cfa.fit2)
 
 
@@ -158,8 +162,8 @@ kfold<- function(dats, n.folds, reps){
       # Use the fold and fit model 1 and model 2 on it
       
       # print(nrow(test))
-      cfa.fit1 <- cfa(mod2, data=dats[indis,], ordered = T)
-      # cfa.fit2 <- cfa(mod2, data=dats[indis,], ordered = F, estimator = "MLR")
+      cfa.fit1 <- cfa(mod, data=dats[indis,], ordered = T, estimator = "WLSMV")
+      cfa.fit2 <- cfa(mod2, data=dats[indis,], ordered = T, estimator = "WLSMV")
       
       fit.df <- data.frame(
         model = "model1",
@@ -169,16 +173,16 @@ kfold<- function(dats, n.folds, reps){
         srmr = fitmeasures(cfa.fit1, "srmr")
       )
       
-      # fit.df2 <- data.frame(
-      #   model = "model2",
-      #   cfi = fitmeasures(cfa.fit2, "cfi.robust"),
-      #   tli = fitmeasures(cfa.fit2, "tli.robust"),
-      #   rmsea = fitmeasures(cfa.fit2, "rmsea.robust"),
-      #   srmr = fitmeasures(cfa.fit2, "srmr")
-      # )
+      fit.df2 <- data.frame(
+        model = "model2",
+        cfi = fitmeasures(cfa.fit2, "cfi.robust"),
+        tli = fitmeasures(cfa.fit2, "tli.robust"),
+        rmsea = fitmeasures(cfa.fit2, "rmsea.robust"),
+        srmr = fitmeasures(cfa.fit2, "srmr")
+      )
       
       results <- rbind(results, fit.df)
-      # results <- rbind(results, fit.df2)
+      results <- rbind(results, fit.df2)
       rownames(results) = NULL
     }    
   }
@@ -186,7 +190,7 @@ kfold<- function(dats, n.folds, reps){
   return(as.data.frame(results))
 }
 
-results <- kfold(data.num, 3, 10)
+results <- kfold(data.num, 2, 50)
 
 ggplot(results, aes(x=model, y=cfi, fill=factor(model))) +
   geom_boxplot(aes(group = factor(model))) + 
@@ -214,3 +218,12 @@ ggplot(results, aes(x=model, y=rmsea, fill=factor(model))) +
   scale_fill_grey(start=.3,end=.7)
 
 round(quantile(results[,"rmsea"], c(0.025, .5, 0.975)), 2)
+
+ggplot(results, aes(x=model, y=srmr, fill=factor(model))) +
+  geom_boxplot(aes(group = factor(model))) + 
+  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
+  xlab("Model") + ylab("SRMR") + 
+  theme(legend.position="none") +
+  scale_fill_grey(start=.3,end=.7)
+
+round(quantile(results[,"srmr"], c(0.025, .5, 0.975)), 2)

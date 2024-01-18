@@ -243,11 +243,90 @@ ses.regsem <- function(grepmatch, hc.mod, data, n.lambda, jump) {
   reg.mod <- mod
   reg.mod <- paste0(reg.mod, "\n", 'g =~ NA*unityconsc + bliss + insight + energy + light')
   reg.mod <- paste0(reg.mod, "\n", 'g ~~ 1*g')
-  cfa <- cfa(reg.mod, data=data)
+  cfa <- cfa(reg.mod, data=as.data.frame(scale(data)))
   summary(cfa, fit.measures = TRUE, standardized = TRUE)
-  reg.out <- cv_regsem(cfa,n.lambda=n.lambda,jump=jump,type="enet",pars_pen="regressions")
+  reg.out <- cv_regsem(cfa,n.lambda=n.lambda,jump=jump,type="alasso",pars_pen="regressions")
   plot(reg.out)
   summary(reg.out)
   return(as.data.frame(reg.out$final_pars))
 }
 
+# Out of sample K-Fold
+ses.pred_kfold <- function(dats, mod, n.folds, reps, xnames, ynames, lambda.seq){
+  results <- data.frame(matrix(ncol=2,nrow=0, dimnames=list(NULL, c(
+    "model", "rmsep")
+  )))
+  
+  # args <- list(...)
+  
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
+  
+  for(r in 1:reps) {
+    folds = sample(folds) # Random permutation
+    print(paste("Repetition",r))
+    
+    yhat <- matrix(NA, nrow(dats), length(ynames))
+    yhat2 <- matrix(NA, nrow(dats), length(ynames))
+    yhat3 <- matrix(NA, nrow(dats), length(ynames))
+    yhat4 <- matrix(NA, nrow(dats), length(ynames))
+    
+    for (i in 1:n.folds){
+      indis <- which(folds == i)
+      
+      # OOS Approach
+      cfa <- sem(mod, data=dats[-indis,], ordered = F, estimator = "MLR", meanstructure = T)
+      yhat[indis,] = lavPredictY(cfa, newdata = dats[indis,], xnames = xnames, ynames = ynames)
+      
+      # RO-SEM Approach
+      reg.results <- cv.lavPredictYReg(cfa, dats[-indis,], xnames, ynames, n.folds = 10, lambda.seq = lambda.seq)
+      lambda <- reg.results$lambda.min
+      print(paste("lambda.min: ",lambda))
+      # lambda <- cv.reg$lambda.min
+      yhat2[indis,] = lavPredictYreg(cfa, newdata = dats[indis,], xnames = xnames, ynames = ynames, lambda = lambda)            
+
+      # Regularized Linear Regression Approach
+      cv.reg <- cv.glmnet(
+        as.matrix(dats[-indis,xnames]),
+        as.matrix(dats[-indis,ynames]),
+        family = "mgaussian",
+        alpha = 0, # Ridge
+        lambda = lambda.seq
+      )
+      print(paste("Linear reg lambda min:",cv.reg$lambda.min))
+      regmod <- glmnet(
+        as.matrix(dats[-indis,xnames]),
+        as.matrix(dats[-indis,ynames]),
+        family = "mgaussian",
+        alpha = 0,
+        lambda = cv.reg$lambda.min
+      )
+      yhat3[indis,] <- predict(regmod, as.matrix(dats[indis,xnames]), s = "lambda.min")
+      
+      # Linear Regression Approach
+      dats.sub <- dats[,c(xnames, ynames)]
+      fit <- lm(formula(
+        paste('cbind(',
+          paste(ynames, collapse=","),
+          ") ~ .")
+        ),
+        data = dats.sub[-indis , ])
+      yhat4[indis, ] <- predict(fit, newdata = dats[indis , ])      
+    }
+    
+    # Global RMSEp
+    rmsep <-  sqrt(sum((dats[,ynames] - yhat )^2)/(length(ynames) * nrow(dats)))
+    rmsep2 <- sqrt(sum((dats[,ynames] - yhat2)^2)/(length(ynames) * nrow(dats)))
+    rmsep3 <- sqrt(sum((dats[,ynames] - yhat3)^2)/(length(ynames) * nrow(dats)))
+    rmsep4 <- sqrt(sum((dats[,ynames] - yhat4)^2)/(length(ynames) * nrow(dats)))
+    
+    results <- rbind(results, data.frame(model = 1, rmsep = rmsep))
+    results <- rbind(results, data.frame(model = 2, rmsep = rmsep2))
+    results <- rbind(results, data.frame(model = 3, rmsep = rmsep3))
+    results <- rbind(results, data.frame(model = 4, rmsep = rmsep4))
+  }
+  
+  return(as.data.frame(results))
+}
+
+# To get results to clipboard
+# clipr::write_clip(results)

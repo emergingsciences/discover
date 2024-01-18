@@ -19,26 +19,32 @@ ses.vars <- ses.loadvarfile()
 # Create .R file for example where we make html from an existing file
 # 
 fileConn <- file("analysis/opentext.html")
-contents <- "<html><head><title>Page Title</title></head><body>"
+contents <- "<html><head><title>Open Text Responses</title></head><body>"
 
 text_columns <- grep("text", names(ses.data), value = TRUE)
 columns_to_print <- c("id", text_columns)
+otdata <- data.frame(id = ses.data$id, ses.data[, grepl("text", names(ses.data))], CLUST = results$CLUST)
 
+# "Table of contents" ID's
 ids <- NULL
-for (i in seq_len(nrow(ses.data))) {
-  ids <- paste0(ids, "<a href=\"#", ses.data$id[i], "\">", ses.data$id[i], "</a><br>")
+for (i in seq_len(nrow(otdata))) {
+  if(otdata[i, "CLUST"] == 3)
+    ids <- paste0(ids, "<a href=\"#", ses.data$id[i], "\">", ses.data$id[i], "</a><br>")
 }
 
 contents <- paste0(contents, ids)
 
 opentext <- NULL
-for (i in seq_len(nrow(ses.data))) {
-  opentext <- paste0(opentext, "<h1><a id=\"", ses.data$id[i], "\">", ses.data$id[i], "</a></h1><br>")
-  for (col_name in text_columns) {
-    if (!is.na(ses.data[i, col_name])) {
-      opentext <- paste0(opentext, "Column:", col_name, "<br>")
-      opentext <- paste0(opentext, ses.data[i, col_name], "<br><br>")
-    }
+# Open text responses
+for (i in seq_len(nrow(otdata))) {
+  if(otdata[i, "CLUST"] == 3) {
+    opentext <- paste0(opentext, "<h1><a id=\"", otdata$id[i], "\">", otdata$id[i], "</a></h1><br>")
+    for (col_name in text_columns) {
+      if (!is.na(otdata[i, col_name])) {
+        opentext <- paste0(opentext, "Column:", col_name, "<br>")
+        opentext <- paste0(opentext, otdata[i, col_name], "<br><br>")
+      }
+    }    
   }
 }
 

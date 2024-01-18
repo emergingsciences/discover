@@ -163,6 +163,14 @@ print(paste("Removed", nrow(corrupted_rows),"corrupted gated rows with",nrow(ext
 matching_cols <- grep(grepmatch, names(extract.df), value = TRUE)
 extract.df[matching_cols][is.na(extract.df[matching_cols])] <- 1
 
+extract.df$pe.gate <- ifelse(extract.df$pe.gate == 2, 0, extract.df$pe.gate)
+extract.df$pe.invmov.gate <- ifelse(extract.df$pe.invmov.gate == 2, 0, extract.df$pe.invmov.gate)
+extract.df$pe.sensation.gate <- ifelse(extract.df$pe.sensation.gate == 2, 0, extract.df$pe.sensation.gate)
+extract.df$pe.negphysical.gate <- ifelse(extract.df$pe.negphysical.gate == 2, 0, extract.df$pe.negphysical.gate)
+extract.df$psygrowth.gate <- ifelse(extract.df$psygrowth.gate == 2, 0, extract.df$psygrowth.gate)
+extract.df$negpsych.gate <- ifelse(extract.df$negpsych.gate == 2, 0, extract.df$negpsych.gate)
+extract.df$psybliss.gate <- ifelse(extract.df$psybliss.gate == 2, 0, extract.df$psybliss.gate)
+
 extract.df.copy <- extract.df
 rownames(extract.df.copy) <- NULL # Don't need these
 dput(extract.df.copy, file = "data/ses-data.txt")
