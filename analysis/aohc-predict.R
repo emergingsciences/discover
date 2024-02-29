@@ -16,11 +16,10 @@ names(data.num)[names(data.num) == 'psygrowth33'] <- 'pg33'
 names(data.num)[names(data.num) == 'psygrowth34'] <- 'pg34'
 names(data.num)[names(data.num) == 'psygrowth35'] <- 'pg35' # Under test
 names(data.num)[names(data.num) == 'psygrowth5'] <- 'pg5' # Under test
+names(data.num)[names(data.num) == 'psygrowth14'] <- 'pg14' # Under test
 
 
 # Factor analysis
-
-corPlot(data.num)
 
 # fa.res <- ses.qgroup("psygrowth", grepmatch, parallel = T, omit.na = T)
 # fa.res <- ses.qgroup("psygrowthbliss", "psygrowth\\d+|psybliss\\d+", parallel = T, omit.na = T)
@@ -32,10 +31,8 @@ mod <- hc.mod
 mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss23')
 mod <- paste0(mod, "\n", 'altruism =~ pg30 + pg34 + pg35')
 mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
-# mod <- paste0(mod, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10')
-# mod <- paste0(mod, "\n", 'unityconsc ~ selfless')
 mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-mod <- paste0(mod, "\n", 'unityconsc ~ selfless')
+mod <- paste0(mod, "\n", 'g ~ selfless')
 # non.reg <- mod
 cfa_selfless <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
 cfa_selfless <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
@@ -54,8 +51,9 @@ EFAtools::OMEGA(cfa_selfless, g_name = "selfless") # Must have higher order fact
 ## Predictor K-Fold and RMSEP ----
 
 xnames <- c("psybliss21", "psybliss23", "psybliss18", "pg30", "pg34", "pg35")
-# ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
-ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10")
+ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
+# ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10")
+# ynames <- c("mystical22")
 
 library(glmnet)
 source(paste0(getwd(), "/code/lav_predict_y_reg.R"))
@@ -64,22 +62,23 @@ source(paste0(getwd(), "/code/lav_data_patterns.R"))
 source(paste0(getwd(), "/code/lav_data.R"))
 source(paste0(getwd(), "/code/lav_dataframe.R"))
 
-# Attempt to regularize the S matrix
-library(regsem)
-extractMatrices(cfa_selfless)$S
-regsem.res <- cv_regsem(cfa_selfless, type = "alasso", pars_pen = c(24:53), lambda.start = 0, jump = .1, n.lambda = 20)
-summary(regsem.res)
-regsem.res$fits
-plot(regsem.res, show.minimum="BIC")
+# Attempt to regularize the S matrix (failed)
+# library(regsem)
+# extractMatrices(cfa_selfless)$S
+# regsem.res <- cv_regsem(cfa_selfless, type = "alasso", pars_pen = c(24:53), lambda.start = 0, jump = .1, n.lambda = 20)
+# summary(regsem.res)
+# regsem.res$fits
+# plot(regsem.res, show.minimum="BIC")
 
 ypred_results <- ses.pred_kfold(
-  data.num[sample(nrow(data.num), 200),],
+  data.num,
+  # data.num[sample(nrow(data.num), 200),],
   mod,
   n.folds = 10,
   reps = 100,
   xnames,
   ynames,
-  lambda.seq = seq(from = 0, to = 1, by = .1)
+  lambda.seq = seq(from = 0, to = 2, by = .2)
 )
 # saveRDS(ypred_results, file = "outputs/temp.rds")
 
@@ -97,6 +96,9 @@ ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n300-fullhcmodel.rd
 
 # n = 400, Full HC/Selflessness model, predicting unityconsc only by seflessness
 ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n400-fullhcmodel.rds")
+
+# n = 500, Full HC/Selflessness model, predicting unityconsc only by seflessness
+ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n500-fullhcmodel.rds")
 
 # n = 50, Unity-Consciousness-only factor model, predicting unityconsc only by seflessness
 ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n50-ucmodel.rds")
@@ -138,7 +140,51 @@ ggplot(ypred_results, aes(x = model, y = rmsep, fill = factor(model))) +
   # theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
   scale_fill_grey(start = 0.3, end = 0.7)
 
-## Model K-fold Cross-Validation ----
+
+
+ypred_item_results <- ses.pred_item_kfold(
+  data.num,
+  # data.num[sample(nrow(data.num), 200),],
+  mod,
+  n.folds = 10,
+  reps = 100,
+  xnames,
+  ynames,
+  lambda.seq = seq(from = 0, to = 2, by = .2)
+)
+
+saveRDS(ypred_item_results, file = "outputs/ITEM_selfless-unityconsc-n500-fullhcmodel.rds")
+# ypred_item_results <- readRDS(file = "outputs/ITEM_selfless-unityconsc-n50-fullhcmodel.rds")
+
+ggplot(ypred_item_results$results, aes(x = factor(model), y = rmsep, fill = factor(model))) +
+  geom_boxplot(fill = "grey", aes(group = factor(model))) +
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
+  scale_x_discrete(labels=c("UnityConsc", "Bliss", "Insight", "Energy", "Light")) +
+  xlab("Data set") +
+  ylab("RMSEp") +
+  theme(legend.position="none") + # , axis.title.x=element_blank(), axis.text.x=element_blank()
+  scale_fill_grey(start = 0.3, end = 0.7)
+
+# Get the number of matrices in the list
+num_matrices <- length(ypred_item_results$predictions)
+# Initialize a matrix to store the sum of all predictions
+summed_matrix <- matrix(0, nrow = nrow(ypred_item_results$predictions[[1]]), ncol = ncol(ypred_results$predictions[[1]]))
+# Sum all matrices element-wise
+for (i in 1:num_matrices) {
+  summed_matrix <- summed_matrix + ypred_item_results$predictions[[i]]
+}
+# Calculate the average by dividing by the total number of matrices
+average_matrix <- summed_matrix / num_matrices
+
+# Plot actual vs predicted values
+ggplot(average_matrix, aes(x = Actual, y = Residuals)) +
+  geom_point(color = "blue", shape = 16) +
+  labs(x = "Actuals", y = "Residuals", title = "Actuals vs Residuals")
+
+
+
+
+## Model K-fold Cross-Validation of Fit Measures ----
 kfold<- function(dats, mod, n.folds, reps){
   print(paste("Model: ", mod))
   

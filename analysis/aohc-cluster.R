@@ -1,9 +1,9 @@
 # aohc-cluster.R
 
 library(mclust)
-# source("code/ses-combiClust.R")
-# pred <- lavPredict(cfa, append.data = TRUE)
 
+data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|*.gate'))
+names(data.num[ , grepl("*.gate", names(data.num))])
 nrow(data.num)
 cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV")
 pred <- lavPredict(cfa)
@@ -85,16 +85,56 @@ boxplot(insight ~ CLUST, data = results)
 boxplot(energy ~ CLUST, data = results)
 boxplot(light ~ CLUST, data = results)
 
+# Move HCC to cluster #4
+results[results$CLUST == 4, "CLUST"] <- 5
+results[results$CLUST == 3, "CLUST"] <- 4
+results[results$CLUST == 5, "CLUST"] <- 3
 
+
+#
+# Primary cluster visualization
+#
+library(reshape2)
+melted <- melt(results[ , c("CLUST", "unityconsc", "bliss", "insight", "energy", "light")], id="CLUST")
+levels(melted[, "variable"]) <- c("Unity-Consciousness", "Bliss", "Insight", "Somatic Energy Sens.", "Luminosity")
+
+# Move HCC to cluster #4
+# melted[melted$CLUST == 4, "CLUST"] <- 5
+# melted[melted$CLUST == 3, "CLUST"] <- 4
+# melted[melted$CLUST == 5, "CLUST"] <- 3
+
+ggplot(melted, aes(x = factor(CLUST), y = value, fill = factor(variable))) +
+  geom_boxplot(width = .8, outlier.size = .8) +
+  labs(x = "Cluster",
+       y = "Factor Score") +
+  scale_x_discrete(labels= c("Low Exp", "SES Exp", "Light Exp", "HC Complete")) +
+  theme_bw() + scale_fill_grey(name = "Factor", start = 1, end = .5)
+
+#
+# Gate question
+#
+gatequestions <- names(ses.data[ , grepl("*.gate", names(ses.data))])
+for(gateq in gatequestions) {
+  print(gateq)
+  print(table(results$CLUST, results[ , gateq]))
+  print(round(table(results[ , ]$CLUST, results[ , gateq])
+      / rowSums(table(results[ , ]$CLUST, results[ , gateq]))
+      , 2))
+}
+
+
+#
+# Ad Hoc Tests
+#
 
 oneway.test(unityconsc ~ CLUST,
-  data = results[results$CLUST == 2 | results$CLUST == 4,], # 
+  data = results[results$CLUST == 3 | results$CLUST == 4,], # 
   var.equal = F # assuming equal variances
 )
 test <- aov(unityconsc ~ CLUST, data = results[results$CLUST == 2 | results$CLUST == 4,])
 summary(test)
 
-ggplot(results, aes(x = pe.gate, y = unityconsc, fill = factor(pe.gate))) +
+ggplot(results, aes(x = pe.invmov.gate, y = unityconsc, fill = factor(pe.invmov.gate))) +
   geom_boxplot() +
   labs(title = "Gate Question Comparison",
        x = "Gate Question",
@@ -106,26 +146,10 @@ table(results$CLUST, results$pe.gate)
 table(results$CLUST, results$pe.gate)
 
 chisq.test(
-  table(results[results$CLUST == 2 | results$CLUST == 4 , ]$CLUST,
-        results[results$CLUST == 2 | results$CLUST == 4 , ]$pe.negphysical.gate)
+  table(results[results$CLUST == 2 | results$CLUST == 3 | results$CLUST == 4 , ]$CLUST,
+        results[results$CLUST == 2 | results$CLUST == 3 | results$CLUST == 4 , ]$pe.invmov.gate)
 )
 
 round(table(results[ , ]$CLUST, results[ , ]$pe.gate)
       / rowSums(table(results[ , ]$CLUST, results[ , ]$pe.gate))
       , 2)
-
-library(reshape2)
-melted <- melt(results[ , c("CLUST", "unityconsc", "bliss", "insight", "energy", "light")], id="CLUST")
-levels(melted[, "variable"]) <- c("Unity-Consciousness", "Bliss", "Insight", "Somatic Energy Sens.", "Luminosity")
-
-# Move HCC to cluster #4
-melted[melted$CLUST == 4, "CLUST"] <- 5
-melted[melted$CLUST == 3, "CLUST"] <- 4
-melted[melted$CLUST == 5, "CLUST"] <- 3
-
-ggplot(melted, aes(x = factor(CLUST), y = value, fill = factor(variable))) +
-  geom_boxplot(width = .8, outlier.size = .8) +
-  labs(x = "Cluster",
-       y = "Factor Score") +
-  scale_x_discrete(labels= c("Low Exp", "SES Exp", "Light Exp", "HC Complete")) +
-  theme_bw() + scale_fill_grey(name = "Factor", start = 1, end = .5)

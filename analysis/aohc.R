@@ -12,6 +12,7 @@ library(likert) # https://github.com/jbryer/likert
 library(psych)
 library(caret)
 library(plyr) # For mapvalues
+library(dplyr)
 library(ltm)
 # CFA Libraries
 library(lavaan)
@@ -29,8 +30,8 @@ ses.vars <- ses.loadvarfile()
 
 set.seed(1234567) # For reproducibility
 percent <- .5
-efa_idx <- sort(sample(x = nrow(data.num), size = floor(percent*nrow(data.num)), replace = F))
-cfa_idx <- sort(setdiff(1:nrow(data.num), efa_idx))
+efa_idx <- sort(sample(x = nrow(ses.data), size = floor(percent*nrow(ses.data)), replace = F))
+cfa_idx <- sort(setdiff(1:nrow(ses.data), efa_idx))
 sum(match(efa_idx, cfa_idx, nomatch = 0) > 0) # If positive, split was not clean
 length(efa_idx) + length(cfa_idx) # Check total length
 set.seed(NULL) # In case we need true randomization later
@@ -100,14 +101,17 @@ likert_viz(ses.data, "psygrowth\\d+", max_length = 40)
 # In order to explore the underlying latent constructs of Higher Consciousness,
 # exploratory factor analysis (EFA) was conducted first on the ungated survey items
 # related to spiritual experiences (mystical, spiritual, and psychophysiological categories).
-grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+"
+grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+"
 data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
+nrow(data.num)
+
+drop <- c("spiritual5", "spiritual4", "spiritual19", "psyphys7", "mystical24", "mystical2", "mystical11", "mystical12")
+data.num <- data.num %>% dplyr::select(-one_of(drop))
 
 
 ## Non-normality (univariate and multivariate) ----
-mvn(data.num, mvnTest = "hz")
-mvn(data.num, mvnTest = "mardia")
-histogram(data.num$spiritual6)
+MVN::mvn(data.num, mvnTest = "hz")
+MVN::mvn(data.num, mvnTest = "mardia")
 
 library(moments)
 round(mean(skewness(data.num)), 2)
@@ -134,11 +138,11 @@ corPlot(extract.numeric.columns.by.regex(ses.data[], grepmatch))
 ## Validity and Reliability Tests ----
 #
 
-# Kaiser-Meyer-Olkin measure of sampling adequacy
-psych::KMO(data.num[efa_idx,])[["MSA"]]
-
 # Bartlett’s Test of Sphericity
 bartlett.test(data.num[efa_idx,]) # result is greater than the critical value for chi2
+
+# Kaiser-Meyer-Olkin measure of sampling adequacy
+psych::KMO(data.num[efa_idx,])[["MSA"]]
 
 # Cronbach's Alpha
 psych::alpha(data.num[efa_idx,])
@@ -156,12 +160,14 @@ scree(data.num[efa_idx,])
 # Horn, J.L. A rationale and test for the number of factors in factor analysis. Psychometrika 30, 179–185 (1965). https://doi.org/10.1007/BF02289447
 # Dinno, A. (2009). Exploring the sensitivity of Horn's parallel analysis to the distributional form of random data. Multivariate behavioral research, 44(3), 362-388.
 par.fa <- fa.parallel(x = data.num[efa_idx,], cor = "poly", fa = "fa", fm = "pa", sim = TRUE, n.iter=100)
-par.fa # Indicates 7 factors
+# saveRDS(par.fa, file = "outputs/priexp.fa.parallel.rds") # 50 iter
+par.fa <- readRDS(file = "outputs/priexp.fa.parallel.rds")
+par.fa # Indicates 6 factors
 # par.pc <- fa.parallel(x = data.num, cor = "poly", fa = "pc", n.iter=20)
 
 # Revelle’s Very Simple Structure
 # Revelle, W., & Rocklin, T. (1979). Very simple structure: An alternative procedure for estimating the optimal number of interpretable factors. Multivariate behavioral research, 14(4), 403-414.
-vss(data.num[efa_idx,])
+vss(data.num[efa_idx,]) # 8 or 6 factors
 
 ## Experience Item ICLUST ----
 # Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
@@ -174,27 +180,57 @@ ICLUST.graph(iclust)
 ## Factor Extraction ----
 #
 
-# PA on training set indicated 7 factors
-fa.res <- fa(r = data.num[efa_idx,], nfactors = 7, fm = "pa", rotate = "promax", cor = "poly")
-# Bootstrapped confidence intervals
-# fa.res <- fa(r = data.num[efa_idx,], nfactors = 7, fm = "pa", rotate = "promax", cor = "poly", n.iter = 100)
+fa.res <- fa(r = data.num[efa_idx,],
+  nfactors = 6,
+  fm = "pa",
+  rotate = "promax",
+  cor = "poly",
+  n.rotations = 1,
+  max.iter = 10000
+)
+fa.res
+clipr::write_clip(fa.res[["communality"]])
+clipr::write_clip(fa.res[["Phi"]])
+clipr::write_clip(t(fa.res[["Vaccounted"]]))
+
 fa.diagram(fa.res)
 
 # Factor loadings (ouput to CSV)
 friendly.loadings <- ses.format.loadings(fa.res$loadings)
+clipr::write_clip(friendly.loadings)
 write.csv(friendly.loadings, file = paste("outputs/", "primaryexp-loadings.csv", sep = ''))
 # Factor correlations (ouput to CSV)
 write.csv(fa.res$Phi, file = paste("outputs/", "primaryexp-factorcorrelations.csv", sep = ''))
 
-#
-## Factor Reliability ----
-#
 
+## Omega ----
+SL(fa.res)
 # McDonald's Omega(h and t)
 # Revelle, W., & Condon, D. M. (2019). Reliability from α to ω: A tutorial. Psychological assessment, 31(12), 1395.
-# omega(m = data.num[efa_idx,], nfactors = 7, fm="pa", rotate="promax", poly = TRUE)
-omega(m = fa.res$loadings, Phi = fa.res$Phi)
+# omega(m = data.num[efa_idx,], nfactors = 6, fm="pa", rotate="oblimin", poly = TRUE)
+omega.res <- omega(m = fa.res$loadings, Phi = fa.res$Phi)
+omega.res
+clipr::write_clip(t(omega.res$omega.group))
 
+
+## Second round of factor analysis ----
+
+# drop <- c("spiritual5", "spiritual4", "spiritual19", "psyphys7", "mystical24", "mystical2", "mystical11")
+# data.num.clean <- data.num %>% dplyr::select(-one_of(drop))
+# 
+# par.fa <- fa.parallel(x = data.num.clean[efa_idx,], cor = "poly", fa = "fa", fm = "pa", sim = TRUE, n.iter=20)
+# par.fa # Indicates 6 factors
+# 
+# fa.res <- fa(r = data.num.clean[efa_idx,], nfactors = 7, fm = "pa", rotate = "oblimin", cor = "poly", n.rotations = 3, max.iter = 10000)
+# clipr::write_clip(ses.format.loadings(fa.res$loadings))
+# clipr::write_clip(fa.res[["communality"]])
+# clipr::write_clip(fa.res[["Phi"]])
+# clipr::write_clip(fa.res[["Vaccounted"]])
+# clipr::write_clip(fa.res[["loadings"]])
+# 
+# psych::alpha(data.num.clean[efa_idx,])
+# omega(m = data.num[efa_idx,], nfactors = 6, fm="pa", rotate="oblimin", poly = TRUE)
+# omega.res <- omega(m = fa.res$loadings, Phi = fa.res$Phi)
 
 
 # # # # # # # # # # # # # # # #
@@ -235,6 +271,7 @@ hc.mod <- paste0(hc.mod, "\n")
 
 cfa <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV")
 cfa <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = F, estimator = "MLR")
+cfa <- cfa(hc.mod, data=data.num, ordered = F, estimator = "MLR")
 cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV")
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 fitMeasures(cfa, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
@@ -491,33 +528,6 @@ round(sd(hc.kfold.results[,"srmr"]), 3)
 
 
 
-## Physical experience gate question against second order HC-25 ----
-grepmatch <- 'id|mystical\\d+|spiritual\\d+|psyphys\\d+|*.gate'
-data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch = grepmatch)
-data.num[is.na(data.num)] <- 1
-nrow(data.num)
-mod <- hc.mod
-# mod <- NULL
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + light + energy')
-# mod <- paste0(mod, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10')
-mod <- paste0(mod, "\n", 'g ~ pe.gate + psygrowth.gate + negpsych.gate + psybliss.gate')
-# pe.dummy <- cbind(pe.gate=as.numeric(data.num$pe.gate) -1, data.num)
-cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
-summary(cfa, fit.measures = TRUE, standardized = TRUE, rsquare = T)
-lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-semPaths(cfa, "std", title = FALSE, intercepts = FALSE, residuals = FALSE)
-
-
-round(table(data.num$pe.gate) / sum(table(data.num$pe.gate)), 2)
-round(table(data.num$pe.invmov.gate) / sum(table(data.num$pe.invmov.gate)), 2)
-round(table(data.num$pe.sensation.gate) / sum(table(data.num$pe.sensation.gate)), 2)
-round(table(data.num$pe.negphysical.gate) / sum(table(data.num$pe.negphysical.gate)), 2)
-round(table(data.num$psygrowth.gate) / sum(table(data.num$psygrowth.gate)), 2)
-round(table(data.num$negpsych.gate) / sum(table(data.num$negpsych.gate)), 2)
-round(table(data.num$psybliss.gate) / sum(table(data.num$psybliss.gate)), 2)
-
-
 ## Measurement invariance ----
 
 data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|sex|age')
@@ -552,15 +562,22 @@ lavTestLRT(fit1, fit2, fit3)
 ### Examine factor loading differences between covarying and higher-order structures ----
 
 cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-summary(cfa, standardized = T)
+clipr::write_clip(parameterEstimates(cfa))
+summary(cfa, fit.measures = T, standardized = T)
 mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+# mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light + intuition + oob')
 cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-summary(cfa, standardized = T)
+clipr::write_clip(parameterEstimates(cfa))
+summary(cfa, fit.measures = T, standardized = T)
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 
 
-### Schmid-Leiman transformation for higher order factor ----
+### Factor Covariance matrix ----
+lavInspect(cfa, "cov.lv")
+cov2cor(lavInspect(cfa, what = "est")$psi)
 
+
+### Schmid-Leiman transformation for higher order factor ----
 mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
 cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
 SL(cfa) # Must have higher order factor 'g', aka Higher Consciousness
@@ -575,6 +592,103 @@ shapiro.test(data.num$spiritual26) # Test for normality
 describe(data.num[,'spiritual26']) # Descriptive stats
 
 
+## TE correlation ----
+
+# 1. Create unidimensional factor model to understand factor correlations
+
+nrow(data.num) # 651
+# mod <- NULL
+mod <- hc.mod
+mod <- paste0(mod, "\n", 'nlnm =~ spiritual16 + spiritual13 + mystical1') # Non-local, non-material
+mod <- paste0(mod, "\n", 'psyempathy =~ psychic9 + spiritual21 + spiritual12') # Empathy
+cfa <- cfa(mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV")
+cfa <- cfa(mod, data=data.num[cfa_idx,], ordered = F, estimator = "MLR")
+cfa <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV")
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+
+### Factor Covariance matrix ----
+lavInspect(cfa, "cov.lv")
+cov2cor(lavInspect(cfa, what = "est")$psi)
+
+### McDonald's Omega of HC ----
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light + nlnm + psyempathy')
+cfa <- cfa(mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV")
+EFAtools::OMEGA(cfa) # Bifactor approach
+semTools::compRelSEM(cfa, higher = "g", ord.scale=T) # As of 12/7/23 requires development version of semTools, e.g., devtools::install_github("simsem/semTools/semTools")
+
+### 2. Create correlational model to understand predictive relationship ----
+# Create composite variables
+
+mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+cfa <- cfa(mod, data.num, ordered = T, estimator = "WLSMV")
+factor.scores <- lavPredict(cfa)
+
+
+
+# Perform correlations analysis
+
+cor.df <- data.frame(
+  Indicator=character(),
+  HC=double(),
+  UC=double(),
+  B=double(),
+  I=double(),
+  E=double(),
+  L=double(),
+  HC.p=double(),
+  UC.p=double(),
+  B.p=double(),
+  I.p=double(),
+  E.p=double(),
+  L.p=double()
+)
+for(n in names(data.num.no.hc)) {
+  new.df <- data.frame(
+    ses.vars[ses.vars$varname == n,]$question.text,
+    corr.test(factor.scores[,'g'], data.num[,n])$r,
+    corr.test(factor.scores[,'unityconsc'], data.num[,n])$r,
+    corr.test(factor.scores[,'bliss'], data.num[,n])$r,
+    corr.test(factor.scores[,'insight'], data.num[,n])$r,
+    corr.test(factor.scores[,'energy'], data.num[,n])$r,
+    corr.test(factor.scores[,'light'], data.num[,n])$r,
+    
+    corr.test(factor.scores[,'g'], data.num[,n])$p,
+    corr.test(factor.scores[,'unityconsc'], data.num[,n])$p,
+    corr.test(factor.scores[,'bliss'], data.num[,n])$p,
+    corr.test(factor.scores[,'insight'], data.num[,n])$p,
+    corr.test(factor.scores[,'energy'], data.num[,n])$p,
+    corr.test(factor.scores[,'light'], data.num[,n])$p
+  )
+  cor.res <- corr.test(factor.scores[,'g'], data.num[,n])
+  names(new.df) <- names(cor.df)
+  cor.df <- add_row(cor.df, new.df)
+}
+clipr::write_clip(cor.df)
+
+# Exclude HC18 and related
+hc18.ind <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
+fa1.ind <- c("mystical10", "mystical13", "mystical12", "mystical4", "mystical9", "mystical26", "mystical5", "mystical23", "mystical7", "mystical25", "mystical14", "mystical24", "mystical3", "mystical6", "mystical22", "mystical2", "mystical15", "mystical8", "mystical11")
+fa1 <- union(hc18.ind, fa1.ind)
+data.num.no.hc <- data.num %>% dplyr::select(!fa1)
+names(data.num.no.hc)
+
+# Create MIMIC model
+mod <- hc.mod
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+mod <- paste0(mod, "\n", paste('g ~', names(data.num.no.hc),collapse="\n"))
+cfa <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+
+# Regularized MIMIC
+reg.out <- cv_regsem(cfa,n.lambda=10,jump=.1,type="alasso",pars_pen="regressions")
+plot(reg.out)
+summary(reg.out)
+clipr::write_clip(as.data.frame(reg.out$final_pars))
 
 
 
@@ -1050,228 +1164,88 @@ cov2cor(lavInspect(cfa, what = "est")$psi)
 # Gate Question Analysis ----
 # # # # # # # # # # # # # # #
 
-gateq <- 'pe.negphysical.gate'
-# data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|',gateq))
-data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|pe.gate|pe.invmov.gate|pe.sensation.gate|pe.negphysical.gate|negpsych.gate'))
-# data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+')) # No gate
-# data.num[,gateq] <- ifelse(data.num[,gateq] == 2, 0, data.num[,gateq])
-data.num$pe.gate <- ifelse(data.num$pe.gate == 2, 0, data.num$pe.gate)
-data.num$pe.invmov.gate <- ifelse(data.num$pe.invmov.gate == 2, 0, data.num$pe.invmov.gate)
-data.num$pe.sensation.gate <- ifelse(data.num$pe.sensation.gate == 2, 0, data.num$pe.sensation.gate)
-data.num$pe.negphysical.gate <- ifelse(data.num$pe.negphysical.gate == 2, 0, data.num$pe.negphysical.gate)
-data.num$negpsych.gate <- ifelse(data.num$negpsych.gate == 2, 0, data.num$negpsych.gate)
-data.num <- na.omit(data.num)
-nrow(data.num)
 
-# mod <- NULL # Start the model here - to check local fit, etc.
+# Extract all primary experience and gate questions
+# data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|pe.gate|pe.invmov.gate|pe.sensation.gate|pe.negphysical.gate|negpsych.gate'))
+
+# Specify a gate question to analyze
+# pe.gate
+# pe.invmov.gate
+# pe.sensation.gate
+# pe.negphysical.gate
+# negpsych.gate
+
+gatequestions <- names(ses.data[ , grepl("*.gate", names(ses.data))])
+for(gateq in gatequestions) {
+  data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|',gateq))
+  data.num <- na.omit(data.num)
+  print(paste("Rows:",nrow(data.num)))
+  mod <- hc.mod
+  mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+  mod <- paste0(mod, "\n", 'g ~ ', gateq)
+  cfa <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV", std.lv = T)
+  # summary(cfa, fit.measures = TRUE, standardized = TRUE)
+  limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 100) # Fit indices only
+}
+
+data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|*.gate'))
+df <- data.frame(Question=character(), Yes=character(), No=character(), Total=character())
+for(gateq in gatequestions) {
+  data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|',gateq))
+  data.num <- na.omit(data.num)
+  # print("Counts")
+  # print(table(data.num[,gateq]))
+  
+  df <- rbind(df,
+    data.frame(
+      Question = gateq,
+      Yes = paste0( # Format e.g., "10% (40)"
+        (round(prop.table(table(data.num[ , gateq])), 2) * 100)[2],
+        "% (", table(data.num[,gateq])[2], ")"
+      ),
+      No = paste0( # Format e.g., "10% (40)"
+        (round(prop.table(table(data.num[ , gateq])), 2) * 100)[1],
+        "% (", table(data.num[,gateq])[1], ")"
+      ),
+      Total = paste0( # Format e.g., "10% (40)"
+        table(data.num[,gateq])[1] + table(data.num[,gateq])[2]
+      )
+    )
+  )
+}
+
+
+modindices(cfa, sort = TRUE)
+# round(cor(data.num[,c("mystical2", "mystical3")]), 2)
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+lavInspect(cfa, "cov.lv")
+cov2cor(lavInspect(cfa, what = "est")$psi)
+
+
+
+
+## Physical experience gate question against second order HC-25 ----
+grepmatch <- 'id|mystical\\d+|spiritual\\d+|psyphys\\d+|*.gate'
+data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch = grepmatch)
+data.num[is.na(data.num)] <- 1
+nrow(data.num)
 mod <- hc.mod
-mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
-# mod <- paste0(mod, "\n", 'altruism =~ psygrowth30 + psygrowth10 + psygrowth45 + psygrowth33 + psygrowth34')
-# mod <- paste0(mod, "\n", 'selfless =~ oneness + altruism')
+# mod <- NULL
+mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + light + energy')
+# mod <- paste0(mod, "\n", 'unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10')
+mod <- paste0(mod, "\n", 'g ~ pe.gate + psygrowth.gate + negpsych.gate + psybliss.gate')
+# pe.dummy <- cbind(pe.gate=as.numeric(data.num$pe.gate) -1, data.num)
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
 
-mod <- paste0(mod, "\n", 'g ~ pe.gate')
-# mod <- paste0(mod, "\n", 'g ~ pe.invmov.gate')
-# mod <- paste0(mod, "\n", 'g ~ pe.sensation.gate')
-# mod <- paste0(mod, "\n", 'g ~ pe.negphysical.gate')
-# mod <- paste0(mod, "\n", 'g ~ negpsych.gate')
-# mod <- paste0(mod, "\n", 'g ~ selfless')
-
-# Moderation
-mod <- paste0(mod, "\n", 'g ~ pe.negphysical.gate:selfless')
-
-
-# Direct effect
-mod <- paste0(mod, "\n", 'g ~ c * ',gateq)
-
-# Mediator
-mod <- paste0(mod, "\n", 'g ~ b * selfless')
-mod <- paste0(mod, "\n", 'selfless ~ a * ',gateq)
-
-# Indirect
-mod <- paste0(mod, "\n", 'direct := c')
-mod <- paste0(mod, "\n", 'indirect := a*b')
-mod <- paste0(mod, "\n", 'total := abs(c) + abs((a*b))')
-mod <- paste0(mod, "\n", 'prop_med := indirect / total')
-
-
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-# non.reg <- mod
-# cfa <- cfa(non.reg, data=data.num, ordered = F, estimator = "MLR", group = gateq)
-cfa <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV", std.lv = T)
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-
-# https://jmsallan.netlify.app/blog/moderated-multiple-regression-in-r/
-scores <- lavPredict(cfa)
-scores_gate <- data.frame(scores, data.num[gateq])
-lm_model <- lm(pe.negphysical.gate ~ selfless, scores_gate)
-summary(lm_model)
-
-# tmp <- scores_gate
-scores_gate <- tmp
-
-ggplot(scores_gate, aes(selfless, g, color = factor(pe.negphysical.gate))) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  scale_color_manual(name = "gate", values = c("#FF6666", "#6666FF")) +
-  theme_classic()
-
-scores_gate <- scores_gate[scores_gate['g'] > 0.5,]
-
-# cfa2 <- cfa(non.reg, data=data.num, ordered = TRUE, estimator = "DWLS", group = "pe.negphysical.gate", group.equal = c("loadings", "intercepts"))
-# lavTestLRT(cfa, cfa2)
-# limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-
-boot_cfa <- cfa(non.reg, data=data.num, ordered = TRUE, estimator = "DWLS", se = "bootstrap", bootstrap = 100)
-summary(boot_cfa, fit.measures=T, standardized=T, ci=TRUE)
-boot_cfa <- cfa(non.reg, data=data.num, ordered = F, se = "bootstrap", bootstrap = 100)
-summary(boot_cfa, fit.measures=T, standardized=T, ci=TRUE)
-tmp <- parameterestimates(boot_cfa, boot.ci.type = "bca.simple", standardized = TRUE)
-
-modindices(cfa, sort = TRUE)
-# round(cor(data.num[,c("mystical2", "mystical3")]), 2)
+summary(cfa, fit.measures = TRUE, standardized = TRUE, rsquare = T)
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-lavInspect(cfa, "cov.lv")
-cov2cor(lavInspect(cfa, what = "est")$psi)
+semPaths(cfa, "std", title = FALSE, intercepts = FALSE, residuals = FALSE)
 
 
-
-# ~~~~~~~~~~~~~~~~~~~~~~ ----
-# # # # # # # # # # # # # # # # # # # # # #
-# Growth and Bliss Factor Analysis ----
-# # # # # # # # # # # # # # # # # # # # # #
-
-grepmatch = "psybliss\\d+|psygrowth\\d+"
-psygrowth.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
-nrow(psygrowth.num)
-psygrowth.num <- na.omit(psygrowth.num)
-nrow(psygrowth.num)
-
-## Likert viz ----
-likert_viz(ses.data, "psygrowth\\d+", max_length = 40)
-
-## Correlation matrix ----
-grepmatch = "psygrowth"
-corPlot(extract.numeric.columns.by.regex(ses.data, grepmatch))
-
-#
-## FA Reliability Tests (pre-FA) ----
-#
-
-# Kaiser-Meyer-Olkin measure of sampling adequacy
-psych::KMO(psygrowth.num)[["MSA"]]
-
-# Bartlett’s Test of Sphericity
-bartlett.test(psygrowth.num) # result is greater than the critical value for chi2
-
-# Cronbach's Alpha
-psych::alpha(psygrowth.num)
-
-
-
-#
-## Select # of Factors ----
-#
-
-# Cattell's scree test
-# Raymond B. Cattell (1966) The Scree Test For The Number Of Factors, Multivariate Behavioral Research, 1:2, 245-276, DOI: 10.1207/s15327906mbr0102_10
-scree(psygrowth.num)
-
-# Horn’s parallel analysis
-# Horn, J.L. A rationale and test for the number of factors in factor analysis. Psychometrika 30, 179–185 (1965). https://doi.org/10.1007/BF02289447
-# Dinno, A. (2009). Exploring the sensitivity of Horn's parallel analysis to the distributional form of random data. Multivariate behavioral research, 44(3), 362-388.
-fa.par <- fa.parallel(x = psygrowth.num, cor = "poly", fa = "fa", fm = "pa", n.iter=20)
-pc.par <- fa.parallel(x = psygrowth.num, cor = "poly", fa = "pc", n.iter=20)
-
-# Revelle’s Very Simple Structure
-# Revelle, W., & Rocklin, T. (1979). Very simple structure: An alternative procedure for estimating the optimal number of interpretable factors. Multivariate behavioral research, 14(4), 403-414.
-vss(psygrowth.num)
-
-## Experience Item ICLUST ----
-# Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
-pchor <- polychoric(psygrowth.num)
-iclust <- iclust(pchor$rho, beta.min = 0.99, n.iterations = 20, purify = TRUE, nclusters = 8)
-iclust <- iclust(psygrowth.num)
-
-
-#
-## Factor Extraction ----
-#
-data.num.fa.res <- fa(r = psygrowth.num, nfactors = 9, fm = "pa", rotate = "promax", cor = "poly")
-# pca.res <- principal(r = psygrowth.num, nfactors = 4, cor = "poly")
-pca.loadings <- as.data.frame.matrix(pca.res$loadings)
-
-# McDonald's Omega(h and t)
-# Revelle, W., & Condon, D. M. (2019). Reliability from α to ω: A tutorial. Psychological assessment, 31(12), 1395.
-omega(m = psygrowth.num, nfactors = 7, fm="pa", rotate="promax", poly = TRUE)
-
-fa.diagram(data.num.fa.res)
-omega(m = data.num, 9)
-
-# Factor loadings (ouput to CSV)
-friendly.loadings <- ses.format.loadings(data.num.fa.res$loadings)
-write.csv(friendly.loadings, file = paste("outputs/", "psyblissgrowth", "-loadings.csv", sep = ''))
-
-# Factor correlations (ouput to CSV)
-write.csv(data.num.fa.res$Phi, file = paste("outputs/", "psyblissgrowth", "-factorcorrelations.csv", sep = ''))
-
-
-# # # # # # # # #
-## CFA Model ----
-# # # # # # # # #
-
-data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+')
-nrow(data.num)
-data.num <- na.omit(data.num)
-nrow(data.num)
-
-# Psychological Growth Model
-
-mod <- hc.mod # Start with the HC model
-# mod <- NULL # Start the model here to check local fit, etc.
-mod <- paste0(mod, "\n", 'altruism =~ psygrowth30 + psygrowth10 + psygrowth45')
-mod <- paste0(mod, "\n", 'talent =~ psygrowth6 + psygrowth5 + psygrowth14')
-mod <- paste0(mod, "\n", 'desire =~ psygrowth18 + psygrowth19 + psygrowth20 + psygrowth15 + psygrowth17')
-mod <- paste0(mod, "\n", 'physcare =~ psygrowth24 + psygrowth22 + psygrowth23')
-mod <- paste0(mod, "\n", 'healing =~ psygrowth43 + psygrowth42 + psygrowth36')
-mod <- paste0(mod, "\n", 'concen =~ psygrowth41 + psygrowth39 + psygrowth29 + psygrowth37')
-mod <- paste0(mod, "\n", 'empty =~ psygrowth3 + psygrowth2')
-
-# MIMIC (formative)
-mod <- paste0(mod, "\n", 'g ~ altruism')
-mod <- paste0(mod, "\n", 'g ~ talent')
-mod <- paste0(mod, "\n", 'g ~ concen')
-mod <- paste0(mod, "\n", 'g ~ desire')
-mod <- paste0(mod, "\n", 'g ~ physcare')
-mod <- paste0(mod, "\n", 'g ~ healing')
-mod <- paste0(mod, "\n", 'g ~ empty')
-
-#
-### Non-regularized SEM regression ----
-#
-non.reg <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-cfa <- cfa(non.reg, data=data.num, ordered = TRUE) # Fix factor variances with std.lv = TRUE
-# limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-
-modindices(cfa, sort = TRUE)
-# round(cor(data.num[,c("mystical2", "mystical3")]), 2)
-lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-lavInspect(cfa, "cov.lv")
-cov2cor(lavInspect(cfa, what = "est")$psi)
-
-#
-### Regularized SEM regression ----
-#
-mod <- hc.mod # Start with the HC model
-all.vars <- paste('g ~', colnames(data.num[,grepl("psybliss\\d+|psygrowth\\d+", names(data.num))]),collapse="\n")
-mod <- paste(hc.mod, all.vars)
-reg.mod <- mod
-reg.mod <- paste0(reg.mod, "\n", 'g =~ NA*unityconsc + bliss + insight + energy + light')
-reg.mod <- paste0(reg.mod, "\n", 'g ~~ 1*g')
-cfa <- cfa(reg.mod, data=data.num)
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-reg.out <- cv_regsem(cfa,n.lambda=5,jump=0.2,type="lasso",pars_pen="regressions")
-plot(reg.out)
-summary(reg.out)
-tmp <- as.data.frame(reg.out$final_pars)
+round(table(data.num$pe.gate) / sum(table(data.num$pe.gate)), 2)
+round(table(data.num$pe.invmov.gate) / sum(table(data.num$pe.invmov.gate)), 2)
+round(table(data.num$pe.sensation.gate) / sum(table(data.num$pe.sensation.gate)), 2)
+round(table(data.num$pe.negphysical.gate) / sum(table(data.num$pe.negphysical.gate)), 2)
+round(table(data.num$psygrowth.gate) / sum(table(data.num$psygrowth.gate)), 2)
+round(table(data.num$negpsych.gate) / sum(table(data.num$negpsych.gate)), 2)
+round(table(data.num$psybliss.gate) / sum(table(data.num$psybliss.gate)), 2)
