@@ -6,21 +6,19 @@
 
 # Load libraries and utility scripts ----
 
-# setwd("")
 library(ggplot2)
 library(likert) # https://github.com/jbryer/likert
 library(psych)
 library(caret)
-library(plyr) # For mapvalues
+library(plyr)
 library(dplyr)
 library(ltm)
-# CFA Libraries
 library(lavaan)
 library(lavaanPlot)
 library(boot)
 library(EFAtools)
 library(regsem)
-library(MVN) # Multi-variate non-normality
+library(MVN)
 source("code/ses-utility.R")
 # ETL (respondent data and variable mappings) ----
 ses.data <- ses.loaddatafile()
@@ -36,9 +34,10 @@ sum(match(efa_idx, cfa_idx, nomatch = 0) > 0) # If positive, split was not clean
 length(efa_idx) + length(cfa_idx) # Check total length
 set.seed(NULL) # In case we need true randomization later
 
-# ~~~~~~~~~~~~~~~~~~~~~~ ----
 
+# # # # # # # # # #
 # Data Summary ----
+# # # # # # # # # #
 
 # Total number of participants
 print(paste("Number of records is " , nrow(ses.data)))
@@ -63,12 +62,10 @@ ggplot(data=ses.data[ses.data$age > 10, ]
 
 describe(ses.data$age)
 
-ses.data[order(ses.data$age),"age"]
-max(ses.data$age)
 
-#
+
 ## Likert Visualizations ----
-#
+
 likert_viz <- function (data, regex = "", max_length = 30) {
   results <- ses.get.questiontext(
     data[,grepl(regex, names(data))], # Grab by category
@@ -90,41 +87,34 @@ likert_viz(ses.data, "negpsych\\d+")
 likert_viz(ses.data, "psybliss\\d+", max_length = 40)
 likert_viz(ses.data, "psygrowth\\d+", max_length = 40)
 
-# ~~~~~~~~~~~~~~~~~~~~~~ ----
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # #
+# Transcendent Experience Item Factor Analysis ----  
+# # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# # # # # # # # # # # # # # # # # # # # #
-# Experience Item Factor Analysis ----  
-# # # # # # # # # # # # # # # # # # # # #
-
-# In order to explore the underlying latent constructs of Higher Consciousness,
-# exploratory factor analysis (EFA) was conducted first on the ungated survey items
-# related to spiritual experiences (mystical, spiritual, and psychophysiological categories).
 grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+"
 data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
 nrow(data.num)
 
+# Dropping redundant or hard to interpret items
 drop <- c("spiritual5", "spiritual4", "spiritual19", "psyphys7", "mystical24", "mystical2", "mystical11", "mystical12")
 data.num <- data.num %>% dplyr::select(-one_of(drop))
 
 
+
+#
 ## Non-normality (univariate and multivariate) ----
+#
 MVN::mvn(data.num, mvnTest = "hz")
 MVN::mvn(data.num, mvnTest = "mardia")
 
-library(moments)
-round(mean(skewness(data.num)), 2)
-round(max(skewness(data.num)), 2)
-round(min(skewness(data.num)), 2)
-round(mean(kurtosis(data.num)), 2)
-round(max(kurtosis(data.num)), 2)
-round(min(kurtosis(data.num)), 2)
+
 #
 ## Correlation matrices ----
 #
 
-grepmatch = "mystical\\d+|spiritual\\d+"
+grepmatch = "mystical\\d+"
 corPlot(extract.numeric.columns.by.regex(ses.data[], grepmatch))
 
 grepmatch = "spiritual\\d+"
@@ -212,33 +202,6 @@ omega.res <- omega(m = fa.res$loadings, Phi = fa.res$Phi)
 omega.res
 clipr::write_clip(t(omega.res$omega.group))
 
-
-## Second round of factor analysis ----
-
-# drop <- c("spiritual5", "spiritual4", "spiritual19", "psyphys7", "mystical24", "mystical2", "mystical11")
-# data.num.clean <- data.num %>% dplyr::select(-one_of(drop))
-# 
-# par.fa <- fa.parallel(x = data.num.clean[efa_idx,], cor = "poly", fa = "fa", fm = "pa", sim = TRUE, n.iter=20)
-# par.fa # Indicates 6 factors
-# 
-# fa.res <- fa(r = data.num.clean[efa_idx,], nfactors = 7, fm = "pa", rotate = "oblimin", cor = "poly", n.rotations = 3, max.iter = 10000)
-# clipr::write_clip(ses.format.loadings(fa.res$loadings))
-# clipr::write_clip(fa.res[["communality"]])
-# clipr::write_clip(fa.res[["Phi"]])
-# clipr::write_clip(fa.res[["Vaccounted"]])
-# clipr::write_clip(fa.res[["loadings"]])
-# 
-# psych::alpha(data.num.clean[efa_idx,])
-# omega(m = data.num[efa_idx,], nfactors = 6, fm="pa", rotate="oblimin", poly = TRUE)
-# omega.res <- omega(m = fa.res$loadings, Phi = fa.res$Phi)
-
-
-# # # # # # # # # # # # # # # #
-# Mystical Factor Analysis ----
-# # # # # # # # # # # # # # # #
-
-grepmatch = "mystical\\d+"
-ses.qgroup("primary", grepmatch, parallel = T)
 
 
 # # # # # # # # # # # # # # # #

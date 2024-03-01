@@ -178,7 +178,8 @@ average_matrix <- summed_matrix / num_matrices
 
 # Plot actual vs predicted values
 ggplot(average_matrix, aes(x = Actual, y = Residuals)) +
-  geom_point(color = "blue", shape = 16) +
+  # geom_point(color = "blue", shape = 16) +
+  geom_point() +
   labs(x = "Actuals", y = "Residuals", title = "Actuals vs Residuals")
 
 

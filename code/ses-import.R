@@ -21,9 +21,9 @@ generateLevel2 <- TRUE
 # 'data' now contains all data
 
 # Limesurvey R file import
-setwd("~/discover/data") # Set to path of import files
+setwd("~/Desktop/esf/discover/data") # Set to path of import files
 source("survey_575246_R_syntax_file.R") # R import file
-setwd("~/discover") # Set to path of working directory
+setwd("~/Desktop/esf/discover") # Set to path of working directory
 raw_survey_results.df <- data
 rm(data)
 
