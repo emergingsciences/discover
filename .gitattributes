@@ -8,4 +8,4 @@
 *.Rd		text
 *.Rdx		binary
 *.Rmd		text
-*.R		text
+*.R		text eol=lf

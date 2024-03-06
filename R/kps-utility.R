@@ -1,15 +1,30 @@
 # 
-# Kundalini Profile Survey analysis script
+# Kundalini Profile Survey Utility Script
 #
-
-library("ggplot2")
-library("psych")
-library("nFactors")
+# This script contains:
+#   - Basic data loading functions
+#   - Mapping functions to use whenever we would like to use full question text
+#     instead of just the question codes
+#
 
 
 # Load the default data file
 kps.loaddatafile <- function(file = "data/kps1-results.txt") {
-  return(dget(file))
+  df <- dget(file)
+  
+  likert.names <- grepl('mystical|spiritual|psyphys|psychic|talents|invmov|sensation|negphysical|otherphysical|negpsych|psybliss|psygrowth',
+    names(df))
+  
+  df[,likert.names] <- data.frame(lapply(df[,likert.names], function(x) {
+      if(length(levels(x)) == 6) {
+        x <- ordered(x, labels = c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
+      } else if( length(levels(x)) == 7 ) {
+        x <- ordered(x, labels = c(NA, 'Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 'Strong', 'Very strong/high intensity'))
+      }
+      return(x)
+    } ), check.names = FALSE)
+  
+  return(df)
 }
 
 
@@ -31,9 +46,11 @@ kps.get.questiontext <- function(x = kps.loaddatafile()) {
 
 
 
-# Format factor loadings into a user friendly format
+# Format factor loadings from the psych fa() family of functions
+# into a user friendly format.
 #
 # Original loadings usually kept in an object similar to fa.object$fa$loadings
+#
 kps.format.loadings <- function(original.loadings = NULL) {
   var.names <- kps.loadvarfile()
   
