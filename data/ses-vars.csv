@@ -12,14 +12,14 @@ MysticalSymptoms[10],MysticalSymptoms10,MysticalSymptoms,mystical10,mystical,Inc
 MysticalSymptoms[11],MysticalSymptoms11,MysticalSymptoms,mystical11,mystical,Divine altered states
 MysticalSymptoms[12],MysticalSymptoms12,MysticalSymptoms,mystical12,mystical,Experience of deep unity and expansive consciousness
 MysticalSymptoms[13],MysticalSymptoms13,MysticalSymptoms,mystical13,mystical,All sense of separateness disappears
-MysticalSymptoms[14],MysticalSymptoms14,MysticalSymptoms,mystical14,mystical,Profound feelings of connection with a spiritural source
+MysticalSymptoms[14],MysticalSymptoms14,MysticalSymptoms,mystical14,mystical,Profound feelings of connection with a spiritual source
 MysticalSymptoms[15],MysticalSymptoms15,MysticalSymptoms,mystical15,mystical,Expanded comprehension of reality
 MysticalSymptoms[16],MysticalSymptoms16,MysticalSymptoms,mystical16,mystical,Holy trance
 MysticalSymptoms[17],MysticalSymptoms17,MysticalSymptoms,mystical17,mystical,Receiving instructions from the divine
 MysticalSymptoms[18],MysticalSymptoms18,MysticalSymptoms,mystical18,mystical,Visions of glowing geometric shapes
 MysticalSymptoms[19],MysticalSymptoms19,MysticalSymptoms,mystical19,mystical,Tasting sacred nectar dripping from the roof of mouth or back of throat (amrita or soma)
 MysticalSymptoms[20],MysticalSymptoms20,MysticalSymptoms,mystical20,mystical,"Feeling sacred touch (wind, presence, touch)"
-MysticalSymptoms[21],MysticalSymptoms21,MysticalSymptoms,mystical21,mystical,Insightful compreshension of scripture
+MysticalSymptoms[21],MysticalSymptoms21,MysticalSymptoms,mystical21,mystical,Insightful comprehension of scripture
 MysticalSymptoms[22],MysticalSymptoms22,MysticalSymptoms,mystical22,mystical,Expansion of consciousness
 MysticalSymptoms[23],MysticalSymptoms23,MysticalSymptoms,mystical23,mystical,Union with Life Energy
 MysticalSymptoms[24],MysticalSymptoms24,MysticalSymptoms,mystical24,mystical,Experience of Higher consciousness/cosmic consciousness
@@ -31,14 +31,14 @@ PersonalandPsychic[2],PersonalandPsychic2,PersonalandPsychic,spiritual2,spiritua
 PersonalandPsychic[3],PersonalandPsychic3,PersonalandPsychic,spiritual3,spiritual,An unshakable conviction about the reality of the experience
 PersonalandPsychic[4],PersonalandPsychic4,PersonalandPsychic,spiritual4,spiritual,"Transient, atypical, pivotal, or opening experiences"
 PersonalandPsychic[5],PersonalandPsychic5,PersonalandPsychic,spiritual5,spiritual,"Glimpses of bliss, spiritual advancement"
-PersonalandPsychic[6],PersonalandPsychic6,PersonalandPsychic,spiritual6,spiritual,"Glossalalia (spontaneously reciting phonemes, mantras, prayers, or poems, singing hymns, or speaking foreign languages unknown to the individual)"
+PersonalandPsychic[6],PersonalandPsychic6,PersonalandPsychic,spiritual6,spiritual,"Glossolalia (spontaneously reciting phonemes, mantras, prayers, or poems, singing hymns, or speaking foreign languages unknown to the individual)"
 PersonalandPsychic[7],PersonalandPsychic7,PersonalandPsychic,spiritual7,spiritual,Increased desire for spiritual experiences
 PersonalandPsychic[8],PersonalandPsychic8,PersonalandPsychic,spiritual8,spiritual,Increased intuition/Intuitive awareness
 PersonalandPsychic[9],PersonalandPsychic9,PersonalandPsychic,spiritual9,spiritual,Past lives recall
 PersonalandPsychic[10],PersonalandPsychic10,PersonalandPsychic,spiritual10,spiritual,Ability to heal or to balance disturbed energies in self and others
 PersonalandPsychic[11],PersonalandPsychic11,PersonalandPsychic,spiritual11,spiritual,Ability to see auras
 PersonalandPsychic[12],PersonalandPsychic12,PersonalandPsychic,spiritual12,spiritual,Feeling able to influence another's mind or know the contents of their mind
-PersonalandPsychic[13],PersonalandPsychic13,PersonalandPsychic,spiritual13,spiritual,"Encounters with nonmaterial entities(the deceased, lower astral beings, aliens, spirit guides)"
+PersonalandPsychic[13],PersonalandPsychic13,PersonalandPsychic,spiritual13,spiritual,"Encounters with non-material entities(the deceased, lower astral beings, aliens, spirit guides)"
 PersonalandPsychic[14],PersonalandPsychic14,PersonalandPsychic,spiritual14,spiritual,Out of body experiences
 PersonalandPsychic[15],PersonalandPsychic15,PersonalandPsychic,spiritual15,spiritual,Astral/time travel experiences
 PersonalandPsychic[16],PersonalandPsychic16,PersonalandPsychic,spiritual16,spiritual,Near death experiences
@@ -65,7 +65,7 @@ PsyPhyList[9],PsyPhyList9,PsyPhyList,psyphys9,psyphys,Sensations of energy along
 PsyPhyList[10],PsyPhyList10,PsyPhyList,psyphys10,psyphys,Loss of body awareness
 PsyPhyList[11],PsyPhyList11,PsyPhyList,psyphys11,psyphys,Visions of light
 PsyPhyList[12],PsyPhyList12,PsyPhyList,psyphys12,psyphys,Floating in the light
-PsychicSymptoms[1],PsychicSymptoms1,PsychicSymptoms,psychic1,psychic,Precognition: A sense of â€œknowingâ€ or foretelling of events before they occur
+PsychicSymptoms[1],PsychicSymptoms1,PsychicSymptoms,psychic1,psychic,Precognition: A sense of “knowing” or foretelling of events before they occur
 PsychicSymptoms[2],PsychicSymptoms2,PsychicSymptoms,psychic2,psychic,Telepathy: Communication from one mind to another by extrasensory means
 PsychicSymptoms[3],PsychicSymptoms3,PsychicSymptoms,psychic3,psychic,Clairvoyance: Having or claiming to have the power of seeing objects or actions beyond the range of natural vision
 PsychicSymptoms[4],PsychicSymptoms4,PsychicSymptoms,psychic4,psychic,Psychokinesis: Movement of physical objects by the mind without use of physical means
@@ -252,13 +252,13 @@ PsychoBlissList[11],PsychoBlissList11,PsychoBlissList,psybliss11,psybliss,Feelin
 PsychoBlissList[12],PsychoBlissList12,PsychoBlissList,psybliss12,psybliss,A floaty or spacey sensation
 PsychoBlissList[13],PsychoBlissList13,PsychoBlissList,psybliss13,psybliss,Devotional focus
 PsychoBlissList[14],PsychoBlissList14,PsychoBlissList,psybliss14,psybliss,Increased capacity for love and forgiveness
-PsychoBlissList[15],PsychoBlissList15,PsychoBlissList,psybliss15,psybliss,Emotional balance in perturbed conditons
+PsychoBlissList[15],PsychoBlissList15,PsychoBlissList,psybliss15,psybliss,Emotional balance in perturbed conditions
 PsychoBlissList[16],PsychoBlissList16,PsychoBlissList,psybliss16,psybliss,Special talents
 PsychoBlissList[17],PsychoBlissList17,PsychoBlissList,psybliss17,psybliss,Increased self-actualizing traits
 PsychoBlissList[18],PsychoBlissList18,PsychoBlissList,psybliss18,psybliss,Increased belief in the divine or One
 PsychoBlissList[19],PsychoBlissList19,PsychoBlissList,psybliss19,psybliss,Increased maturation of the personality
 PsychoBlissList[20],PsychoBlissList20,PsychoBlissList,psybliss20,psybliss,Increased clarity of self and values
-PsychoBlissList[21],PsychoBlissList21,PsychoBlissList,psybliss21,psybliss,Increased beief in the unity of humanity
+PsychoBlissList[21],PsychoBlissList21,PsychoBlissList,psybliss21,psybliss,Increased belief in the unity of humanity
 PsychoBlissList[22],PsychoBlissList22,PsychoBlissList,psybliss22,psybliss,Increased tolerance and balance
 PsychoBlissList[23],PsychoBlissList23,PsychoBlissList,psybliss23,psybliss,Increase ability to see the underlying point of things
 PsychoBlissList[24],PsychoBlissList24,PsychoBlissList,psybliss24,psybliss,Increased creativity

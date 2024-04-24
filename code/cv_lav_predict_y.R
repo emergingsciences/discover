@@ -79,7 +79,10 @@ cv.lavPredictYReg <- function(fit, data, xnames, ynames, n.folds = 10, lambda.se
   
   # Perform parallel processing for cross-validation
   cl <- makeCluster(detectCores())  # Use all available cores
-  clusterExport(cl, c("xnames", "ynames", "sem", "lavPredictYreg", "lavData", "lav_data_full", "lav_dataframe_vartable", "lav_data_missing_patterns", "lav_predict_y_conditional_mean"))  # Export necessary functions
+  clusterExport(
+    cl,
+    c("xnames", "ynames", "sem", "lavPredictYreg", "lavData", "lav_data_full", "lav_dataframe_vartable", "lav_data_missing_patterns", "lav_predict_y_conditional_mean")
+  )  # Export necessary functions
   fold_results <- parLapply(cl, 1:n.folds, cv_fold)
   stopCluster(cl)
   

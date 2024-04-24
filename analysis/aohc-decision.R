@@ -2,9 +2,6 @@
 #
 # Decision tree analysis
 
-
-
-
 grepmatch = "psychic\\d+|talents\\d+|invmov\\d+|sensation\\d+|negphysical\\d+|otherphysical\\d+|negpsych\\d+|psybliss\\d+|psygrowth\\d+"
 data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch)
 

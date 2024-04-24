@@ -37,12 +37,12 @@ names(raw_survey_results.df) <- gsub(".", "", names(raw_survey_results.df), fixe
 # Extract only relevant fields based on flag
 if(isTRUE(generateLevel2)) {
   extract.df <- raw_survey_results.df[,grepl(
-    'id|token|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$|MysticalText$|SpExOpenText$|PsychicOpenText$|TalentsOpenText$|PEFeelingsSensOpenT$|PEIllnessDisOpenText$|PsyGrowthOpenText$|PsyBlissOpenText$'
+    'id|token|Country$|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$|MysticalText$|SpExOpenText$|PsychicOpenText$|TalentsOpenText$|PEFeelingsSensOpenT$|PEIllnessDisOpenText$|PsyGrowthOpenText$|PsyBlissOpenText$'
     , names(raw_survey_results.df
   ))]  
 } else {
   extract.df <- raw_survey_results.df[,grepl(
-    'id|token|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$'
+    'id|token|Country|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$'
     , names(raw_survey_results.df
   ))]    
 }
@@ -96,6 +96,7 @@ names(extract.df) <- gsub("PsyGrowthList", "psygrowth", names(extract.df), fixed
 # Non-likert responses
 names(extract.df)[names(extract.df) == 'CurrentAge'] <- 'age'
 names(extract.df)[names(extract.df) == 'Sex'] <- 'sex'
+names(extract.df)[names(extract.df) == 'Country'] <- 'country'
 
 # Rename the gate questions
 names(extract.df)[names(extract.df) == 'PEGate'] <- 'pe.gate'
@@ -134,10 +135,10 @@ if(isTRUE(generateLevel2)) {
 # Data Cleanup ----
 
 # Remove rows with missing values in the "Age" column
-# print(paste("Initial row count is ", nrow(extract.df)))
-# extract.df[is.na(extract.df$mystical1), ]
-# extract.df <- extract.df[!is.na(extract.df$mystical1), ]
-# print(paste("After scrubbing data rows with missing values, the row count is ", nrow(extract.df)))
+print(paste("Initial row count before age cleanup is ", nrow(extract.df)))
+nrow(extract.df[extract.df$age < 18, ])
+extract.df <- extract.df[extract.df$age >= 18, ]
+print(paste("After scrubbing data rows with missing values, the row count is ", nrow(extract.df)))
 
 
 ## Clean up ungated questions ----

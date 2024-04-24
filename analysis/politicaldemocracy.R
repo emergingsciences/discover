@@ -1,9 +1,16 @@
-
 library(lavaan)
 library(semPlot)
 library(glmnet)
 
+library(glmnet)
+source(paste0(getwd(), "/code/lav_predict_y_reg.R"))
+source(paste0(getwd(), "/code/cv_lav_predict_y.R"))
+source(paste0(getwd(), "/code/lav_data_patterns.R"))
+source(paste0(getwd(), "/code/lav_data.R"))
+source(paste0(getwd(), "/code/lav_dataframe.R"))
+
 data(PoliticalDemocracy)
+pd <- PoliticalDemocracy
 colnames(PoliticalDemocracy) = c("z1", "z2", "z3", "z4", "y1", "y2", "y3", "y4", "x1", "x2", "x3")
 head(PoliticalDemocracy)
 

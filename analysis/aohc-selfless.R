@@ -37,7 +37,15 @@ mod <- paste0(mod, "\n", 'g ~ selfless')
 cfa_selfless <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
 cfa_selfless <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
 # modindices(cfa, sort = TRUE)
-fitMeasures(cfa_selfless, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+
+clipr::write_clip(fitMeasures(cfa_selfless, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
+stats <- fitMeasures(cfa_selfless, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 3))),
+                          ", TLI = ", gsub("^0", "", as.character(round(stats[2], 3))),
+                          ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
+                          ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
+), collapse = ""))
+
 summary(cfa_selfless, fit.measures = TRUE, standardized = TRUE)
 lavaanPlot(model = cfa_selfless, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 lavInspect(cfa_selfless, "cov.lv")
@@ -71,8 +79,8 @@ source(paste0(getwd(), "/code/lav_dataframe.R"))
 # plot(regsem.res, show.minimum="BIC")
 
 ypred_results <- ses.pred_kfold(
-  data.num,
-  # data.num[sample(nrow(data.num), 200),],
+  # data.num,
+  data.num[sample(nrow(data.num), 200),],
   mod,
   n.folds = 10,
   reps = 100,
@@ -81,6 +89,7 @@ ypred_results <- ses.pred_kfold(
   lambda.seq = seq(from = 0, to = 2, by = .2)
 )
 # saveRDS(ypred_results, file = "outputs/temp.rds")
+# saveRDS(ypred_results, file = "outputs/selfless-unityconsc-n200-fullhcmodel.rds")
 
 # n = 50, Full HC/Selflessness model, predicting unityconsc only by seflessness
 ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n50-fullhcmodel.rds")
@@ -141,7 +150,7 @@ ggplot(ypred_results, aes(x = model, y = rmsep, fill = factor(model))) +
   scale_fill_grey(start = 0.3, end = 0.7)
 
 
-
+## Predict HC based on values of Selflessness ----
 ypred_item_results <- ses.pred_item_kfold(
   data.num,
   # data.num[sample(nrow(data.num), 200),],
@@ -153,14 +162,14 @@ ypred_item_results <- ses.pred_item_kfold(
   lambda.seq = seq(from = 0, to = 2, by = .2)
 )
 
-saveRDS(ypred_item_results, file = "outputs/ITEM_selfless-unityconsc-n500-fullhcmodel.rds")
-# ypred_item_results <- readRDS(file = "outputs/ITEM_selfless-unityconsc-n50-fullhcmodel.rds")
+# saveRDS(ypred_item_results, file = "outputs/ITEM_selfless-unityconsc-n494-fullhcmodel.rds")
+ypred_item_results <- readRDS(file = "outputs/ITEM_selfless-unityconsc-n494-fullhcmodel.rds")
 
 ggplot(ypred_item_results$results, aes(x = factor(model), y = rmsep, fill = factor(model))) +
   geom_boxplot(fill = "grey", aes(group = factor(model))) +
   geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
   scale_x_discrete(labels=c("UnityConsc", "Bliss", "Insight", "Energy", "Light")) +
-  xlab("Data set") +
+  xlab("Factor") +
   ylab("RMSEp") +
   theme(legend.position="none") + # , axis.title.x=element_blank(), axis.text.x=element_blank()
   scale_fill_grey(start = 0.3, end = 0.7)
@@ -168,7 +177,7 @@ ggplot(ypred_item_results$results, aes(x = factor(model), y = rmsep, fill = fact
 # Get the number of matrices in the list
 num_matrices <- length(ypred_item_results$predictions)
 # Initialize a matrix to store the sum of all predictions
-summed_matrix <- matrix(0, nrow = nrow(ypred_item_results$predictions[[1]]), ncol = ncol(ypred_results$predictions[[1]]))
+summed_matrix <- matrix(0, nrow = nrow(ypred_item_results$predictions[[1]]), ncol = ncol(ypred_item_results$predictions[[1]]))
 # Sum all matrices element-wise
 for (i in 1:num_matrices) {
   summed_matrix <- summed_matrix + ypred_item_results$predictions[[i]]
@@ -232,7 +241,7 @@ ggplot(self_results, aes(x=model, y=cfi, fill=factor(model))) +
   theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
   scale_fill_grey(start=.3,end=.7)
 
-round(quantile(results[,"cfi"], c(0.025, .5, 0.975)), 2)
+round(quantile(self_results[,"cfi"], c(0.025, .5, 0.975)), 2)
 
 ggplot(self_results, aes(x=model, y=tli, fill=factor(model))) +
   geom_boxplot(fill = "grey", aes(group = factor(model))) + 
@@ -241,7 +250,7 @@ ggplot(self_results, aes(x=model, y=tli, fill=factor(model))) +
   theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
   scale_fill_grey(start=.3,end=.7)
 
-round(quantile(results[,"tli"], c(0.025, .5, 0.975)), 2)
+round(quantile(self_results[,"tli"], c(0.025, .5, 0.975)), 2)
 
 ggplot(self_results, aes(x=model, y=rmsea, fill=factor(model))) +
   geom_boxplot(fill = "grey", aes(group = factor(model))) + 
@@ -324,12 +333,12 @@ cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
 parameterestimates(cfa, standardized = T)
 formatLoading <- function(num) { sub("^0+", "", sprintf("%.2f", num)) } # No leading spaces, 2 decimal places
 for(i in 1:32) {
-  bootci <- boot.ci(boot.self, type = "bca", index=i)
+  bootci <- boot.ci(boot.selfless.params, type = "bca", index=i)
   print(paste0(
     parameterestimates(cfa)$lhs[i],
     parameterestimates(cfa)$op[i],
     parameterestimates(cfa)$rhs[i], ": ",
-    formatLoading(boot.self$t0[i]),
+    formatLoading(boot.selfless.params$t0[i]),
     " [", formatLoading(bootci$bca[4]), ", ", formatLoading(bootci$bca[5]), "]"
   ))
 }

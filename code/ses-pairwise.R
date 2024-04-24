@@ -17,4 +17,4 @@ pairwiseCor <- function(data.num){
   pairwiseCorDF
 }
 
-df <- pairwiseCor(data.num)
+df <- pairwiseCor(data.num[1:5])

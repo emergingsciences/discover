@@ -19,14 +19,14 @@ Scrubbed, anonymized, and encrypted respondent data files are available upon req
 
 These scripts produce the primary analysis output for the Discover project. Each script is designed to be run independently and should be self-contained:
 
-- `aohc.R` - **Aspects of Higher Consciousness research paper analysis**. Analysis relevant to the Aspects of Higher Consciousness research paper.
-- `aohc-predict.R` - **RO-SEM and AOHC**. RO-SEM analysis from the Aspects of Higher Consciousness research paper.
+- `aohc.R` - **Aspects of Higher Consciousness research paper analysis**. Analysis for the Aspects of Higher Consciousness research paper.
+- `aohc-selfless.R` - **Selflessness and HC Analysis**. SEM and predictive RO-SEM analysis from the Aspects of Higher Consciousness research paper.
 - `politicaldemocracy.R` - **RO-SEM Political Democracy Empirical Example**. RO-SEM example from the Aspects of Higher Consciousness research paper.
-- `pbs.R` - **Personal Background Survey Analysis Script**. Analysis for the Personal Background Survey.
 - `ses-import.R` - **Spiritual Experience Survey Import Script**. Import functions for the SES survey directly from LimeSurvey
+- `pbs.R` - **Personal Background Survey Analysis Script**. Initial analysis for the Personal Background Survey (in progress).
 
 ## Code Scripts
 
 These scripts contain utility and helper functions for primary scripts. These scripts are not meant to be run by themselves:
 
-- `ses-utility.R` - **Spiritual Experience Survey LCA and Factor Analysis Script Helper Functions**. Utility functions for loading data and replace question codes with question text.
+- `ses-utility.R` - **Spiritual Experience Survey Helper Functions**. Utility functions for loading data and replace question codes with question text for the spiritual experience survey.
