@@ -156,29 +156,35 @@ scree(data.num[efa_idx,])
 # Horn’s parallel analysis
 # Horn, J.L. A rationale and test for the number of factors in factor analysis. Psychometrika 30, 179–185 (1965). https://doi.org/10.1007/BF02289447
 # Dinno, A. (2009). Exploring the sensitivity of Horn's parallel analysis to the distributional form of random data. Multivariate behavioral research, 44(3), 362-388.
-par.fa <- fa.parallel(x = data.num[efa_idx,], cor = "poly", fa = "fa", fm = "pa", sim = TRUE, n.iter=50)
-# saveRDS(par.fa, file = "outputs/priexp.fa.parallel.rds") # 50 iter
+par.fa <- fa.parallel(x = data.num[efa_idx,], fa = "both", fm = "pa", n.iter = 1000, SMC = TRUE)
+# saveRDS(par.fa, file = "outputs/priexp.fa.parallel.rds") # 1000 iter, pearson
 par.fa <- readRDS(file = "outputs/priexp.fa.parallel.rds")
-par.fa # Indicates 6 factors
-# par.pc <- fa.parallel(x = data.num, cor = "poly", fa = "pc", n.iter=20)
+par.fa # Indicates 5 factors
+
+CD(data.num[efa_idx,], max_iter = 1000) # 5 factors
 
 # Revelle’s Very Simple Structure
 # Revelle, W., & Rocklin, T. (1979). Very simple structure: An alternative procedure for estimating the optimal number of interpretable factors. Multivariate behavioral research, 14(4), 403-414.
-vss(data.num[efa_idx,]) # 8 or 6 factors
+vss(data.num[efa_idx,], cor = "poly", fm="pa") # VSS1 = 1, VSS2 = 2, MAP = 7
 
 ## Experience Item ICLUST ----
 # Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
-pchor <- polychoric(data.num)
-# iclust <- iclust(pchor$rho, beta.min = 0.99, n.iterations = 20, purify = TRUE, nclusters = 8)
-iclust <- iclust(data.num[train,])
-ICLUST.graph(iclust)
+pchor <- polychoric(ses.get.questiontext(data.num[efa_idx,])) # Polychoric question text
+pchor <- polychoric(data.num[efa_idx,]) # Polychoric question code
+iclust <- iclust(pchor$rho) # polychoric
+
+iclust <- iclust(data.num[efa_idx,]) # Question code
+iclust <- iclust(ses.get.questiontext(data.num[efa_idx,])) # Question text
+
+iclust.diagram(iclust) # Hard to read diagram (but native to R environment)
+ICLUST.graph(iclust) # For external "dot" language application, e.g., https://dreampuf.github.io/GraphvizOnline/
 
 #
 ## Factor Extraction ----
 #
 
 fa.res <- fa(r = data.num[efa_idx,],
-  nfactors = 6,
+  nfactors = 5,
   fm = "pa",
   rotate = "oblimin",
   cor = "poly",
@@ -279,6 +285,7 @@ cfa <- cfa(hc.mod, data=data.num[cfa_idx,], std.lv = TRUE, ordered = F, estimato
 cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV")
 cfa <- cfa(hc.mod, data=data.num, ordered = F, estimator = "MLR")
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
 
 clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
 stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
@@ -656,6 +663,9 @@ cfa <- cfa(mod, data=data.num[cfa_idx,], std.lv = TRUE, ordered = F, estimator =
 cfa <- cfa(mod, data=data.num, std.lv = TRUE, ordered = T, estimator = "WLSMV")
 cfa <- cfa(mod, data=data.num, std.lv = TRUE, ordered = F, estimator = "MLR")
 
+lavResiduals(cfa)
+modindices(cfa, sort = TRUE)
+
 fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 
 clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
@@ -677,7 +687,6 @@ semTools::compRelSEM(cfa, higher = "g", ord.scale=T) # As of 12/7/23 requires de
 ### Factor Covariance matrix ----
 lavInspect(cfa, "cov.lv")
 cov2cor(lavInspect(cfa, what = "est")$psi)
-
 
 ### Create correlational model to understand predictive relationship ----
 # Create composite variables

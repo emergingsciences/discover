@@ -1,6 +1,9 @@
 # aohc-cluster.R
 
 library(mclust)
+library(lavaan)
+library(reshape2)
+library(ggplot2)
 
 data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+|psybliss\\d+|*.gate'))
 gate.questions <- names(data.num[ , grepl("*.gate", names(data.num))]) # Confirm gate questions
@@ -122,7 +125,6 @@ clipr::write_clip(min_max_factor_scores)
 #
 # Primary cluster visualization
 #
-library(reshape2)
 melted <- melt(results[ , c("CLUST", "unityconsc", "bliss", "insight", "energy", "light")], id="CLUST")
 levels(melted[, "variable"]) <- c("Unity-Consciousness", "Bliss", "Insight", "Somatic Energy Sens.", "Luminosity")
 
