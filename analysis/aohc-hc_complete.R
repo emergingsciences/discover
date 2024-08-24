@@ -27,7 +27,7 @@ tree.set$CLUST <- factor(tree.set$CLUST, levels = c(1, 0), labels = c("HCC", "No
 
 table(tree.set$CLUST)
 
-# Convert all columns to factors
+# Convert all columns to factors (or numeric)
 col_names <- names(subset(tree.set, select = -c(CLUST)))
 # tree.set[,col_names] <- lapply(tree.set[,col_names] , factor) # Change to factor
 tree.set[,col_names] <- lapply(tree.set[,col_names] , as.numeric) # Change to numeric
@@ -47,6 +47,7 @@ ctrl <- trainControl(method = "repeatedcv",   # Cross-validation
 
 # Perform hyperparameter tuning using train function
 # set.seed(1234567)
+library(caret)
 tree_model <- train( CLUST ~ ., 
                     data = tree.set,
                     method = "rpart",

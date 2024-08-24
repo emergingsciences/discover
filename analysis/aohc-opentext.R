@@ -28,7 +28,7 @@ otdata <- data.frame(id = ses.data$id, ses.data[, grepl("text", names(ses.data))
 # "Table of contents" ID's
 ids <- NULL
 for (i in seq_len(nrow(otdata))) {
-  if(otdata[i, "CLUST"] == 3)
+  if(otdata[i, "CLUST"] == 4)
     ids <- paste0(ids, "<a href=\"#", ses.data$id[i], "\">", ses.data$id[i], "</a><br>")
 }
 
@@ -37,7 +37,7 @@ contents <- paste0(contents, ids)
 opentext <- NULL
 # Open text responses
 for (i in seq_len(nrow(otdata))) {
-  if(otdata[i, "CLUST"] == 3) {
+  if(otdata[i, "CLUST"] == 4) {
     opentext <- paste0(opentext, "<h1><a id=\"", otdata$id[i], "\">", otdata$id[i], "</a></h1><br>")
     for (col_name in text_columns) {
       if (!is.na(otdata[i, col_name])) {

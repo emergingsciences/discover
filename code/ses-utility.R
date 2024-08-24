@@ -239,16 +239,86 @@ ses.qgroup <- function(fname = "", grepmatch = "", parallel = F, nfactors = NULL
 ses.regsem <- function(grepmatch, hc.mod, data, n.lambda, jump) {
   mod <- hc.mod # Start with the HC model
   all.vars <- paste('g ~', colnames(data[,grepl(grepmatch, names(data))]),collapse="\n")
+  
   mod <- paste(mod, all.vars)
+  print(paste("Model: ", mod))
   reg.mod <- mod
   reg.mod <- paste0(reg.mod, "\n", 'g =~ NA*unityconsc + bliss + insight + energy + light')
   reg.mod <- paste0(reg.mod, "\n", 'g ~~ 1*g')
-  cfa <- cfa(reg.mod, data=as.data.frame(scale(data)))
+  cfa <- cfa(reg.mod, data=as.data.frame(scale(data)), orthogonal = F)
   summary(cfa, fit.measures = TRUE, standardized = TRUE)
   reg.out <- cv_regsem(cfa,n.lambda=n.lambda,jump=jump,type="alasso",pars_pen="regressions")
   plot(reg.out)
   summary(reg.out)
   return(as.data.frame(reg.out$final_pars))
+}
+
+ses.kfold <- function(dats, n.folds, reps, mod){
+  print(paste("Model: ", mod))
+  print(paste("Record count: ", nrow(dats)))
+  
+  results <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c(
+    "model", "cfi", "tli", "rmsea", "srmr")
+  )))     
+  
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
+  r <- 1
+  
+  while(r <= reps) {
+    folds = sample(folds) # Random permutation
+    print(paste("Repetition",r))
+    
+    repetition_success <- TRUE
+    
+    fold_results <- results
+    for (i in 1:n.folds){
+      indis <- which(folds == i)
+      print(paste("Fitting on fold with", length(indis), "rows"))
+      
+      repetition_success <- tryCatch(
+        {
+          # cfa.fit <- cfa(mod, data=dats[indis,], ordered = F, std.lv = T, estimator = "MLR")
+          cfa.fit <- cfa(mod, data=dats[indis,], ordered = F, std.lv = T, estimator = "MLR")
+          
+          if (lavInspect(cfa, "converged")) {
+            fit.df <- data.frame(
+              model = "HC",
+              cfi = fitmeasures(cfa.fit, "cfi.robust"),
+              tli = fitmeasures(cfa.fit, "tli.robust"),
+              rmsea = fitmeasures(cfa.fit, "rmsea.robust"),
+              srmr = fitmeasures(cfa.fit, "srmr")
+            )
+            
+            fold_results <- rbind(fold_results, fit.df)
+            rownames(fold_results) = NULL
+            TRUE
+          }
+          else {
+            print(e)
+            print("Model did not converge. Repeating the current repetition.")
+            FALSE
+          }
+        }, warning = function(e) {
+          print(e)
+          print("Warning during model fitting. Repeating the current repetition.")
+          TRUE
+        }, error = function(e) {
+          print(e)
+          print("Error in model fitting. Repeating the current repetition.")
+          FALSE
+        }) # end tryCatch
+      
+      if (!repetition_success) break
+    } # end for loop of folds
+    
+    if (repetition_success) {
+      results <- fold_results
+      r <- r + 1
+    }    
+    
+  } # end while loop of repetitions
+  
+  return(as.data.frame(results))
 }
 
 # Out of sample K-Fold

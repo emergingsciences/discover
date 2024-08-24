@@ -1,0 +1,46 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" version="24.7.4">
+  <diagram name="Page-1" id="dr9Uk3nCPjlB4TuZvgj0">
+    <mxGraphModel dx="993" dy="549" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="_FmUEWon3FLA9fXgrObl-9" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;" parent="1" vertex="1">
+          <mxGeometry x="45" y="375" width="565" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-10" value="Mystical, Unitive, Non-Dual, Void, and Pure Awareness&lt;br style=&quot;font-size: 16px;&quot;&gt;Experiences" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="160" y="415" width="230" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-6" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;" parent="1" vertex="1">
+          <mxGeometry x="45" y="500" width="565" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-8" value="Ordinary Consciousness" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="245" y="540" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-11" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;" parent="1" vertex="1">
+          <mxGeometry x="45" y="250" width="565" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-12" value="Consciousness&lt;br style=&quot;font-size: 16px;&quot;&gt;Inversion" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="245" y="290" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-5" value="" style="shape=singleArrow;direction=north;whiteSpace=wrap;html=1;arrowWidth=0.7419998168945312;arrowSize=0.18458334604899088;gradientColor=#B3B3B3;gradientDirection=west;" parent="1" vertex="1">
+          <mxGeometry x="20" y="150" width="140" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-19" value="" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0.6;dx=40;direction=north;notch=0;gradientColor=#B3B3B3;gradientDirection=west;strokeColor=default;" parent="1" vertex="1">
+          <mxGeometry x="404" y="270" width="70" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-21" value="Luminosity Experiences" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="501" y="554" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-23" value="Somatic Energy Sensations" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=13;" parent="1" vertex="1">
+          <mxGeometry x="404" y="554" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-25" value="Spectrum of Higher Consciousness Experiences" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;direction=east;horizontal=0;fontSize=16;fontStyle=1" parent="1" vertex="1">
+          <mxGeometry x="60" y="220" width="60" height="395" as="geometry" />
+        </mxCell>
+        <mxCell id="_FmUEWon3FLA9fXgrObl-26" value="" style="html=1;shadow=0;dashed=0;align=center;verticalAlign=middle;shape=mxgraph.arrows2.arrow;dy=0.6;dx=40;direction=north;notch=0;gradientColor=#B3B3B3;gradientDirection=west;strokeColor=default;" parent="1" vertex="1">
+          <mxGeometry x="496" y="270" width="70" height="270" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
