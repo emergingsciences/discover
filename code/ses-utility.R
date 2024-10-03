@@ -399,6 +399,64 @@ ses.pred_kfold <- function(dats, mod, n.folds, reps, xnames, ynames, lambda.seq)
 }
 
 
+ses.pred_item_kfold <- function(dats, mod, n.folds, reps, xnames, ynames, lambda.seq) {
+  # Create a data frame to hold results
+  results <- data.frame(variable = character(),
+                        actual_value = numeric(),
+                        predicted_value = numeric(),
+                        fold = integer(),
+                        repetition = integer(),
+                        stringsAsFactors = FALSE)
+  
+  # List to store RMSEp per iteration
+  rmsep_list <- list()
+  
+  # Prepare folds for cross-validation
+  folds = rep(1:n.folds, length.out = nrow(dats)) 
+  
+  for (r in 1:reps) {
+    folds = sample(folds)  # Random permutation
+    print(paste("Repetition", r))
+    
+    yhat <- matrix(NA, nrow(dats), length(ynames))  # Predictions matrix for RO-SEM
+    
+    for (i in 1:n.folds) {
+      indis <- which(folds == i)
+      
+      # RO-SEM Approach
+      cfa <- sem(mod, data = dats[-indis,], ordered = FALSE, estimator = "MLR", meanstructure = TRUE)
+      reg.results <- cv.lavPredictYReg(cfa, dats[-indis,], xnames, ynames, n.folds = 10, lambda.seq = lambda.seq)
+      lambda <- reg.results$lambda.min
+      print(paste("lambda.min: ", lambda))
+      yhat[indis, ] <- lavPredictYreg(cfa, newdata = dats[indis,], xnames = xnames, ynames = ynames, lambda = lambda)            
+    }
+    
+    # Store actual and predicted values in the results data frame
+    for (j in seq_along(ynames)) {
+      var_name <- ynames[j]
+      actual_values <- dats[, var_name]
+      predicted_values <- yhat[, j]
+      
+      # Store each iteration’s results
+      results <- rbind(results, data.frame(variable = var_name,
+                                           actual_value = actual_values,
+                                           predicted_value = predicted_values,
+                                           fold = folds,  # Track fold
+                                           repetition = r,  # Track repetition
+                                           stringsAsFactors = FALSE))
+      
+      # Calculate RMSEp for this fold/repetition
+      rmse_p <- sqrt(mean((actual_values - predicted_values)^2))
+      rmsep_list[[length(rmsep_list) + 1]] <- rmse_p  # Add RMSEp to list
+    }
+  }
+  
+  # Return the RMSEp values and the prediction results
+  rmsep_df <- data.frame(rmsep = unlist(rmsep_list))
+  rownames(results) <- NULL
+  return(list(results = results, rmsep = rmsep_df))
+}
 
-# To get results to clipboard
-# clipr::write_clip(results)
+
+
+

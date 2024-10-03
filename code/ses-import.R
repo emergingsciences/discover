@@ -16,7 +16,7 @@ library(digest)
 #
 # Level 1 - Likert responses and minor text fields
 # Level 2 - All data contained in the Level 2 file plus all open text responses
-generateLevel2 <- TRUE
+generateLevel2 <- FALSE
 
 # 'data' now contains all data
 
@@ -28,24 +28,37 @@ raw_survey_results.df <- data
 rm(data)
 
 # Read in output file from LimeSurvey (question codes and answer codes)
-raw_survey_results.df <- read.csv("data/ses-results-raw.csv", na.strings = "")
+# raw_survey_results.df <- read.csv("data/ses-results-raw.csv", na.strings = "")
 var.names <- read.csv("data/ses-vars.csv", stringsAsFactors = FALSE)
 
 # Remove "." characters in column names. R has problems with these
 names(raw_survey_results.df) <- gsub(".", "", names(raw_survey_results.df), fixed = TRUE)
 
+# Also remove underscores from all column names
+colnames(raw_survey_results.df) <- gsub("_", "", colnames(raw_survey_results.df))
+
 # Extract only relevant fields based on flag
 if(isTRUE(generateLevel2)) {
   extract.df <- raw_survey_results.df[,grepl(
     'id|token|Country$|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$|MysticalText$|SpExOpenText$|PsychicOpenText$|TalentsOpenText$|PEFeelingsSensOpenT$|PEIllnessDisOpenText$|PsyGrowthOpenText$|PsyBlissOpenText$'
-    , names(raw_survey_results.df
-  ))]  
+    , names(raw_survey_results.df)
+    )]  
 } else {
   extract.df <- raw_survey_results.df[,grepl(
     'id|token|Country|CurrentAge$|Sex$|MysticalSymptoms\\d+|PersonalandPsychic\\d+|TalentsSymptoms\\d+|PsyPhyList\\d+|PsychicSymptoms\\d+|PEInvMovSymptoms\\d+|PEFeelaSenseList\\d+|PEIlloDisSymptoms\\d+|PEOtherBehavSymp\\d+|PsyGrowthList\\d+|NegPsyEffList\\d+|PsychoBlissList\\d+|Gate$'
-    , names(raw_survey_results.df
-  ))]    
+    , names(raw_survey_results.df)
+    )]    
 }
+
+# Exclude columns that also contain "Questiontime" before "Gate"
+extract.df <- extract.df[,!grepl("Questiontime", names(extract.df))]
+
+# Encrypt each value in the "token" column using sha256
+extract.df$id <- sapply(extract.df$token, function(x) substr(digest(x, algo = "sha256"), 0, 8))
+extract.df <- extract.df[order(extract.df$id),]
+
+drops <- c("token")
+extract.df <- extract.df[ , !(names(extract.df) %in% drops)]
 
 
 #
@@ -66,8 +79,8 @@ likert.levels <- c('Not at all', 'Very Weak/low intensity', 'Weak', 'Moderate', 
 require(plyr)
 extract.df[,likert.names] <- lapply(extract.df[,likert.names], function(x) {
   x <- mapvalues(x,
-            from=c("L001","L002","L003", "L004", "L005", "L006"),
-            # from=likert.levels,
+            # from=c("L001","L002","L003", "L004", "L005", "L006"),
+            from=likert.levels,
             to=c(1, 2, 3, 4, 5, 6)
   )
 
@@ -112,7 +125,7 @@ matching_gate <- grepl("*.\\.gate", names(extract.df))
 require(plyr)
 extract.df[,matching_gate] <- lapply(extract.df[,matching_gate], function(x) {
   x <- mapvalues(x,
-                 from=c("Y", "N"),
+                 from=c("Yes", "No"),
                  to=c(1, 2)
   )
   return(x)
@@ -134,31 +147,29 @@ if(isTRUE(generateLevel2)) {
 
 # Data Cleanup ----
 
-# Remove rows with missing values in the "Age" column
-print(paste("Initial row count before age cleanup is ", nrow(extract.df)))
-nrow(extract.df[extract.df$age < 18, ])
+# Remove rows with age < 18
+print(paste("Initial row count before age cleanup is", nrow(extract.df)))
+
+# Count how many rows have age < 18
+under_18_count <- nrow(extract.df[extract.df$age < 18, ])
+print(paste(under_18_count, "rows have age < 18 and will be removed."))
+
+# Remove rows with age < 18
 extract.df <- extract.df[extract.df$age >= 18, ]
-print(paste("After scrubbing data rows with missing values, the row count is ", nrow(extract.df)))
+print(paste("After removing rows with age < 18, the row count is", nrow(extract.df)))
 
 
-## Clean up ungated questions ----
+## Clean up ungated / primary questions ----
 grepmatch = "mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+|talents\\d+"
 
-missing_values_rows <- extract.df[ # Will contain complete rows with missing values from gated questions
-  !complete.cases(extract.df[,grepl(grepmatch, names(extract.df))])  
-  ,]
-nrow(missing_values_rows) # Total rows with any NA values
+matching_cols <- grepl(grepmatch, names(extract.df))
 
-count_nas <- function(row) {
-  sum(is.na(row))
-}
+# Remove rows with any NA values in the matched columns
+cleaned_df <- extract.df[complete.cases(extract.df[, matching_cols]), ]
 
-print(paste("Rows prior to ungated corruption detection:", nrow(extract.df)))
-threshold <- 3
-corr_detect <- apply(extract.df[, grepl(grepmatch, names(extract.df))], 1, count_nas) <= threshold
-corrupted_rows <- extract.df[!corr_detect,]
-extract.df <- extract.df[corr_detect,]
-print(paste("Removed", nrow(corrupted_rows),"corrupted gated rows with",nrow(extract.df),"remaining"))
+nrow(cleaned_df)
+
+extract.df <- cleaned_df
 
 # For the ungated questions, code any NA values with 1
 matching_cols <- grep(grepmatch, names(extract.df), value = TRUE)
@@ -175,5 +186,6 @@ extract.df$psybliss.gate <- ifelse(extract.df$psybliss.gate == 2, 0, extract.df$
 extract.df.copy <- extract.df
 rownames(extract.df.copy) <- NULL # Don't need these
 dput(extract.df.copy, file = "data/ses-data.txt")
+write.csv(extract.df.copy, file = "data/ses-data.csv", quote = FALSE, row.names = FALSE)
 
 return(extract.df)

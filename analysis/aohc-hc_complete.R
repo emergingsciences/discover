@@ -3,6 +3,7 @@
 library(rpart)
 library(rpart.plot) # See: http://www.milbo.org/rpart-plot/prp.pdf
 library(plyr)
+library(caret)
 
 # Get predicted lavaan results
 # results <- pred
@@ -19,12 +20,9 @@ table(tree.set$CLUST)
 
 # Modify the CLUST column
 tree.set$CLUST <- ifelse(tree.set$CLUST == 4, 1, 0) # Be sure to check this!!! Set the cluster indicating HC Complete
-
 table(tree.set$CLUST)
-
 # Convert the CLUST column to a factor
 tree.set$CLUST <- factor(tree.set$CLUST, levels = c(1, 0), labels = c("HCC", "Not HCC"))
-
 table(tree.set$CLUST)
 
 # Convert all columns to factors (or numeric)
@@ -35,15 +33,14 @@ tree.set[,col_names] <- lapply(tree.set[,col_names] , as.numeric) # Change to nu
 
 # CP parameter tuning ----
 
-library(caret)
-
 # Define the tuning grid
-tuneGrid <- expand.grid(cp = seq(0.1, 0.002, by = -0.002))
+tuneGrid <- expand.grid(cp = seq(0.001, 0.3, by = 0.01))
 
 # Define the control parameters for cross-validation
+library(caret)
 ctrl <- trainControl(method = "repeatedcv",   # Cross-validation
-                     number = 7,     # 10 folds
-                     repeats = 50)   # 100 iterations
+                     number = 10,     # 10 folds
+                     repeats = 100)   # 100 iterations
 
 # Perform hyperparameter tuning using train function
 # set.seed(1234567)
@@ -56,7 +53,7 @@ tree_model <- train( CLUST ~ .,
                     # tuneLength = 1,
                     # model = tree,
                     # modelType = "rpart",
-                    control = rpart.control(minsplit = 7, maxdepth = 5)
+                    control = rpart.control(minsplit = 5, maxdepth = 6)
                     )
 
 # View the best model
@@ -87,9 +84,9 @@ tree.kfold<- function(model, dats, n.folds, reps){
       # Hyperparameter validation
       model <- rpart(CLUST~., data = tree.set[-indis,], method = "class", control =
         rpart.control(
-          cp = 0.02,
-          minsplit = 8,
-          maxdepth = 5
+          cp = 0.031, # use best value from x-val
+          minsplit = 5,
+          maxdepth = 6
         )
       )
             
@@ -112,8 +109,8 @@ tree.kfold<- function(model, dats, n.folds, reps){
 
 tree.kfold.results <- tree.kfold(NULL, tree.set, 10, 100)
 
-mean(tree.kfold.results$Kappa)
-mean(tree.kfold.results$Accuracy)
+round(mean(tree.kfold.results$Accuracy), 2)
+round(mean(tree.kfold.results$Kappa), 2)
 
 ggplot(tree.kfold.results, aes(x=model, y=Accuracy, fill=factor(model))) +
   geom_boxplot(fill = "grey", aes(group = factor(model))) + 
@@ -131,26 +128,27 @@ ggplot(tree.kfold.results, aes(x=model, y=Kappa, fill=factor(model))) +
 
 
 
+# Final decision tree model
+
 set.seed(12345678)
 
 percent <- 1 # Can be modified for crossvalidation
-test_idx <- sort(sample(x = nrow(tree.set), size = floor(percent*nrow(tree.set)), replace = F))
+train_idx <- sort(sample(x = nrow(tree.set), size = floor(percent*nrow(tree.set)), replace = F))
 
 # Hyperparameter tuning - https://medium.com/data-and-beyond/hyperparameter-tuning-and-pruning-more-about-k-means-clustering-in-r-with-rpart-9a405685a09b
-tree <- rpart(CLUST~., data = tree.set[test_idx,], method = "class", control =
+tree <- rpart(CLUST~., data = tree.set[train_idx,], method = "class", control =
                 rpart.control(
-                  cp = 0.02,
-                  minsplit = 8,
-                  maxdepth = 5
+                  cp = 0.031,
+                  minsplit = 5,
+                  maxdepth = 6
                 )
 )
 rpart.plot(tree, tweak = 1, box.palette = list('grey90', 'grey70', "grey60"))
 printcp(tree)
 plotcp(tree)
-# pruned_tree <- prune(tree, cp = .02)
-# tree <- pruned_tree
-predictions <- predict(tree, tree.set[test_idx,], type = "class") # Change to -test_idx for cross-validation
-confusionMatrix(predictions, tree.set[test_idx,]$CLUST) # Change to -test_idx for cross-validation
-summary(tree)
+# summary(tree)
+predictions <- predict(tree, tree.set[train_idx,], type = "class") # Change to -test_idx for cross-validation
+confusionMatrix(predictions, tree.set[train_idx,]$CLUST) # Change to -test_idx for cross-validation
+
 
 set.seed(NULL)

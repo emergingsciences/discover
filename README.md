@@ -1,10 +1,11 @@
+
 # Kundalini Discover
 
-Kundalini Discover is an R framework for the scientific investigation of Kundalini according to the Kundalini thesis as proposed by Gopi Krishna.
+Kundalini Discover is an R framework for the scientific investigation of the Kundalini thesis as proposed by Gopi Krishna. Scripts cover a wide range of analysis techniques including exploratory and confirmatory factor analysis, regularized SEM, predictive modeling, and machine learning.
 
 ## Getting Started
 
-Scrubbed, anonymized, and encrypted respondent data files are available upon request from the Emerging Sciences Foundation. After you receive the data files, decrypte them and place them in the `/data` directory.
+Anonymized respondent data is available at https://osf.io/et87y. Once downloaded, place them in the `/data` directory.
 
 ## Directory Structure and File Locations
 
@@ -12,7 +13,7 @@ Scrubbed, anonymized, and encrypted respondent data files are available upon req
 -   `/code` - Function definitions.
 -   `/data` - Source data, including survey responses.
 -   `/docker` - Docker configuration and scripts.
--   `/documents` - Documents and other relevant materials. E.g., reports, slides, or other relevant materials.
+-   `/documents` - Documents for supplemental materials, diagrams, etc.
 -   `/outputs` - All analysis output.
 
 ## Analysis Scripts

@@ -75,39 +75,48 @@ oneness =~ psybliss21 + psybliss18 + psybliss23
 altruism =~ pg30 + pg34 + pg35
 selfless =~ oneness + altruism
 
-# oneness =~ psybliss21 + psybliss18 + psybliss23
-# altruism =~ pg30 + pg34 + pg35
-# selfless =~ psybliss21 + psybliss18 + psybliss23 + pg30 + pg34 + pg35
-# selfless ~~ 0*oneness + 0*altruism
-# oneness ~~ 0*altruism
-
 g ~ selfless
 '
 mod <- paste0(mod, "\n", hc.HO)
 
-cfa_selfless <- cfa(mod, std.lv = T, data=data.num, ordered = F, estimator = "MLR")
-cfa_selfless <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
+cfa <- cfa(mod, std.lv = T, data=data.num, ordered = F, estimator = "MLR")
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
 
 # Confidence intervals for regression
 # Manually compute confidence intervals for standardized estimates
-std_estimates <- standardizedSolution(cfa_selfless)
+standardizedSolution(cfa, ci = TRUE, level = 0.95)
 
-summary(cfa_selfless, fit.measures = TRUE, standardized = TRUE)
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
 # modindices(cfa, sort = TRUE)
-lavaanPlot(model = cfa_selfless, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-lavInspect(cfa_selfless, "cov.lv")
-cov2cor(lavInspect(cfa_selfless, what = "est")$psi)
+lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
+lavInspect(cfa, "cov.lv")
+cov2cor(lavInspect(cfa, what = "est")$psi)
 
-clipr::write_clip(fitMeasures(cfa_selfless, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
-stats <- fitMeasures(cfa_selfless, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+# Table stats
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
+
+# Inline stats
+fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 3))),
                           ", TLI = ", gsub("^0", "", as.character(round(stats[2], 3))),
                           ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
                           ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
 ), collapse = ""))
 
-EFAtools::SL(cfa_selfless, g_name = "selfless") # Must have higher order factor 'g'
-EFAtools::OMEGA(cfa_selfless, g_name = "selfless") # Must have higher order factor 'g'
+EFAtools::SL(cfa, g_name = "selfless") # Must have higher order factor 'g'
+EFAtools::OMEGA(cfa, g_name = "selfless") # Must have higher order factor 'g'
 
 ## Model Cross-Validation ----
 
@@ -155,7 +164,18 @@ fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.sc
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
 # Output for table
-clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
 # Output for inline stats
 stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
@@ -200,16 +220,40 @@ cfa <- sem(mod, std.lv = F, data=data.num, ordered = T,
 fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
+# Output for table
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
+
+
 ## Selflessness Bifactor ----
 
+mod <- ' # Full bifactor
+oneness =~ psybliss21 + psybliss18 + psybliss23
+altruism =~ pg30 + pg34 + pg35
+g =~ psybliss21 + psybliss18 + psybliss23 + pg30 + pg34 + pg35
+'
+cfa <- cfa(mod, std.lv = F, data=data.num, ordered = F, estimator = "MLR", orthogonal = T)
 
-# mod1 <- ' # S-1, Oneness = reference factor
-# oneness =~ psybliss21 + psybliss18 + psybliss23
-# altruism =~ pg30 + pg34 + pg35
-# g =~ psybliss21 + psybliss18 + psybliss23 + pg30 + pg34 + pg35
-# g ~~ 0*altruism + 0*oneness
-# oneness ~~ 0*altruism
-# '
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+
+# Output for inline stats
+stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 3))),
+                          ", TLI = ", gsub("^0", "", as.character(round(stats[2], 3))),
+                          ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
+                          ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
+), collapse = ""))
+
 
 mod1 <- ' # S-1, Oneness = reference factor
 # oneness =~ psybliss21 + psybliss18 + psybliss23
@@ -218,23 +262,29 @@ g =~ psybliss21 + psybliss18 + psybliss23 + pg30 + pg34 + pg35
 g ~~ 0*altruism
 '
 
+cfa <- cfa(mod1, std.lv = T, data=data.num, ordered = F, estimator = "MLR", orthogonal = F)
+# cfa1 <- cfa(mod1, std.lv = T, data=data.num, ordered = T, estimator = "WLSMV")
+fitMeasures(cfa1, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+summary(cfa1, fit.measures = TRUE, standardized = TRUE)
+
 mod2 <- ' # S-1, Altruism = reference factor
 oneness =~ psybliss21 + psybliss18 + psybliss23
 # altruism =~ pg30 + pg34 + pg35
 g =~ psybliss21 + psybliss18 + psybliss23 + pg30 + pg34 + pg35
-
 g ~~ 0*oneness
 '
-cfa1 <- cfa(mod1, std.lv = T, data=data.num, ordered = F, estimator = "MLR", orthogonal = F)
-# cfa1 <- cfa(mod1, std.lv = T, data=data.num, ordered = T, estimator = "WLSMV")
-fitMeasures(cfa1, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
-summary(cfa1, fit.measures = TRUE, standardized = TRUE)
-cfa2 <- cfa(mod2, std.lv = F, data=data.num, ordered = F, estimator = "MLR", orthogonal = F)
+
+cfa <- cfa(mod2, std.lv = F, data=data.num, ordered = F, estimator = "MLR", orthogonal = F)
 # cfa2 <- cfa(mod2, std.lv = T, data=data.num, ordered = T, estimator = "WLSMV")
 fitMeasures(cfa2, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
 summary(cfa2, fit.measures = TRUE, standardized = TRUE)
 
-lavTestLRT(cfa1, cfa2)
+stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 3))),
+                          ", TLI = ", gsub("^0", "", as.character(round(stats[2], 3))),
+                          ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
+                          ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
+), collapse = ""))
 
 selfless.besem <- '
 efa("efa1")*g =~ psybliss21 + psybliss18 + psybliss23 + pg30 + pg34 + pg35
@@ -269,12 +319,10 @@ cfa <- cfa(mod, std.lv = T, data=data.num, ordered = F, estimator = "MLR")
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
 
-## Predictor K-Fold and RMSEP ----
+## RO-SEM Tests on Selflessness ----
 
 xnames <- c("psybliss21", "psybliss23", "psybliss18", "pg30", "pg34", "pg35")
 ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10", "mystical5", "mystical7", "mystical4", "spiritual3", "spiritual2", "spiritual26", "psyphys5", "psyphys3", "psyphys9", "psyphys11", "psyphys1")
-# ynames <- c("mystical6", "mystical22", "mystical25", "mystical15", "mystical8", "mystical13", "mystical10")
-# ynames <- c("mystical22")
 
 library(glmnet)
 cv.reg <- cv.glmnet(
@@ -301,41 +349,21 @@ source(paste0(getwd(), "/code/lav_dataframe.R"))
 
 
 ypred_results <- ses.pred_kfold(
-  data.num,
-  # data.num[sample(nrow(data.num), 200),],
+  # data.num,
+  data.num[sample(nrow(data.num), 200),],
   mod,
-  n.folds = 2,
-  reps = 4,
+  n.folds = 10,
+  reps = 100,
   xnames,
   ynames,
-  lambda.seq = seq(from = 0, to = 2, by = .2)
+  lambda.seq = seq(from = 0, to = 2, by = .05)
+  # lambda.seq = 10^seq(-2.2, .1, length = 100) # glmnet style sequence of lambdas
 )
-saveRDS(ypred_results, file = "outputs/temp.rds")
+# saveRDS(ypred_results, file = "outputs/temp.rds")
 # saveRDS(ypred_results, file = "outputs/selfless-unityconsc-n200-fullhcmodel.rds")
-
-# n = 50, Full HC/Selflessness model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n50-fullhcmodel.rds")
-
-# n = 100, Full HC/Selflessness model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n100-fullhcmodel.rds")
 
 # ** n = 200, Full HC/Selflessness model, predicting unityconsc only by seflessness
 ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n200-fullhcmodel.rds")
-
-# n = 300, Full HC/Selflessness model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n300-fullhcmodel.rds")
-
-# n = 400, Full HC/Selflessness model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n400-fullhcmodel.rds")
-
-# n = 500, Full HC/Selflessness model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n500-fullhcmodel.rds")
-
-# n = 50, Unity-Consciousness-only factor model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n50-ucmodel.rds")
-
-# ** n = 100, Unity-Consciousness-only factor model, predicting unityconsc only by seflessness
-ypred_results <- readRDS(file = "outputs/selfless-unityconsc-n100-ucmodel.rds")
 
 
 # plotdata <- ypred_results
@@ -348,6 +376,29 @@ ggplot(ypred_results, aes(x = factor(model), y = rmsep, fill = factor(model))) +
   ylab("RMSEp") +
   theme(legend.position="none") + # , axis.title.x=element_blank(), axis.text.x=element_blank()
   scale_fill_grey(start = 0.3, end = 0.7)
+
+png(filename = "documents/figures/Fig9.png", width = 800, height = 640)
+ggplot(ypred_results, aes(x = factor(model), y = rmsep, fill = factor(model))) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) +  # Matching the grey80 fill from the first plot
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) +  # Similar jitter format
+  scale_x_discrete(labels = c("OOS", "RO-SEM", "REG", "MLR")) + 
+  xlab("Prediction Method") + 
+  ylab("RMSEp") + 
+  theme_minimal(base_size = 14) +  # Use the minimal theme and base font size
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 20)),  # Match x-axis title format
+    axis.text.x = element_text(size = 25, margin = margin(r = 10)),  # Added visible x-axis labels and larger font size
+    axis.ticks.x = element_blank(),  # Keep ticks removed from x-axis for clean appearance
+    axis.title.y = element_text(size = 25),  # y-axis title formatted for consistency
+    axis.text.y = element_text(size = 25),  # Larger font size for y-axis numeric labels
+    panel.grid.major.x = element_blank(),  # Remove vertical grid lines
+    panel.grid.major.y = element_line(size = 0.5, colour = "grey85"),  # Keep horizontal grid lines
+    panel.grid.minor = element_blank()  # No minor grid lines
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)  # Adjusted grey scale to match first plot
+
+dev.off()
 
 
 sd(ypred_results[ypred_results$model == 1,'rmsep'])
@@ -372,52 +423,145 @@ ggplot(ypred_results, aes(x = model, y = rmsep, fill = factor(model))) +
   scale_fill_grey(start = 0.3, end = 0.7)
 
 
+
 ## Predict HC based on values of Selflessness ----
 ypred_item_results <- ses.pred_item_kfold(
   data.num,
-  # data.num[sample(nrow(data.num), 200),],
   mod,
-  n.folds = 10,
+  n.folds = 2,
   reps = 100,
   xnames,
   ynames,
-  lambda.seq = seq(from = 0, to = 2, by = .2)
+  lambda.seq = seq(from = 0, to = 1, by = .05)
 )
 
-# saveRDS(ypred_item_results, file = "outputs/ITEM_selfless-unityconsc-n494-fullhcmodel.rds")
-ypred_item_results <- readRDS(file = "outputs/ITEM_selfless-unityconsc-n494-fullhcmodel.rds")
+# saveRDS(ypred_item_results, file = "outputs/ITEM_selfless-unityconsc-fullhcmodel.rds")
+ypred_item_results <- readRDS(file = "outputs/ITEM_selfless-unityconsc-fullhcmodel.rds")
+nrow(ypred_item_results$results) # 18 y's * 100 reps * 489 subjects
 
-ggplot(ypred_item_results$results, aes(x = factor(model), y = rmsep, fill = factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) +
+
+### Data prep ----
+
+# Add factor mapping to the data
+factor_mapping <- data.frame(
+  variable = c("mystical22", "mystical25", "mystical15", "mystical13", "mystical10", 
+               "mystical6", "mystical8", "psyphys11", "psyphys1", "spiritual26", 
+               "spiritual2", "spiritual3", "psyphys5", "psyphys3", "psyphys9", 
+               "mystical7", "mystical4", "mystical5"),
+  factor = c("unityconsc", "unityconsc", "unityconsc", "unityconsc", "unityconsc", 
+             "unityconsc", "unityconsc", "light", "light", "insight", 
+             "insight", "insight", "energy", "energy", "energy", 
+             "bliss", "bliss", "bliss")
+)
+
+# Merge the factor mapping with the prediction results
+ypred_item_results$results <- merge(ypred_item_results$results, factor_mapping, by = "variable")
+
+# Calculate residuals
+ypred_item_results$results$residuals <- ypred_item_results$results$actual_value - ypred_item_results$results$predicted_value
+# Ensure residuals are numeric
+ypred_item_results$results$residuals <- as.numeric(ypred_item_results$results$residuals)
+
+### Global metrics ----
+
+# Calculate RMSE per variable
+library(dplyr)
+rmse_results <- ypred_item_results$results %>%
+  group_by(factor) %>%
+  summarise(RMSE = sqrt(mean(residuals^2)))
+
+# Calculate overall RMSE
+overall_rmse <- sqrt(mean(ypred_item_results$results$residuals^2))
+overall_rmse
+
+# Calculate overall R²
+mean_actual <- mean(ypred_item_results$results$actual_value)
+ss_total <- sum((ypred_item_results$results$actual_value - mean_actual)^2)
+ss_residual <- sum(ypred_item_results$results$residuals^2)
+r_squared <- 1 - (ss_residual / ss_total)
+r_squared
+
+# Calculate overall MAE
+mae <- mean(abs(ypred_item_results$results$residuals))
+mae
+
+
+head(ypred_item_results$rmsep)
+
+library(dplyr)
+library(ggplot2)
+
+# Calculate RMSEp for each variable
+rmsep_df <- ypred_item_results$results %>%
+  group_by(variable) %>%
+  summarise(rmsep = sqrt(mean((predicted_value - actual_value)^2)))
+
+# Now use ggplot to create the chart
+ggplot(rmsep_df, aes(x = factor(variable), y = rmsep, fill = factor(variable))) +
+  geom_boxplot(fill = "grey", aes(group = factor(variable))) +
   geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.3)) +
-  scale_x_discrete(labels=c("UnityConsc", "Bliss", "Insight", "Energy", "Light")) +
-  xlab("Factor") +
+  xlab("Indicator") +
   ylab("RMSEp") +
-  theme(legend.position="none") + # , axis.title.x=element_blank(), axis.text.x=element_blank()
+  theme(legend.position = "none") +
   scale_fill_grey(start = 0.3, end = 0.7)
 
-# Get the number of matrices in the list
-num_matrices <- length(ypred_item_results$predictions)
-# Initialize a matrix to store the sum of all predictions
-summed_matrix <- matrix(0, nrow = nrow(ypred_item_results$predictions[[1]]), ncol = ncol(ypred_item_results$predictions[[1]]))
-# Sum all matrices element-wise
-for (i in 1:num_matrices) {
-  summed_matrix <- summed_matrix + ypred_item_results$predictions[[i]]
-}
-# Calculate the average by dividing by the total number of matrices
-average_matrix <- summed_matrix / num_matrices
+# Calculate RMSEp for each factor
+rmsep_by_factor <- grouped_results %>%
+  group_by(factor) %>%
+  summarise(rmsep = sqrt(mean((actual_value - predicted_value)^2)))
 
-# Plot actual vs predicted values
-ggplot(average_matrix, aes(x = Actual, y = Residuals)) +
-  # geom_point(color = "blue", shape = 16) +
-  geom_point() +
-  labs(x = "Actuals", y = "Residuals", title = "Actuals vs Residuals")
+# Plot RMSEp by factor
+# png(filename = "documents/figures/Fig11.png", width = 800, height = 800)
+ggplot(rmsep_by_factor, aes(x = factor(factor), y = rmsep, fill = factor(factor))) +
+  geom_boxplot(fill = "grey", aes(group = factor(factor))) +
+  geom_jitter(width = .3, height = 0, colour = rgb(0, 0, 0, 0.3)) +  # Increased jitter width
+  xlab("Factor") +
+  ylab("RMSEp") +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),
+    axis.text.x = element_text(size = 25),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_text(size = 25),
+    axis.text.y = element_text(size = 25),
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.3, end = 0.7)
+
+# dev.off()
+
+
+
+### Residuals vs Actuals plot ----
+
+png(filename = "documents/figures/Fig10.png", width = 800, height = 640)
+ggplot(ypred_item_results$results, aes(x = as.factor(actual_value), y = predicted_value)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey90", size = 1) +  # Ideal prediction line
+  geom_violin(fill = "grey80", color = "black", alpha = 0.7) +  # Violin plot style in greyscale
+  geom_boxplot(width = 0.1, fill = "white", color = "black", outlier.shape = NA) +  # Boxplot overlay in greyscale
+  stat_boxplot(geom = "errorbar", width = 0.3, color = "black") +  # Add whiskers in greyscale
+  labs(x = "Actual (Likert value)", y = "Predicted") +  # Remove the title
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6), minor_breaks = NULL) +  # Ensure y-axis labels are shown
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),  # Enlarged font size
+    axis.title.x = element_text(size = 25, margin = margin(t = 20)),  # Padding for x label
+    axis.title.y = element_text(size = 25, margin = margin(r = 20)),   # Padding for y label
+    axis.text.x = element_text(size = 20),  # Increase x-axis text size
+    axis.text.y = element_text(size = 20),  # Increase y-axis text size    
+    panel.grid.major.x = element_blank(),  # Remove vertical gridlines
+    panel.grid.minor.x = element_blank()   # Remove vertical minor gridlines
+  )
+dev.off()
+
 
 
 
 
 ## Model K-fold Cross-Validation of Fit Measures ----
-kfold<- function(dats, mod, n.folds, reps){
+kfold <- function(dats, mod, n.folds, reps){
   print(paste("Model: ", mod))
   
   results <- data.frame(matrix(ncol=5,nrow=0, dimnames=list(NULL, c(
@@ -453,56 +597,94 @@ kfold<- function(dats, mod, n.folds, reps){
 }
 
 set.seed(1234567)
+
+mod <- '
+oneness =~ psybliss21 + psybliss18 + psybliss23
+altruism =~ pg30 + pg34 + pg35
+selfless =~ oneness + altruism
+g ~ selfless
+'
+mod <- paste0(mod, "\n", hc.HO)
+
 self_results <- kfold(data.num, mod = mod, n.folds = 2, reps = 100)
+# write.csv(self_results, file="outputs/selfless-kfold.csv")
 set.seed(NULL)
 
-ggplot(self_results, aes(x=model, y=cfi, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-  xlab("Model") + ylab("CFI") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
+png(filename = "Fig7-1.png", width = 400, height = 400)
+ggplot(self_results, aes(x=model, y=cfi, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("Robust CFI") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-round(quantile(self_results[,"cfi"], c(0.025, .5, 0.975)), 2)
+png(filename = "Fig7-2.png", width = 400, height = 400)
+ggplot(self_results, aes(x=model, y=tli, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("Robust TLI") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-ggplot(self_results, aes(x=model, y=tli, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-  xlab("Model") + ylab("TLI") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
+png(filename = "Fig7-3.png", width = 400, height = 400)
+ggplot(self_results, aes(x=model, y=rmsea, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("Robust RMSEA") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-round(quantile(self_results[,"tli"], c(0.025, .5, 0.975)), 2)
-
-ggplot(self_results, aes(x=model, y=rmsea, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
-  xlab("Model") + ylab("RMSEA") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-round(quantile(self_results[,"rmsea"], c(0.025, .5, 0.975)), 2)
-
-ggplot(self_results, aes(x=model, y=srmr, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
-  xlab("Model") + ylab("SRMR") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-round(quantile(self_results[,"srmr"], c(0.025, .5, 0.975)), 2)
-
-write.csv(self_results, file="outputs/selfless-kfold.csv")
-
-
-cfa <- NULL
-cfa <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV", std.lv = TRUE, warn = FALSE)
-tmp <- lavInspect(cfa, "std.coef")
-tmp <- coef(cfa)
-
-
-parameterestimates(cfa, standardized = TRUE)
-
+png(filename = "Fig7-4.png", width = 400, height = 400)
+ggplot(self_results, aes(x=model, y=srmr, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("SRMR") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
 
 #
@@ -530,7 +712,8 @@ nrow(data.num)
 n <- 32 # Number of rows from the lavaan parameter estimates table
 casesNeeded <- 1000
 casesFound <- 0
-boot.self <- boot(data.num, getParamEstimates, R = casesNeeded, n = n)
+library(boot)
+boot.self <- boot(data.num, getParamEstimates, R = casesNeeded, n = n, parallel = "multicore", ncpus = 4)
 
 # Update boot object with completed cases and counts
 casesFound <- sum(complete.cases(boot.self$t))
@@ -548,336 +731,22 @@ while(casesNeeded > casesFound) {
 set.seed(NULL)
 
 # saveRDS(boot.self, file = "outputs/boot_selfless_params.rds")
-boot.selfless.params <- readRDS(file = "outputs/boot_selfless_params.rds")
+boot.self <- readRDS(file = "outputs/boot_selfless_params.rds")
 
 # Format empirical values and CI's, e.g., ".90 [.89, .91]"
 cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV", std.lv = T)
 parameterestimates(cfa, standardized = T)
 formatLoading <- function(num) { sub("^0+", "", sprintf("%.2f", num)) } # No leading spaces, 2 decimal places
 for(i in 1:32) {
-  bootci <- boot.ci(boot.selfless.params, type = "bca", index=i)
+  bootci <- boot.ci(boot.self, type = "bca", index=i)
   print(paste0(
     parameterestimates(cfa)$lhs[i],
     parameterestimates(cfa)$op[i],
     parameterestimates(cfa)$rhs[i], ": ",
-    formatLoading(boot.selfless.params$t0[i]),
+    formatLoading(boot.self$t0[i]),
     " [", formatLoading(bootci$bca[4]), ", ", formatLoading(bootci$bca[5]), "]"
   ))
 }
 
 
-
-## Regularized regression model ----
-
-mod <- '
-unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10
-bliss =~ mystical5 + mystical7 + mystical4
-insight =~ spiritual3 + spiritual2 + spiritual26
-energy =~ psyphys5 + psyphys3 + psyphys9
-light =~ psyphys11 + psyphys1
-'
-
-cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV")
-pred <- lavPredict(cfa)
-library(glmnet)
-pred.df <- as.data.frame(pred)
-nrow(data.num[,ynames])
-nrow(pred.df)
-
-xnames <- altruism.fields
-cv.reg <- cv.glmnet(
-  as.matrix(data.num[,xnames]),
-  as.matrix(pred.df),
-  family = "mgaussian",
-  alpha = 0, # Ridge
-  lambda = seq(from = 0, to = 4, by = .02)
-)
-regmod <- glmnet(
-  as.matrix(data.num[,xnames]),
-  as.matrix(pred.df),
-  family = "mgaussian",
-  alpha = 0,
-  lambda = cv.reg$lambda.min
-)
-coef(regmod)
-yhat <- predict(regmod,  as.matrix(data.num[,xnames]), s = "lambda.min")
-rmsep <-  sqrt(sum((pred.df - yhat)^2)/(length(ynames) * nrow(pred)))
-rmsep
-
-
-reg.set <- data.num
-# Modify the CLUST column
-reg.set$CLUST <- ifelse(reg.set$CLUST == 4, 1, 0) # Be sure to check this!!! Set the cluster indicating HC Complete
-
-table(reg.set$CLUST)
-
-# Convert the CLUST column to a factor
-reg.set$CLUST <- factor(reg.set$CLUST, levels = c(1, 0), labels = c("HCC", "Not HCC"))
-
-table(reg.set$CLUST)
-
-# Convert all columns to factors (or numeric)
-# col_names <- names(subset(reg.set, select = -c(CLUST)))
-# reg.set[,col_names] <- lapply(reg.set[,col_names] , factor) # Change to factor
-# reg.set[,col_names] <- lapply(reg.set[,col_names] , as.numeric) # Change to numeric
-
-
-library(glmnet)
-cv.reg <- cv.glmnet(
-  as.matrix(reg.set[,xnames]),
-  as.matrix(reg.set$CLUST),
-  family = "binomial",
-  alpha = 1, # 0 = Ridge, 1 = Lasso
-  # lambda = seq(from = 0, to = 2, by = .01)
-)
-plot(cv.reg)
-
-regmod <- glmnet(
-  as.matrix(reg.set[,xnames]),
-  as.matrix(reg.set$CLUST),
-  family = "binomial",
-  alpha = 0,
-  lambda = cv.reg$lambda.min
-)
-coef(regmod)
-probabilities <- predict(regmod, as.matrix(reg.set[,xnames]), type = "response")
-predicted.classes <- as.vector(ifelse(probabilities < 0.5, 1, 0))
-observed.classes <- ifelse(reg.set$CLUST == "HCC", 1, 0)
-round(mean(predicted.classes == observed.classes), 3)
-
-
-library(glmnet)
-library(caret)
-logistic.kfold<- function(model, dats, n.folds, reps){
-  print(paste("Record count: ", nrow(dats)))
-  
-  results <- data.frame(matrix(ncol=2,nrow=0, dimnames=list(NULL, c(
-    "Accuracy", "Kappa")
-  )))     
-  
-  folds = rep(1:n.folds, length.out = nrow(dats)) 
-  
-  for(r in 1:reps) {
-    folds = sample(folds) # Random permutation
-    print(paste("Repetition",r))
-    
-    for (i in 1:n.folds){
-      indis <- which(folds == i)
-      # print(paste("Fitting on fold with", length(indis), "rows"))
-      
-      cv.reg <- cv.glmnet(
-        as.matrix(reg.set[-indis,xnames]),
-        as.matrix(reg.set[-indis,"CLUST"]),
-        family = "binomial",
-        alpha = 1, # 0 = Ridge, 1 = Lasso
-        # lambda = seq(from = 0, to = 2, by = .01)
-      )
-      
-      regmod <- glmnet(
-        as.matrix(reg.set[-indis,xnames]),
-        as.matrix(reg.set[-indis,"CLUST"]),
-        family = "binomial",
-        alpha = 1,
-        lambda = cv.reg$lambda.min
-      )
-      probabilities <- predict(regmod, as.matrix(reg.set[indis,xnames]), type = "response")
-      predicted.classes <- as.vector(ifelse(probabilities < 0.5, 1, 0))
-      observed.classes <- ifelse(reg.set[indis,"CLUST"] == "HCC", 1, 0)
-      round(mean(predicted.classes == observed.classes), 3)
-      
-      # cm <- confusionMatrix(as.factor(predicted.classes, levels = c(1,0)), as.factor(observed.classes, levels = c(1,0)))
-      
-      fit.df <- data.frame(
-        model = "Tree",
-        # Accuracy = cm$overall['Accuracy'],
-        Accuracy = mean(predicted.classes == observed.classes)
-        # Kappa = cm$overall['Kappa']mean(predicted.classes == observed.classes)
-      )
-      
-      results <- rbind(results, fit.df)
-      rownames(results) = NULL
-    }    
-  }
-  
-  return(as.data.frame(results))
-}
-
-logistic.results <- logistic.kfold(NULL, reg.set, 10, 100)
-
-mean(logistic.results$Kappa, na.rm = T)
-mean(logistic.results$Accuracy, na.rm = T)
-summary(logistic.results$Accuracy)
-
-ggplot(logistic.results, aes(x=model, y=Accuracy, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.09, height = .007, colour = rgb(0,0,0,.3)) + 
-  xlab("Decision Tree") + ylab("Accuracy") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-ggplot(tree.kfold.results, aes(x=model, y=Kappa, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.09, height = .02, colour = rgb(0,0,0,.3)) + 
-  xlab("Decision Tree") + ylab("Kappa") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-
-
-
-# HC Complete Decision Tree ----
-
-library(rpart)
-library(rpart.plot) # See: http://www.milbo.org/rpart-plot/prp.pdf
-library(plyr)
-
-# Get predicted lavaan results
-# results <- pred
-
-
-tree.set <- data.num
-table(tree.set$CLUST)
-
-# Modify the CLUST column
-tree.set$CLUST <- ifelse(tree.set$CLUST == 4, 1, 0) # Be sure to check this!!! Set the cluster indicating HC Complete
-
-table(tree.set$CLUST)
-
-# Convert the CLUST column to a factor
-tree.set$CLUST <- factor(tree.set$CLUST, levels = c(1, 0), labels = c("HCC", "Not HCC"))
-
-table(tree.set$CLUST)
-
-# Convert all columns to factors (or numeric)
-col_names <- names(subset(tree.set, select = -c(CLUST)))
-# tree.set[,col_names] <- lapply(tree.set[,col_names] , factor) # Change to factor
-tree.set[,col_names] <- lapply(tree.set[,col_names] , as.numeric) # Change to numeric
-
-
-# CP parameter tuning ----
-
-library(caret)
-
-# Define the tuning grid
-tuneGrid <- expand.grid(cp = seq(.000, .5, by = 0.005))
-
-# Define the control parameters for cross-validation
-ctrl <- trainControl(method = "repeatedcv",   # Cross-validation
-                     number = 10,     # 10 folds
-                     repeats = 50)   # 100 iterations
-
-# Perform hyperparameter tuning using train function
-# set.seed(1234567)
-library(caret)
-form <- as.formula(paste("CLUST ~", paste(altruism.fields, collapse = " + ")))
-tree_model <- train( form, 
-                     data = tree.set,
-                     method = "rpart",
-                     trControl = ctrl,
-                     tuneGrid = tuneGrid,
-                     # tuneLength = 1,
-                     # model = tree,
-                     # modelType = "rpart",
-                     control = rpart.control(minsplit = 7, maxdepth = 6)
-)
-
-# View the best model
-print(tree_model)
-
-# Plot the best model's performance
-plot(tree_model)
-
-
-# K-Fold ----
-tree.kfold<- function(model, dats, n.folds, reps){
-  print(paste("Record count: ", nrow(dats)))
-  
-  results <- data.frame(matrix(ncol=2,nrow=0, dimnames=list(NULL, c(
-    "Accuracy", "Kappa")
-  )))     
-  
-  folds = rep(1:n.folds, length.out = nrow(dats)) 
-  
-  for(r in 1:reps) {
-    folds = sample(folds) # Random permutation
-    print(paste("Repetition",r))
-    
-    for (i in 1:n.folds){
-      indis <- which(folds == i)
-      # print(paste("Fitting on fold with", length(indis), "rows"))
-      
-      # Hyperparameter validation
-      model <- rpart(CLUST~., data = tree.set[-indis,], method = "class", control =
-                       rpart.control(
-                         cp = 0.05,
-                         minsplit = 7,
-                         maxdepth = 6
-                       )
-      )
-      
-      predictions <- predict(model, dats[indis,], type = "class")
-      cm <- confusionMatrix(predictions, dats[indis,]$CLUST)
-      
-      fit.df <- data.frame(
-        model = "Tree",
-        Accuracy = cm$overall['Accuracy'],
-        Kappa = cm$overall['Kappa']
-      )
-      
-      results <- rbind(results, fit.df)
-      rownames(results) = NULL
-    }    
-  }
-  
-  return(as.data.frame(results))
-}
-
-tree.kfold.results <- tree.kfold(NULL, tree.set, 10, 100)
-
-mean(tree.kfold.results$Kappa, na.rm = T)
-mean(tree.kfold.results$Accuracy, na.rm = T)
-summary(tree.kfold.results$Accuracy)
-
-ggplot(tree.kfold.results, aes(x=model, y=Accuracy, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.09, height = .007, colour = rgb(0,0,0,.3)) + 
-  xlab("Decision Tree") + ylab("Accuracy") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-ggplot(tree.kfold.results, aes(x=model, y=Kappa, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.09, height = .02, colour = rgb(0,0,0,.3)) + 
-  xlab("Decision Tree") + ylab("Kappa") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-
-
-set.seed(12345678)
-
-percent <- 1 # Can be modified for cross-validation
-test_idx <- sort(sample(x = nrow(tree.set), size = floor(percent*nrow(tree.set)), replace = F))
-
-# Hyperparameter tuning - https://medium.com/data-and-beyond/hyperparameter-tuning-and-pruning-more-about-k-means-clustering-in-r-with-rpart-9a405685a09b
-tree <- rpart(form, data = tree.set[test_idx,], method = "class", control =
-                rpart.control(
-                  cp = 0.05,
-                  minsplit = 7,
-                  maxdepth = 6
-                )
-)
-rpart.plot(tree, tweak = 1, box.palette = list('grey90', 'grey70', "grey60"))
-printcp(tree)
-plotcp(tree)
-# pruned_tree <- prune(tree, cp = .02)
-# tree <- pruned_tree
-predictions <- predict(tree, tree.set[test_idx,], type = "class") # Change to -test_idx for cross-validation
-confusionMatrix(predictions, tree.set[test_idx,]$CLUST) # Change to -test_idx for cross-validation
-summary(tree)
-
-set.seed(NULL)
-
-
-# Logistic regression
 

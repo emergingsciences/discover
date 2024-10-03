@@ -9,7 +9,8 @@ data.num <- extract.numeric.columns.by.regex(ses.data, paste0('mystical\\d+|spir
 gate.questions <- names(data.num[ , grepl("*.gate", names(data.num))]) # Confirm gate questions
 nrow(data.num)
 cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV")
-pred <- lavPredict(cfa)
+pred <- lavPredict(cfa, method = "EBM", transform = TRUE)
+# pred <- lavPredict(cfa)
 
 # Max and min
 rbind(round(apply(pred,2,min), 2), round(apply(pred,2,max), 2))
@@ -21,30 +22,41 @@ rbind(round(apply(pred,2,min), 2), round(apply(pred,2,max), 2))
 
 nrow(pred)
 clusterdata <- as.data.frame(pred)
-# clusterdata <- clusterdata[, c("unityconsc", "energy", "light")]
 
-# Interactive 3D scatterplot
-# library("car")
-# library("rgl")
-# scatter3d(pred$light, pred$unityconsc, pred$energy, surface = F, point.col = "blue")
 
-bic <- mclustBIC(clusterdata)
-summary(bic)
-plot(bic)
+# hc1 <- hc(clusterdata, use = "SVD")
+# bic <- mclustBIC(clusterdata,
+#   # initialization = list(
+#     # hcPairs = hc1
+#   # )
+# )
+# summary(bic)
+# plot(bic)
 
-ICL <- mclustICL(clusterdata)
-summary(ICL)
-plot(ICL)
+
+# BIC <- NULL
+# for(j in 1:20) {
+#   rBIC <- mclustBIC(clusterdata, verbose = FALSE,
+#                     initialization = list(hcPairs = hcRandomPairs(clusterdata)))
+#   BIC <- mclustBICupdate(BIC, rBIC)
+# }
+
+
+# ICL <- mclustICL(clusterdata)
+# summary(ICL)
+# plot(ICL)
 
 # Bootstrap LRT to generate a p value
 # lrt <- mclustBootstrapLRT(clusterdata, modelName = "VVV", maxG = 5)
 
-clustmod <- Mclust(clusterdata, x = bic)
+clustmod <- Mclust(clusterdata, G = 4)
+# clustmod <- Mclust(clusterdata, x = bic)
+
 summary(clustmod, parameters = T)
+plot(clustmod, what = "classification")
 
 comb <- clustCombi(clustmod, clusterdata)
 # comb <- clustCombi(data = clusterdata, modelName = "VVV", G = 1:9)
-summary(comb)
 plot(comb)
 # comb$classification[[5]]
 # optim <- clustCombiOptim(comb, reg = 4) #
@@ -67,8 +79,8 @@ plot(clustmod, what = "density", type = "persp")
 # results <- data.frame(cbind(pe.negphysicalgate=factor(tmp$pe.negphysical.gate), pred)) #, tmp$pe.negphysical.gate,
 results <- data.frame(pred, data.num[ , grepl("*.gate", names(data.num))], data.num) #, tmp$pe.negphysical.gate,
 # results <- pred
-# results$CLUST <- clustmod$classification
-results$CLUST <- comb$classification[[4]]
+results$CLUST <- clustmod$classification
+# results$CLUST <- comb$classification[[4]]
 nrow(results)
 # now to write it out:
 write.csv(results, # reorder columns to put CLUST first
@@ -88,17 +100,13 @@ boxplot(energy ~ CLUST, data = results)
 boxplot(light ~ CLUST, data = results)
 
 
-# Move HCC to cluster #4 (non-transformed)
-# results[results$CLUST == 4, "CLUST"] <- 5
-# results[results$CLUST == 3, "CLUST"] <- 4
-# results[results$CLUST == 1, "CLUST"] <- 3
-# results[results$CLUST == 5, "CLUST"] <- 1
-
-# Move HCC to cluster #4 (transformed)
-results[results$CLUST == 3, "CLUST"] <- 5
+# Re-organize
+results[results$CLUST == 4, "CLUST"] <- 5
+results[results$CLUST == 3, "CLUST"] <- 4
 results[results$CLUST == 2, "CLUST"] <- 3
 results[results$CLUST == 1, "CLUST"] <- 2
 results[results$CLUST == 5, "CLUST"] <- 1
+
 
 library(dplyr)
 mean_factor_scores <- results %>%
@@ -134,12 +142,73 @@ clipr::write_clip(min_max_factor_scores)
 melted <- melt(results[ , c("CLUST", "unityconsc", "bliss", "insight", "energy", "light")], id="CLUST")
 levels(melted[, "variable"]) <- c("Unity-Consciousness", "Bliss", "Insight", "Somatic Energy Sens.", "Luminosity")
 
+# png(file="scatter.png", width = 800, height = 600)
+tiff(file="Fig5.tiff", width = 800, height = 600)
 ggplot(melted, aes(x = factor(CLUST), y = value, fill = factor(variable))) +
   geom_boxplot(width = .8, outlier.size = .8) +
-  labs(x = "Cluster",
-       y = "Factor Score") +
-  scale_x_discrete(labels= c("Low Exp", "SES Exp", "Light Exp", "HC Complete")) +
-  theme_bw() + scale_fill_grey(name = "Factor", start = 1, end = .5)
+  labs(x = "Cluster", y = "Factor Score") +
+  scale_x_discrete(labels = c("Low Exp", "SES Exp", "Light Exp", "HC Complete")) +
+  theme_bw() +
+  scale_fill_grey(name = "Factor", start = 1, end = .5) +
+  theme(
+    axis.title.x = element_text(size = 30, margin = margin(t = 10)),  # Add padding and enlarge x-axis label
+    axis.title.y = element_text(size = 30, margin = margin(r = 10)),  # Add padding and enlarge y-axis label
+    axis.text.x = element_text(size = 18),   # Enlarge x-axis text
+    axis.text.y = element_text(size = 23),   # Enlarge y-axis text
+    legend.title = element_text(size = 30),  # Enlarge legend title
+    legend.text = element_text(size = 23)    # Enlarge legend text
+  )
+dev.off()
+
+
+
+
+# Interactive 3D scatterplot
+library("car")
+library("rgl")
+scatter3d(
+  clusterdata$bliss,
+  clusterdata$unityconsc,
+  clusterdata$insight,
+  groups = as.factor(ifelse(results$CLUST == 2 | results$CLUST == 3, 1, results$CLUST)),
+  surface = F,
+  point.col = "blue",
+  cex.lab=par("cex.lab")
+)
+
+library(scatterplot3d)
+scatterplot3d(clusterdata[,c("bliss", "insight", "unityconsc")], angle = 60, pch = ifelse(results$CLUST == 2 | results$CLUST == 3, 1, results$CLUST))
+
+library(car)
+scatterplot(clusterdata[,c("unityconsc")], clusterdata[,c("bliss")], groups = ifelse(results$CLUST == 2 | results$CLUST == 3, 1, results$CLUST))
+
+
+library(ggplot2)
+
+# Assuming the data is in the 'results' dataframe
+# Scatterplot for unitconsc (x-axis) and bliss (y-axis), colored by CLUST
+tiff(file="Fig4.tiff", width = 800, height = 600)
+ggplot(results, aes(x = unityconsc, y = bliss)) +
+  geom_point(aes(shape = factor(predictions), fill = factor(predictions))
+  # geom_point(aes(shape = factor(ifelse(CLUST == 2 | CLUST == 3, 1, CLUST)), fill = factor(ifelse(CLUST == 2 | CLUST == 3, 1, CLUST)))
+    , color = "black", size = 7, alpha = 0.7) +
+  scale_shape_manual(values = c(21, 25)) +  # Different point shapes for clusters
+  scale_fill_manual(values = c("gray20", "gray100")) +  # Grayscale colors for fill
+  labs(x = "Unity Consciousness", y = "Bliss") +
+  theme_bw() +
+  theme(
+    text = element_text(size = 30),
+    axis.title.x = element_text(size = 30, margin = margin(t = 15)),  # Add padding between x-axis label and axis
+    axis.title.y = element_text(size = 30, margin = margin(r = 15)),  # Add padding between y-axis label and axis
+    axis.text.x = element_text(size = 30),  # Increase x-axis text size
+    axis.text.y = element_text(size = 30),  # Increase y-axis text size
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "black"),
+    axis.line = element_line(color = "black"),
+    legend.position = "none"  # Optional: Hide legend if not needed
+  )
+dev.off()
 
 
 
@@ -147,13 +216,34 @@ ggplot(melted, aes(x = factor(CLUST), y = value, fill = factor(variable))) +
 # Gate question ----
 #
 gatequestions <- names(ses.data[ , grepl("*.gate", names(ses.data))])
+
 for(gateq in gatequestions) {
-  print(gateq)
-  print(table(results$CLUST == 4, data.num[ , gateq]))
-  print(round(table(results$CLUST == 4, data.num[ , gateq])
-      / rowSums(table(results$CLUST == 4, data.num[ , gateq]))
-      , 2))
+  cat(sum(data.num[results$CLUST == 4, gateq] == 1, na.rm = TRUE), '\n')
 }
+
+round(
+sum(data.num[results$CLUST == 4, gateq], na.rm = TRUE) / sum(data.num[, gateq], na.rm = TRUE)
+,2)
+
+
+
+# Step 1: Filter results for CLUST == 4
+clust4_data <- ses.data[results$CLUST == 4, ]
+
+# Step 2: Get the names of the gate questions
+gatequestions <- names(ses.data[, grepl("*.gate", names(ses.data))])
+
+# Step 3: Calculate the percentage of 'Yes' (1) answers for each gate question
+percentage_yes <- sapply(gatequestions, function(question) {
+  # Get the column corresponding to the current gate question
+  gate_responses <- clust4_data[[question]]
+  
+  # Calculate the percentage of responses that are '1'
+  mean(gate_responses == 1, na.rm = TRUE)
+})
+
+# Display the results
+clipr::write_clip(percentage_yes)
 
 
 #

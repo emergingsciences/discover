@@ -118,6 +118,7 @@ describe(describe(data.num)$kurtosis)
 drop <- c("spiritual5", "spiritual4", "spiritual19", "psyphys7", "mystical24", "mystical2", "mystical11", "mystical12")
 data.num <- data.num %>% dplyr::select(-one_of(drop))
 length(names(data.num))
+data.ord <- as.data.frame(lapply(data.num, as.ordered))
 
 #
 ## Correlation matrices ----
@@ -158,42 +159,38 @@ scree(data.num[efa_idx,])
 # Horn’s parallel analysis
 # Horn, J.L. A rationale and test for the number of factors in factor analysis. Psychometrika 30, 179–185 (1965). https://doi.org/10.1007/BF02289447
 # Dinno, A. (2009). Exploring the sensitivity of Horn's parallel analysis to the distributional form of random data. Multivariate behavioral research, 44(3), 362-388.
-par.fa <- fa.parallel(x = data.num[efa_idx,], fa = "both", fm = "pa", n.iter = 1000, SMC = TRUE)
-par.fa <- fa.parallel(x = data.num, fa = "both", fm = "pa", cor = "poly", SMC = TRUE)
-# saveRDS(par.fa, file = "outputs/priexp.fa.parallel.rds") # 1000 iter, pearson
-par.fa <- readRDS(file = "outputs/priexp.fa.parallel.rds")
-par.fa # Indicates 5 factors
+pcor <- polychoric(data.num[efa_idx,])
+par.fa <- fa.parallel(pcor$rho, n.obs = nrow(data.num[efa_idx,]), cor = "poly", fm="wls", n.iter = 1000) # 6 factors
+par.fa
 
-CD(data.num[efa_idx,], max_iter = 1000) # 5 factors
+library(EFAtools)
+CD(data.num[efa_idx,], max_iter = 1000) # 2 factors
 
 # Revelle’s Very Simple Structure
 # Revelle, W., & Rocklin, T. (1979). Very simple structure: An alternative procedure for estimating the optimal number of interpretable factors. Multivariate behavioral research, 14(4), 403-414.
-vss(data.num[efa_idx,], cor = "poly", fm="pa") # VSS1 = 1, VSS2 = 2, MAP = 7
+vss(data.num[efa_idx,], fm="pa") # VSS1 = 1, VSS2 = 2, MAP = 8
 
 ## Experience Item ICLUST ----
 # Revelle, W. (1978). ICLUST: A cluster analytic approach to exploratory and confirmatory scale construction. Behavior Research Methods & Instrumentation, 10(5), 739-742.
-pchor <- polychoric(ses.get.questiontext(data.num[efa_idx,])) # Polychoric question text
-pchor <- polychoric(data.num[efa_idx,]) # Polychoric question code
-iclust <- iclust(pchor$rho) # polychoric
-
-iclust <- iclust(data.num[efa_idx,]) # Question code
-iclust <- iclust(ses.get.questiontext(data.num[efa_idx,])) # Question text
+iclust <- iclust(data.ord[efa_idx,], cor = "poly") # Question code
+iclust <- iclust(data.num[efa_idx,])
 
 iclust.diagram(iclust) # Hard to read diagram (but native to R environment)
-ICLUST.graph(iclust) # For external "dot" language application, e.g., https://dreampuf.github.io/GraphvizOnline/
+ICLUST.graph(iclust, labels = names(ses.get.questiontext(data.num[efa_idx,]))) # For external "dot" language application, e.g., https://dreampuf.github.io/GraphvizOnline/
 
 #
 ## Factor Extraction ----
 #
 
-# fa.res <- fa(r = data.num[efa_idx,],
-fa.res <- fa(r = data.num,
-  nfactors = 5,
-  fm = "pa",
+fa.res <- fa(
+  r = pcor$rho,
+  nfactors = 6,
+  n.obs = nrow(data.num[efa_idx,]),
+  fm = "wls",
   rotate = "oblimin",
-  cor = "poly",
   n.rotations = 1,
-  max.iter = 1000
+  max.iter = 1000,
+  SMC = TRUE
 )
 fa.res
 clipr::write_clip(fa.res[["communality"]])
@@ -213,15 +210,15 @@ write.csv(fa.res$Phi, file = paste("outputs/", "primaryexp-factorcorrelations.cs
 out <- principal(data.num)
 out
 
+# fa.res <- fa(r = data.num,
+#              nfactors = 1,
+#              fm = "ml",
+#              n.rotations = 1
+# )
+# fa.res
 fa.res <- fa(r = data.num,
              nfactors = 1,
-             fm = "ml",
-             n.rotations = 1
-)
-fa.res
-fa.res <- fa(r = data.num,
-             nfactors = 1,
-             fm = "uls",
+             fm = "wls",
              n.rotations = 1
 )
 fa.res
@@ -247,7 +244,7 @@ fa.res
 
 fa.res <- fa(r = hsf_ind,
              nfactors = 1,
-             fm = "uls",
+             fm = "wls",
              n.rotations = 1
 )
 fa.res
@@ -276,7 +273,7 @@ SL(fa.res)
 # McDonald's Omega(h and t)
 # Revelle, W., & Condon, D. M. (2019). Reliability from α to ω: A tutorial. Psychological assessment, 31(12), 1395.
 # omega(m = data.num[efa_idx,], nfactors = 6, fm="pa", rotate="oblimin", poly = TRUE)
-omega.res <- omega(m = fa.res$loadings, Phi = fa.res$Phi)
+omega.res <- omega(data.num[efa_idx,], nfactors = 6, rotate = "oblimin", fm = "wls")
 omega.res
 clipr::write_clip(t(omega.res$omega.group))
 
@@ -346,17 +343,29 @@ te.mod <- paste0(te.mod, "\n", 'psychic =~ psychic1 + psychic9 + psychic7')
 te.mod <- paste0(te.mod, "\n", 'nonlocal =~ mystical1 + spiritual13 + spiritual14 + spiritual16')
 te.mod <- paste0(te.mod, "\n")
 
-cfa <- cfa(te.mod, data=data.num[cfa_idx,], ordered = T, estimator = "WLSMV")
+cfa <- cfa(te.mod, data=data.num, ordered = T, estimator = "WLSMV")
 cfa <- cfa(te.mod, data=data.num, ordered = F, estimator = "MLR")
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 fitMeasures(cfa, c("cfi.scaled", "tli.scaled",	"rmsea.scaled",	"cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
 
+# Table output
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
-## TE Bifactor Model ----
+## TE S-1 Bifactor Model ----
 mod <- '
-g =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + spiritual26 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1 + psychic1 + psychic9 + psychic7 + mystical1 + spiritual13 + spiritual14 + spiritual16
 # unityconsc =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10
 bliss =~ mystical5 + mystical7 + mystical4
 insight =~ spiritual3 + spiritual2 + spiritual26
@@ -364,13 +373,13 @@ energy =~ psyphys5 + psyphys3 + psyphys9
 light =~ psyphys11 + psyphys1
 psychic =~ psychic1 + psychic9 + psychic7
 nonlocal =~ mystical1 + spiritual13 + spiritual14 + spiritual16
+
+g =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + spiritual26 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1 + psychic1 + psychic9 + psychic7 + mystical1 + spiritual13 + spiritual14 + spiritual16
 g ~~ 0*bliss + 0*insight + 0*energy + 0*light + 0*psychic + 0*nonlocal
 '
 
 cfa <- cfa(mod, std.lv = F, data=data.num, ordered = F, estimator = "MLR")
 clipr::write_clip(lavInspect(cfa, what = "std")$lambda)
-BifactorIndicesCalculator::bifactorIndices(cfa)
-EFAtools::OMEGA(cfa)
 
 ## TE Higher-order model ----
 
@@ -378,13 +387,24 @@ mod <- te.mod
 mod <- paste0(te.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light + psychic + nonlocal')
 
 cfa <- cfa(mod, data=data.num, std.lv = T, ordered = T, estimator = "WLSMV") 
-# cfa <- cfa(mod, data=data.num, std.lv = T, ordered = F, estimator = "MLR") 
+cfa <- cfa(mod, data=data.num, std.lv = T, ordered = F, estimator = "MLR") 
 
 # For parameter estimate comparison
 clipr::write_clip(parameterestimates(cfa, standardized = T))
 
-# Table
-clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
+# Table output
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
 # Inline
 stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
@@ -470,22 +490,33 @@ clipr::write_clip(out$loadings)
 # # # # # # # # # # # # # # # #
 
 ## 0. Data load ----
-grepmatch <- 'id|mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+'
+grepmatch <- 'mystical\\d+|spiritual\\d+|psyphys\\d+|psychic\\d+'
 data.num <- extract.numeric.columns.by.regex(ses.data, grepmatch = grepmatch)
 nrow(data.num)
 # data.num <- ses.data[,grepl('mystical\\d+|spiritual\\d+|psyphys\\d+|pe.gate|sex', names(ses.data))]
 # data.num$pe.gate <- ifelse(data.num$pe.gate == 2, 0, data.num$pe.gate)
 
 ## All item model (baseline) ----
-mod.all <- 'f =~ psyphys11 + psyphys1 + psyphys12 + psyphys2 + mystical13 + spiritual11 + mystical4 + psyphys8 + mystical12 + spiritual25 + spiritual12 + mystical9 + psyphys6 + mystical10 + spiritual15 + psyphys9 + mystical22 + mystical23 + psyphys3 + mystical26 + spiritual14 + spiritual13 + mystical5 + mystical24 + spiritual24 + mystical7 + spiritual18 + spiritual9 + mystical2 + mystical3 + spiritual22 + mystical25 + spiritual1 + spiritual6 + mystical6 + mystical15 + spiritual10 + spiritual20 + spiritual23 + mystical14 + mystical8 + spiritual27 + mystical11 + spiritual16 + mystical27 + spiritual2 + mystical17 + mystical18 + mystical21 + mystical1 + spiritual8 + psyphys5 + spiritual3 + spiritual21'
+mod.all <- 'f =~ mystical22 + spiritual27 + mystical25 + mystical15 + mystical13 + spiritual21 + mystical14 + psychic7 + psyphys5 + psyphys11 + mystical27 + mystical23 + spiritual17 + mystical26 + spiritual26 + mystical10 + psyphys8 + spiritual2 + mystical6 + mystical9 + psychic9 + psychic3 + psyphys4 + spiritual8 + spiritual20 + mystical16 + psyphys12 + spiritual3 + psyphys3 + psyphys1 + mystical7 + psychic6 + psychic1 + spiritual15 + spiritual25 + mystical17 + psyphys9 + spiritual13 + psyphys2 + spiritual1 + spiritual23 + psyphys6 + mystical3 + mystical4 + mystical21 + mystical5 + psychic2 + spiritual12 + spiritual10 + psychic8 + psychic5 + spiritual18 + spiritual11 + spiritual24 + spiritual9 + mystical1 + psyphys10 + mystical8 + spiritual14 + mystical20 + spiritual22 + mystical18 + spiritual6 + spiritual7 + spiritual16 + psychic4 + mystical19'
 cfa <- cfa(mod.all, data=data.num[cfa_idx,], ordered = F, estimator = "MLR") # std.lv = fix factor variances
 
 cfa <- cfa(mod.all, data=data.num, ordered = T, estimator = "WLSMV")
 cfa <- cfa(mod.all, data=data.num, ordered = F, estimator = "MLR")
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
-# Table
-clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
+# Table output
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
 # Inline
 stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
@@ -493,7 +524,7 @@ clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 
                           ", TLI = ", gsub("^0", "", as.character(round(stats[2], 3))),
                           ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
                           ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
-  ), collapse = ""))
+), collapse = ""))
 
 ## Higher Consciousness Model ----
 
@@ -521,8 +552,10 @@ g =~ unityconsc + bliss + insight + energy + light
 # Generate and evaluate model
 cfa <- cfa(hc.mod, data=data.num[cfa_idx,], std.lv = TRUE, ordered = F, estimator = "MLR")
 cfa <- cfa(hc.mod, data=data.num[efa_idx,], ordered = F, estimator = "MLR")
+
 cfa <- cfa(hc.mod, data=data.num, ordered = T, estimator = "WLSMV")
 cfa <- cfa(hc.mod, std.lv = T, data=data.num, ordered = F, estimator = "MLR")
+
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 fitMeasures(cfa, c("aic", "bic", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
@@ -535,7 +568,18 @@ semPlot::semPaths(cfa, whatLabels = "std", edge.label.cex = .9, bifactor = "g",
                   layout = "tree2", exoCov = F)
 
 # Output for table
-clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
 # Output for inline stats
 stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
@@ -544,6 +588,12 @@ clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 
                           ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
                           ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
 ), collapse = ""))
+
+
+### Factor Covariance matrix ----
+lavInspect(cfa, "cov.lv")
+cov2cor(lavInspect(cfa, what = "est")$psi)
+clipr::write_clip(cov2cor(lavInspect(cfa, what = "est")$psi))
 
 
 ### Direct Schmid Leiman ----
@@ -625,7 +675,7 @@ efa("efa1")*f5
 =~ mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + spiritual26 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1
 g=~ mystical6 + f1 + f2 + f3 + f4 + f5
 '
-esem <- sem(mod, data = data.num, std.lv = T, ordered = F, estimator = "MLR",
+cfa <- sem(mod, data = data.num, std.lv = T, ordered = F, estimator = "MLR",
             rotation="geomin",
             rotation.args = list(orthogonal = F))
 
@@ -637,19 +687,19 @@ efa("efa1")*f4 +
 efa("efa1")*f5
 =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + spiritual26 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1
 '
-esem <- sem(mod, data = data.num, std.lv = F, ordered = F, estimator = "MLR",
+cfa <- sem(mod, data = data.num, std.lv = F, ordered = F, estimator = "MLR",
             rotation="target",
             rotation.args = list(target = cong.target))
-esem <- sem(mod, data = data.num, std.lv = T, ordered = T, estimator = "WLSMV",
+cfa <- sem(mod, data = data.num, std.lv = T, ordered = T, estimator = "WLSMV",
             rotation="target",
             rotation.args = list(target = cong.target))
-esem <- sem(mod, data = data.num, std.lv = T, ordered = F, estimator = "MLR",
+cfa <- sem(mod, data = data.num, std.lv = T, ordered = F, estimator = "MLR",
             rotation="geomin")
-summary(esem, fit.measures = TRUE, standardized = TRUE)
-fitMeasures(esem, c("bic", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
-clipr::write_clip(lavInspect(esem, what = "std")$lambda)
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa, c("bic", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+clipr::write_clip(lavInspect(cfa, what = "std")$lambda)
 
-lavTestLRT(esem, esem2)
+lavTestLRT(cfa, esem2)
 
 
 Bpattern <- matrix(c( 1, 	1, 	0, 	0, 	0, 	0, 	0, 	0, 
@@ -689,33 +739,33 @@ efa("efa1")*f5
 =~ mystical6 + mystical22 + mystical25 + mystical15 + mystical8 + mystical13 + mystical10 + mystical5 + mystical7 + mystical4 + spiritual3 + spiritual2 + spiritual26 + psyphys5 + psyphys3 + psyphys9 + psyphys11 + psyphys1
 '
 # Orthogonal
-esem <- sem(mod, data = data.num, std.lv = F, ordered = F,
-            estimator = "MLR",
-            rotation="bigeomin",
-            orthogonal = T,
-            rotation.args = list(orthogonal = T))
-esem <- sem(mod, data = data.num, std.lv = F, ordered = T,
-            estimator = "WLSMV",
-            rotation="bigeomin",
-            orthogonal = T,
-            rotation.args = list(orthogonal = T))
+# cfa <- sem(mod, data = data.num, std.lv = F, ordered = F,
+#             estimator = "MLR",
+#             rotation="bigeomin",
+#             orthogonal = T,
+#             rotation.args = list(orthogonal = T))
+# cfa <- sem(mod, data = data.num, std.lv = F, ordered = T,
+#             estimator = "WLSMV",
+#             rotation="bigeomin",
+#             orthogonal = T,
+#             rotation.args = list(orthogonal = T))
 # Oblique
-esem <- sem(mod, data = data.num, std.lv = F, ordered = F,
+cfa <- sem(mod, data = data.num, std.lv = F, ordered = F,
             estimator = "MLR",
             rotation="bigeomin",
             orthogonal = F,
             rotation.args = list(orthogonal = F))
-esem <- sem(mod, data = data.num, std.lv = F, ordered = T,
-            estimator = "WLSMV",
-            rotation="bigeomin",
-            orthogonal = F,
-            rotation.args = list(orthogonal = F))
-summary(esem, fit.measures = TRUE, standardized = TRUE)
-fitMeasures(esem, c("bic", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
-clipr::write_clip(lavInspect(esem, what = "std")$lambda)
-lavInspect(esem, what = "fit")
-clipr::write_clip(parameterestimates(esem))
-lavTestLRT(esem, esem2)
+# cfa <- sem(mod, data = data.num, std.lv = F, ordered = T,
+#             estimator = "WLSMV",
+#             rotation="bigeomin",
+#             orthogonal = F,
+#             rotation.args = list(orthogonal = F))
+summary(cfa, fit.measures = TRUE, standardized = TRUE)
+fitMeasures(cfa, c("bic", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+clipr::write_clip(lavInspect(cfa, what = "std")$lambda)
+lavInspect(cfa, what = "fit")
+clipr::write_clip(parameterestimates(cfa))
+lavTestLRT(cfa, esem2)
 
 ### HC S-1 Bifactor Model ----
 hc.bifactor <- ' # S-1 UC bifactor with covaring energy and light
@@ -727,6 +777,7 @@ energy =~ psyphys5 + psyphys3 + psyphys9
 light =~ psyphys11 + psyphys1
 g ~~ 0*bliss + 0*insight + 0*energy + 0*light
 '
+
 cfa <- cfa(hc.bifactor, std.lv = F, data=data.num, ordered = F,
            estimator = "MLR", orthogonal = F)
 cfa <- cfa(hc.bifactor, std.lv = F, data=data.num, ordered = T,
@@ -741,12 +792,16 @@ lavTestLRT(cfa1, cfa2)
 
 EFAtools::SL(cfa1)
 
+
 library(EFAtools)
 EFAtools::OMEGA(cfa, g_name = "g") # Bifactor approach
 library(BifactorIndicesCalculator)
 bifactorIndices(cfa)
+library(semTools)
+semTools::compRelSEM(cfa, higher = "g")
 
-stats <- fitMeasures(cfa1, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
+# Inline
+stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 3))),
                           ", TLI = ", gsub("^0", "", as.character(round(stats[2], 3))),
                           ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
@@ -754,73 +809,25 @@ clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 
 ), collapse = ""))
 
 
-### K-Fold ----
-
-results <- ses.kfold(data.num, n.folds = 2, rep = 100, mod = mod)
-ggplot(results, aes(x=model, y=cfi, fill=factor(model)), environment = environment()) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-  xlab("Higher Concsiousness") + ylab("Robust CFI") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-ggplot(results, aes(x=model, y=tli, fill=factor(model)), environment = environment()) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-  xlab("Higher Concsiousness") + ylab("Robust TLI") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-ggplot(results, aes(x=model, y=rmsea, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
-  xlab("Higher Concsiousness") + ylab("Robust RMSEA") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-ggplot(results, aes(x=model, y=srmr, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
-  xlab("Higher Concsiousness") + ylab("SRMR") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)  
+# Output for table
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
 
-# Generate and evaluate model
-# cfa <- cfa(mod, data=data.num[cfa_idx,], std.lv = TRUE, ordered = F, estimator = "MLR")
-# cfa <- cfa(mod, data=data.num[efa_idx,], ordered = F, estimator = "MLR")
-# cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV")
-cfa <- cfa(mod, std.lv = T, data=data.num, ordered = F, estimator = "MLR")
-# cfa <- cfa(mod, std.lv = T, data=data.num, ordered = F, estimator = "MLR", orthogonal = T)
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
-limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 50) # Fit indices only
-lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
-
-ses.kfold(data.num, n.folds = 2, rep = 10, mod = hc.mod)
-
-library(semPlot)
-semPlot::semPaths(cfa1, whatLabels = "std", edge.label.cex = .9, bifactor = "g",
-                  layout = "tree2", exoCov = F)
-
-
-
-### Data set fit indices ----
-
-cfa <- cfa(hc.mod, data=data.num[cfa_idx,], ordered = F, estimator = "MLR")
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-cfa <- cfa(hc.mod, data=data.num[efa_idx,], ordered = F, estimator = "MLR")
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
-cfa <- cfa(hc.mod, data=data.num, ordered = F, estimator = "MLR")
-summary(cfa, fit.measures = TRUE, standardized = TRUE)
 
 ### Local areas of strain ----
 lavResiduals(cfa)
 modindices(cfa, sort = TRUE)
-
-### Factor Covariance matrix ----
-lavInspect(cfa, "cov.lv")
-cov2cor(lavInspect(cfa, what = "est")$psi)
 
 
 ### Marker analysis ----
@@ -852,7 +859,15 @@ nrow(data.num)
 n <- 18 # Number of rows from the lavaan parameter estimates table
 casesNeeded <- 1000
 casesFound <- 0
-boot.hc <- boot(data.num, getParamEstimates, R = casesNeeded, n = n, mod = hc.mod)
+boot.hc <- boot(
+  data = data.num,
+  statistic = getParamEstimates,
+  parallel = "multicore",
+  ncpus = 4, # Change this to the number of CPU's
+  R = casesNeeded,
+  n = n,
+  mod = hc.mod
+  )
 
 # Update boot object with completed cases and counts
 casesFound <- sum(complete.cases(boot.hc$t))
@@ -939,14 +954,38 @@ semTools::compRelSEM(cfa, ord.scale = T) # Omega
 # Ordinal Alpha and Omega
 get.reliability <- function(data, indices) {
   fit <- cfa(hc.mod, data=data[indices,], ordered = T, estimator = "WLSMV")
-  omega <- as.vector.data.frame(semTools::compRelSEM(fit))
-  names(omega) <- paste0("o-", names(omega))
-  ord_alpha <- as.vector.data.frame(semTools::compRelSEM(fit, tau.eq = T))
-  names(ord_alpha) <- paste0("a-", names(ord_alpha))
-  return(c(omega,ord_alpha))
+  
+  # Check for non-convergence
+  if (!lavInspect(cfa, "converged")) {
+    cat("Non-convergence detected. Filling return vector with NA.\n")
+    return(c(NA, NA)) # Range to ensure same-length vectors are returned in the case of no values for ordinals
+  } else {
+    omega <- as.vector.data.frame(semTools::compRelSEM(fit))
+    names(omega) <- paste0("o-", names(omega))
+    ord_alpha <- as.vector.data.frame(semTools::compRelSEM(fit, tau.eq = T))
+    names(ord_alpha) <- paste0("a-", names(ord_alpha))
+    return(c(omega,ord_alpha))
+  }
 }
 
-boot.reliability <- boot(data.num, R = 1000, get.reliability) # R repetitions must be larger than number of rows!
+boot.reliability <- boot(data.num, R = 1000, get.reliability, parallel = "multicore", ncpus = 4) # R repetitions must be larger than number of rows!
+
+
+# Update boot object with completed cases and counts
+casesNeeded <- 1000
+casesFound <- sum(complete.cases(boot.reliability$t))
+boot.reliability$t <- boot.reliability$t[complete.cases(boot.reliability$t) , ]
+boot.reliability$R <- casesFound
+# Fill with number of cases needed in case of a non-convergence
+while(casesNeeded > casesFound) {
+  newboot <- boot(data.num, R = 1)
+  if(sum(complete.cases(newboot$t)) == 1) {
+    boot.reliability$t <- rbind(boot.reliability$t, newboot$t)
+    casesFound <- sum(complete.cases(boot.reliability$t))
+    boot.reliability$R <- casesFound
+  }
+}
+
 
 # saveRDS(boot.reliability, file = "outputs/boot.reliability.rds")
 boot.reliability <- readRDS(file = "outputs/boot.reliability.rds")
@@ -1027,53 +1066,94 @@ cfa <- cfa(hc.mod, data=data.num, ordered = F, estimator = "MLR")
 fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 summary(cfa_efa_ml, fit.measures = TRUE, standardized = TRUE)
 
-## Model K-fold Cross-Validation ----
+## K-fold Cross-Validation ----
 
 set.seed(1234567)
 mod <- hc.mod
 hc.kfold.results <- ses.kfold(data.num, 2, 100, mod)
 nrow(hc.kfold.results)
 set.seed(NULL)
+# First plot (already provided as the template)
+png(filename = "Fig3-1.png", width = 400, height = 400)
+ggplot(hc.kfold.results, aes(x=model, y=cfi, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("Robust CFI") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-ggplot(hc.kfold.results, aes(x=model, y=cfi, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-  xlab("Higher Concsiousness") + ylab("Robust CFI") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
+# Second plot
+png(filename = "Fig3-2.png", width = 400, height = 400)
+ggplot(hc.kfold.results, aes(x=model, y=tli, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("Robust TLI") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-round(quantile(hc.kfold.results[,"cfi"], c(0.025, .5, 0.975)), 2)
-round(sd(hc.kfold.results[,"cfi"]), 3)
+# Third plot
+png(filename = "Fig3-3.png", width = 400, height = 400)
+ggplot(hc.kfold.results, aes(x=model, y=rmsea, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("Robust RMSEA") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-ggplot(hc.kfold.results, aes(x=model, y=tli, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-  xlab("Higher Concsiousness") + ylab("Robust TLI") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
+# Fourth plot
+png(filename = "Fig3-4.png", width = 400, height = 400)
+ggplot(hc.kfold.results, aes(x=model, y=srmr, fill=factor(model)), environment = environment()) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) + 
+  geom_jitter(width = 0.1, height = 0, colour = rgb(0, 0, 0, 0.5), size = 4) + 
+  xlab("SRMR") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  # Label placed below the plot
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_blank(),  # No label on the y-axis
+    axis.text.y = element_text(size = 25),  # Increased font size for numeric labels on the left
+    panel.grid.major = element_line(size = 0.5, colour = "grey85"),
+    panel.grid.minor = element_blank()
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
-round(quantile(hc.kfold.results[,"tli"], c(0.025, .5, 0.975)), 2)
-round(sd(hc.kfold.results[,"tli"]), 3)
 
-ggplot(hc.kfold.results, aes(x=model, y=rmsea, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
-  xlab("Higher Concsiousness") + ylab("Robust RMSEA") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-round(quantile(hc.kfold.results[,"rmsea"], c(0.025, .5, 0.975)), 3)
-round(sd(hc.kfold.results[,"rmsea"]), 3)
-
-ggplot(hc.kfold.results, aes(x=model, y=srmr, fill=factor(model))) +
-  geom_boxplot(fill = "grey", aes(group = factor(model))) + 
-  geom_jitter(width = 0.05, colour = rgb(0,0,0,.3)) +
-  xlab("Higher Concsiousness") + ylab("SRMR") + 
-  theme(legend.position="none", axis.title.x=element_blank(), axis.text.x=element_blank()) +
-  scale_fill_grey(start=.3,end=.7)
-
-round(quantile(hc.kfold.results[,"srmr"], c(0.025, .5, 0.975)), 3)
-round(sd(hc.kfold.results[,"srmr"]), 3)
 
 
 
@@ -1090,9 +1170,9 @@ table(data.age$age_group)
 # sum(table(data.age$age_group))
 data.age <- na.omit(data.age)
 nrow(data.age)
-fit1 <- cfa(hc.mod, data=data.age, group = "age_group", ordered = T)
-fit2 <- cfa(hc.mod, data=data.age, group = "age_group", ordered = T, group.equal = "loadings")
-fit3 <- cfa(hc.mod, data=data.age, group = "age_group", ordered = T, group.equal = c("intercepts", "loadings"))
+fit1 <- cfa(hc.mod, data=data.age, group = "age_group", ordered = T, estimator = "WLSMV")
+fit2 <- cfa(hc.mod, data=data.age, group = "age_group", ordered = T, group.equal = "loadings", estimator = "WLSMV")
+fit3 <- cfa(hc.mod, data=data.age, group = "age_group", ordered = T, group.equal = c("intercepts", "loadings"), estimator = "WLSMV")
 # summary(fit3, fit.measures = TRUE, standardized = TRUE)
 lavTestLRT(fit1, fit2, fit3)
 
@@ -1101,9 +1181,9 @@ lavTestLRT(fit1, fit2, fit3)
 remove.intersex <- data.num[!(data.num$sex == 3),] # Justification: Only one repondent indicated they are intersex - not enough data to run a model of them as a separate group
 nrow(remove.intersex)
 table(remove.intersex$sex)
-fit1 <- cfa(hc.mod, data=remove.intersex, group = "sex", ordered = T)
-fit2 <- cfa(hc.mod, data=remove.intersex, group = "sex", ordered = T, group.equal = "loadings")
-fit3 <- cfa(hc.mod, data=remove.intersex, group = "sex", ordered = T, group.equal = c("intercepts", "loadings"))
+fit1 <- cfa(hc.mod, data=remove.intersex, group = "sex", ordered = T, estimator = "WLSMV")
+fit2 <- cfa(hc.mod, data=remove.intersex, group = "sex", ordered = T, group.equal = "loadings", estimator = "WLSMV")
+fit3 <- cfa(hc.mod, data=remove.intersex, group = "sex", ordered = T, group.equal = c("intercepts", "loadings"), estimator = "WLSMV")
 # summary(fit3, fit.measures = TRUE, standardized = TRUE)
 lavTestLRT(fit1, fit2, fit3)
 
@@ -1126,7 +1206,7 @@ lavTestLRT(fit1, fit2, fit3)
 ### Examine factor loading differences between covarying and higher-order structures ----
 
 cfa <- cfa(hc.mod, data=data.num, std.lv = T, ordered = T, estimator = "WLSMV")
-clipr::write_clip(parameterEstimates(cfa))
+clipr::write_clip(parameterEstimates(cfa, standardized = T))
 summary(cfa, fit.measures = T, standardized = T)
 
 mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
@@ -1138,6 +1218,7 @@ cfa <- cfa(mod, data=data.num, ordered = F, estimator = "MLR")
 cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV")
 fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 
+# Inline stats
 clipr::write_clip(fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled")))
 stats <- fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 3))),
@@ -1145,6 +1226,20 @@ clipr::write_clip(paste(c("CFI = ", gsub("^0", "", as.character(round(stats[1], 
                           ", RMSEA = ", gsub("^0", "", as.character(round(stats[3], 3))),
                           ", SRMR = ", gsub("^0", "", as.character(round(stats[4], 3)))
 ), collapse = ""))
+
+# Output for table
+fitm <- fitMeasures(cfa, c("cfi",	"tli", "rmsea", "cfi.scaled",	"tli.scaled",	"rmsea.scaled", "cfi.robust",	"tli.robust",	"rmsea.robust", "srmr", "chisq.scaled", "df.scaled"))
+fitm
+clipr::write_clip(
+  paste0(
+    c(paste0(c(fitm[1], fitm[2], fitm[3]), collapse = "\t"),
+      paste0(c(fitm[4], fitm[5], fitm[6]), collapse = "\t"),
+      paste0(c(fitm[7], fitm[8], fitm[9]), collapse = "\t"),
+      paste0(c(fitm[10], fitm[11], fitm[12]), collapse = "\t")
+    ),
+    collapse = "\t\t"
+  )
+)
 
 summary(cfa, fit.measures = T, standardized = T)
 lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica"), edge_options = list(color = "grey"), coefs = TRUE, covs = TRUE, stand = TRUE)
@@ -1154,16 +1249,23 @@ lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica
 lavInspect(cfa, "cov.lv")
 cov2cor(lavInspect(cfa, what = "est")$psi)
 
+
 ### Schmid-Leiman transformation for higher order factor ----
-cfa <- cfa(hc.HO, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
-EFAtools::SL(cfa) # Must have higher order factor 'g', aka Higher Consciousness
+mod <- paste0(hc.mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
+cfa <- cfa(mod, data=data.num, ordered = T, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+SL(cfa) # Must have higher order factor 'g', aka Higher Consciousness
 
 ### McDonald's Omega of HC ----
 library(EFAtools)
 EFAtools::OMEGA(cfa, g_name = "g") # Bifactor approach
 
+library(lavaan)
 library(semTools)
-compRelSEM(cfa, higher = "g", ord.scale = T) # As of 12/7/23 requires development version of semTools, e.g., devtools::install_github("simsem/semTools/semTools")
+cfa <- cfa(hc.HO, data=data.num, ordered = T, estimator = "WLSMV")
+semTools::compRelSEM(cfa, higher = "g", ord.scale = T) # As of 12/7/23 requires development version of semTools, e.g., devtools::install_github("simsem/semTools/semTools")
+
+# library(BifactorIndicesCalculator)
+# bifactorIndices(cfa)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~ ----
@@ -1184,11 +1286,10 @@ data.num <- na.omit(data.num)
 
 # Factor MIMIC
 # mod <- NULL # Start the model here - to check local fit, etc.
-mod <- hc.mod
+mod <- hc.HO
 mod <- paste0(mod, "\n", 'talents =~ talents4 + talents5 + talents6')
 mod <- paste0(mod, "\n", 'g ~ talents')
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = TRUE, likelihood = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
+cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = TRUE, estimator = "WLSMV") # WLSMV - Confirmatory Factor Analysis p. 354
 fitMeasures(cfa, c("cfi.robust",	"tli.robust",	"rmsea.robust", "srmr"))
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 150) # Fit indices only
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
@@ -1196,6 +1297,7 @@ lavaanPlot(model = cfa, node_options = list(shape = "box", fontname = "Helvetica
 
 
 # Regularized MIMIC
+library(regsem)
 reg <- ses.regsem("talents\\d+", hc.mod = hc.mod, data = data.num, n.lambda=10 , jump=0.01)
 clipr::write_clip(reg)
 
@@ -1237,7 +1339,7 @@ clipr::write_clip(reg)
 
 # Factor MIMIC
 # mod <- NULL # Start the model here - to check local fit, etc.
-mod <- hc.mod
+mod <- hc.HO
 mod <- paste0(mod, "\n", 'oneness =~ psybliss21 + psybliss18 + psybliss22 + psybliss19')
 mod <- paste0(mod, "\n", 'peaks =~ psybliss4 + psybliss3 + psybliss5')
 # mod <- paste0(mod, "\n", 'overcome =~ psybliss10 + psybliss9 + psybliss29')
@@ -1245,9 +1347,8 @@ mod <- paste0(mod, "\n", 'peaks =~ psybliss4 + psybliss3 + psybliss5')
 # MIMIC (formative)
 mod <- paste0(mod, "\n", 'g ~ oneness')
 mod <- paste0(mod, "\n", 'g ~ peaks')
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
 # non.reg <- mod
-cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = T, likelihood = "WLSMV") # Fix factor variances with std.lv = TRUE
+cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = T, estimator = "WLSMV") # Fix factor variances with std.lv = TRUE
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 modindices(cfa, sort = TRUE)
@@ -1276,14 +1377,13 @@ clipr::write_clip(fa.res$fa$loadings)
 data.num <- extract.numeric.columns.by.regex(ses.data, 'mystical\\d+|spiritual\\d+|psyphys\\d+|psygrowth\\d+')
 data.num <- na.omit(data.num)
 
-
 # Regularized MIMIC
 # reg <- ses.regsem("psygrowth\\d+", hc.mod = hc.mod, data = data.num, n.lambda=20 , jump=0.01)
 reg <- ses.regsem("psygrowth\\d+", hc.mod = hc.mod, data = data.num, n.lambda=5 , jump=0.01)
 clipr::write_clip(reg)
 
 # mod <- NULL # Start the model here - to check local fit, etc.
-mod <- hc.mod
+mod <- hc.HO
 mod <- paste0(mod, "\n", 'desire =~ psygrowth18 + psygrowth19 + psygrowth20 + psygrowth15 + psygrowth17')
 mod <- paste0(mod, "\n", 'psytal =~ psygrowth6 + psygrowth5 + psygrowth14')
 mod <- paste0(mod, "\n", 'altruism =~ psygrowth30 + psygrowth10 + psygrowth45 + psygrowth33 + psygrowth34 + psygrowth35')
@@ -1301,9 +1401,8 @@ mod <- paste0(mod, "\n", 'g ~ discon')
 mod <- paste0(mod, "\n", 'g ~ concen')
 mod <- paste0(mod, "\n", 'g ~ issues')
 
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
 # non.reg <- mod
-cfa <- cfa(mod, data=data.num, ordered = TRUE, likelihood = "WLSMV")
+cfa <- cfa(mod, data=data.num, ordered = TRUE, estimator = "WLSMV")
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 modindices(cfa, sort = TRUE)
@@ -1334,7 +1433,6 @@ data.num <- na.omit(data.num)
 
 # Regularized MIMIC
 mod <- hc.mod
-# reg <- ses.regsem("negpsych\\d+", hc.mod = hc.mod, data = data.num, n.lambda=20 , jump=0.01)
 library(regsem)
 reg <- ses.regsem("negpsych\\d+", hc.mod = hc.mod, data = data.num, n.lambda=8 , jump=0.01)
 clipr::write_clip(reg)
@@ -1455,7 +1553,7 @@ reg <- ses.regsem("invmov\\d+", hc.mod = hc.mod, data = data.num, n.lambda=5 , j
 clipr::write_clip(reg)
 
 # mod <- NULL # Start the model here - to check local fit, etc.
-mod <- hc.mod
+mod <- hc.HO
 mod <- paste0(mod, "\n", 'kriyas =~ invmov3 + invmov2 + invmov1')
 mod <- paste0(mod, "\n", 'spasms =~ invmov14 + invmov15')
 mod <- paste0(mod, "\n", 'dance =~ invmov7 + invmov9 + invmov6')
@@ -1467,8 +1565,7 @@ mod <- paste0(mod, "\n", 'g ~ spasms')
 mod <- paste0(mod, "\n", 'g ~ dance')
 mod <- paste0(mod, "\n", 'g ~ breathgaze')
 
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = T, likelihood = "WLSMV") # Fix factor variances with std.lv = TRUE
+cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = T, estimator = "WLSMV") # Fix factor variances with std.lv = TRUE
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 modindices(cfa, sort = TRUE)
@@ -1505,7 +1602,7 @@ reg <- ses.regsem("sensation\\d+", hc.mod = mod, data = data.num, n.lambda=10 , 
 clipr::write_clip(reg)
 
 # mod <- NULL # Start the model here - to check local fit, etc.
-mod <- hc.mod
+mod <- hc.HO
 mod <- paste0(mod, "\n", 'energytingle =~ sensation5 + sensation4 + sensation10')
 mod <- paste0(mod, "\n", 'nerves =~ sensation8 + sensation9')
 mod <- paste0(mod, "\n", 'sexual =~ sensation2 + sensation6')
@@ -1517,7 +1614,6 @@ mod <- paste0(mod, "\n", 'g ~ nerves')
 mod <- paste0(mod, "\n", 'g ~ sexual')
 mod <- paste0(mod, "\n", 'g ~ itch')
 
-mod <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
 # non.reg <- mod
 cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = T, estimator = "WLSMV") # Fix factor variances with std.lv = TRUE
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
@@ -1620,7 +1716,7 @@ reg <- ses.regsem("otherphysical\\d+", hc.mod = hc.mod, data = data.num, n.lambd
 clipr::write_clip(reg)
 
 # mod <- NULL # Start the model here - to check local fit, etc.
-mod <- hc.mod
+mod <- hc.HO
 mod <- paste0(mod, "\n", 'sleep =~ otherphysical24 + otherphysical21 + otherphysical4')
 mod <- paste0(mod, "\n", 'digestive =~ otherphysical20 + otherphysical14 + otherphysical13 + otherphysical19')
 mod <- paste0(mod, "\n", 'altered =~ otherphysical28 + otherphysical8 + otherphysical29')
@@ -1638,9 +1734,7 @@ mod <- paste0(mod, "\n", 'g ~ shining')
 mod <- paste0(mod, "\n", 'g ~ vitality')
 mod <- paste0(mod, "\n", 'g ~ sexchange')
 
-non.reg <- paste0(mod, "\n", 'g =~ unityconsc + bliss + insight + energy + light')
-# non.reg <- mod
-cfa <- cfa(non.reg, data=data.num, ordered = TRUE, std.lv = T, likelihood = "WLSMV") # Fix factor variances with std.lv = TRUE
+cfa <- cfa(mod, data=data.num, ordered = TRUE, std.lv = T, estimator = "WLSMV") # Fix factor variances with std.lv = TRUE
 limit.output(summary(cfa, fit.measures = TRUE, standardized = TRUE), 140)
 summary(cfa, fit.measures = TRUE, standardized = TRUE)
 modindices(cfa, sort = TRUE)

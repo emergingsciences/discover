@@ -57,7 +57,7 @@ model <- '
   z4 ~~ y4
   y2 ~~ y4
 '
-
+names(PoliticalDemocracy)
 xnames = colnames(PoliticalDemocracy)[-c(5,6,7,8)]
 ynames = colnames(PoliticalDemocracy)[c(5,6,7,8)]
 
@@ -69,7 +69,7 @@ PE = data.frame(repetition = rep(1:repeats, each = 4),
 
 folds = rep(1:10, length.out = 75)
 t = 0
-for (r in 1:repeats){
+for (r in 1:repeats) {
   yhat1 = yhat2 = yhat3 = yhat4 = matrix(NA, 75, 4)
   folds = sample(folds)
   
@@ -80,7 +80,8 @@ for (r in 1:repeats){
     idx = which(folds == k)
 
     # Fit SEM model
-    fit <- sem(model, data = PoliticalDemocracy[-idx, ], meanstructure = TRUE, warn = FALSE)
+    # fit <- sem(model, data = PoliticalDemocracy[-idx, ], meanstructure = TRUE, warn = FALSE)
+    fit <- sem(model, data = PoliticalDemocracy[-idx, ], meanstructure = TRUE)
     
     # RO-SEM Approach
     reg.results <- cv.lavPredictYReg(
@@ -136,18 +137,30 @@ PE$model = as.factor(PE$model)
 # saveRDS(PE, file = "outputs/political-dem-xval.rds")
 # PE <- readRDS(file = "outputs/political-dem-xval.rds")
 
-p <- ggplot(PE[PE$model == 1 | PE$model == 2 | PE$model == 3,], aes(x=model, y=pe, fill=factor(model))) +
-      geom_boxplot(aes(group = factor(model))) + 
-      geom_jitter(width = 0.05, height = 0, colour = rgb(0,0,0,.3)) + 
-      xlab("Approach") + ylab("RMSEp") + 
-      scale_x_discrete(labels=c("RO-SEM", "OOS", "MLR")) +
-      theme(legend.position="none") +
-      scale_fill_grey(start=.3,end=.7)
 
-p
+png(filename = "documents/figures/Fig8.png", width = 800, height = 640)
+ggplot(PE[PE$model == 1 | PE$model == 2 | PE$model == 3,], aes(x = factor(model), y = pe, fill = factor(model))) +
+  geom_boxplot(fill = "grey80", aes(group = factor(model))) +  
+  geom_jitter(width = 0.05, height = 0, colour = rgb(0, 0, 0, 0.5), size = 3) +  
+  xlab("Prediction Method") + 
+  ylab("RMSEp") + 
+  scale_x_discrete(labels = c("RO-SEM", "OOS", "MLR")) +  
+  theme_minimal(base_size = 14) +  
+  theme(
+    legend.position = "none", 
+    axis.title.x = element_text(size = 25, margin = margin(t = 10)),  
+    axis.text.x = element_text(size = 25),  
+    axis.ticks.x = element_blank(),  
+    axis.title.y = element_text(size = 25),  
+    axis.text.y = element_text(size = 25),  
+    panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+    panel.grid.minor.x = element_blank(),  # Remove vertical minor grid lines
+    panel.grid.major.y = element_line(size = 0.5, colour = "grey85"),  # Keep horizontal lines for readability
+    panel.grid.minor.y = element_blank()  # No minor grid lines
+  ) +
+  scale_fill_grey(start = 0.5, end = 0.8)
+dev.off()
 
 t.test(pe ~ model, data = PE[PE$model == 2 | PE$model == 1,])
 
-# pe = cbind(PE[PE$model == 0, 3], PE[PE$model == 1, 3], PE[PE$model == 2, 3], PE[PE$model == 3, 3], PE[PE$model == 4, 3], PE[PE$model == 5, 3])
-# table(apply(pe, 1, which.min))
 
